@@ -4,7 +4,7 @@ const Footer: React.FC = () => {
   return (
     <footer className="bg-playhub-main border-top border-playhub py-5 mt-5">
       <div className="container text-center">
-        <h2 className="text-white mb-3 fs-1">PlayHub<span className="text-playhub-accent">Game</span></h2>
+        <img src='./playlogo.svg' className='mb-3 fs-1' alt='playhublogo-image' />
         <p className="text-white-50 mx-auto mb-4 fs-5" style={{ maxWidth: '500px' }}>
           The best destination for free online games. Play thousands of games instantly without downloading.
         </p>
