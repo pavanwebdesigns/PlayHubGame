@@ -1,42 +1,130 @@
+/* Custom Properties */
+:root {
+  --playhub-bg: #000000;
+  --playhub-main: #000E30;
+  --playhub-accent: #2A4B8C;
+  --playhub-text: #ffffff;
+  --font-jersey: "Jersey 15", sans-serif;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-jersey);
+  background-color: var(--playhub-bg);
+  color: var(--playhub-text);
+  -webkit-font-smoothing: antialiased;
+  font-size: 1.2rem;
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Custom Bootstrap Overrides */
+.bg-playhub-main {
+  background-color: var(--playhub-main) !important;
+}
+.text-playhub-accent {
+  color: var(--playhub-accent) !important;
+}
+.border-playhub {
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Card Styles */
+.game-card {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+  background-color: var(--playhub-main);
+  /* Radius handled by bootstrap classes in App.tsx now (rounded-4) */
 }
 
-.card {
-  padding: 2em;
+.game-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 15px 30px rgba(42, 75, 140, 0.5) !important; /* Stronger shadow on hover */
+  z-index: 10;
 }
 
-.read-the-docs {
-  color: #888;
+.game-card img {
+  transition: transform 0.6s ease;
+}
+
+.game-card:hover img {
+  transform: scale(1.15);
+}
+
+/* Button Styles */
+.btn-custom {
+  background-color: var(--playhub-accent);
+  color: white;
+  border: none;
+  transition: all 0.2s;
+}
+.btn-custom:hover {
+  background-color: #3b6bd4;
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(59, 107, 212, 0.5);
+}
+
+.btn-outline-custom {
+  border: 1px solid rgba(255,255,255,0.2);
+  color: rgba(255,255,255,0.8);
+}
+.btn-outline-custom:hover, .btn-outline-custom.active {
+  background-color: white;
+  color: black;
+  border-color: white;
+}
+
+.nav-link-custom {
+  color: rgba(255,255,255,0.7);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.nav-link-custom:hover {
+  color: white;
+  background-color: rgba(255,255,255,0.1);
+}
+.nav-link-custom.active {
+  background-color: var(--playhub-accent);
+  color: white;
+  box-shadow: 0 0 15px rgba(42, 75, 140, 0.6);
+}
+
+.form-control-dark {
+  background-color: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 50px;
+}
+.form-control-dark:focus {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-color: var(--playhub-accent);
+  box-shadow: 0 0 0 0.25rem rgba(42, 75, 140, 0.25);
+}
+.form-control-dark::placeholder {
+  color: rgba(255, 255, 255, 0.5);
 }
