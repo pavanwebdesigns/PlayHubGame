@@ -3,6 +3,8 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import CategoryBar from './components/CategoryBar';
 import GamePlay from './components/GamePlay';
+import ToolsModal from './components/ToolsModal'; 
+import ToolsPage from './components/ToolsPage';
 import './App.css';
 
 // --- Types ---
@@ -21,12 +23,168 @@ export interface GamePixGame {
   color: string;
 }
 
+export interface Tool {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+  category: string;
+  isReady: boolean;
+}
+
+// --- Sidebar Component ---
+const FavoritesSidebar = ({ 
+  isOpen, 
+  onClose, 
+  favoriteGames, 
+  favoriteTools,
+  onPlayGame, 
+  onLaunchTool,
+  onRemoveGameFavorite,
+  onRemoveToolFavorite
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  favoriteGames: GamePixGame[]; 
+  favoriteTools: Tool[];
+  onPlayGame: (game: GamePixGame) => void;
+  onLaunchTool: (tool: Tool) => void;
+  onRemoveGameFavorite: (game: GamePixGame) => void;
+  onRemoveToolFavorite: (tool: Tool) => void;
+}) => {
+  return (
+    <>
+      {isOpen && (
+        <div 
+          className="position-fixed top-0 start-0 w-100 h-100 bg-black bg-opacity-50" 
+          style={{ zIndex: 1045 }} 
+          onClick={onClose}
+        />
+      )}
+      
+      <div 
+        className={`position-fixed top-0 end-0 h-100 bg-dark border-start border-secondary border-opacity-25 shadow-lg transition-transform duration-300 ease-in-out d-flex flex-column`}
+        style={{ 
+          width: '320px', 
+          zIndex: 1050, 
+          transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
+          transition: 'transform 0.3s ease-in-out'
+        }}
+      >
+        <div className="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary border-opacity-25">
+          <h5 className="text-white mb-0 d-flex align-items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-danger"><path d="m12 21.35-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            Your Favorites
+          </h5>
+          <button className="btn btn-sm btn-outline-secondary border-0 text-white" onClick={onClose}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
+          </button>
+        </div>
+        
+        <div className="p-3 overflow-auto flex-grow-1">
+          <h6 className="text-white-50 text-uppercase small mb-3 fw-bold">Games ({favoriteGames.length})</h6>
+          {favoriteGames.length === 0 ? (
+            <p className="text-white-50 small mb-4 fst-italic">No favorite games yet.</p>
+          ) : (
+            <div className="d-flex flex-column gap-3 mb-4">
+              {favoriteGames.map(game => {
+                const imageSrc = game.banner_image || game.bannerUrl || game.thumbnailUrl || game.thumbnailUrl100;
+                return (
+                  <div key={game.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
+                    <img 
+                      src={imageSrc} 
+                      alt={game.title} 
+                      className="rounded-2" 
+                      style={{ width: '50px', height: '50px', objectFit: 'cover', cursor: 'pointer' }}
+                      onClick={() => { onPlayGame(game); onClose(); }}
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (!target.getAttribute('data-failed')) {
+                            target.setAttribute('data-failed', 'true');
+                            if (imageSrc !== game.thumbnailUrl && game.thumbnailUrl) {
+                                 target.src = game.thumbnailUrl;
+                            } else {
+                                 target.src = 'https://placehold.co/100x100/000E30/FFFFFF?text=Game';
+                            }
+                        }
+                      }}
+                    />
+                    <div className="flex-grow-1 overflow-hidden">
+                      <h6 
+                        className="text-white mb-0 text-truncate cursor-pointer hover-text-primary small"
+                        onClick={() => { onPlayGame(game); onClose(); }}
+                      >
+                        {game.title}
+                      </h6>
+                      <span className="badge bg-secondary bg-opacity-50 text-white-50" style={{ fontSize: '0.6rem' }}>{game.category}</span>
+                    </div>
+                    <button 
+                      className="btn btn-sm btn-link text-white-50 hover-text-danger p-1"
+                      onClick={(e) => { e.stopPropagation(); onRemoveGameFavorite(game); }}
+                      title="Remove"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <hr className="border-secondary border-opacity-25 my-4" />
+
+          <h6 className="text-white-50 text-uppercase small mb-3 fw-bold">Tools ({favoriteTools.length})</h6>
+          {favoriteTools.length === 0 ? (
+             <p className="text-white-50 small mb-4 fst-italic">No favorite tools yet.</p>
+          ) : (
+            <div className="d-flex flex-column gap-3">
+                {favoriteTools.map(tool => (
+                    <div key={tool.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
+                        <div className="rounded-2 bg-dark d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px', fontSize: '1.5rem' }}>
+                            {tool.icon}
+                        </div>
+                        <div className="flex-grow-1 overflow-hidden">
+                            <h6 
+                                className="text-white mb-0 text-truncate cursor-pointer hover-text-primary small"
+                                onClick={() => { if(tool.isReady) { onLaunchTool(tool); onClose(); } }}
+                            >
+                                {tool.title}
+                            </h6>
+                             <span className="badge bg-secondary bg-opacity-50 text-white-50" style={{ fontSize: '0.6rem' }}>{tool.category}</span>
+                        </div>
+                        <button 
+                            className="btn btn-sm btn-link text-white-50 hover-text-danger p-1"
+                            onClick={(e) => { e.stopPropagation(); onRemoveToolFavorite(tool); }}
+                            title="Remove"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                        </button>
+                    </div>
+                ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
 // --- Game Card Component ---
-const GameCard = ({ game, onClick }: { game: GamePixGame, onClick: (game: GamePixGame) => void }) => {
+const GameCard = ({ 
+  game, 
+  onClick, 
+  isFavorite, 
+  onToggleFavorite 
+}: { 
+  game: GamePixGame; 
+  onClick: (game: GamePixGame) => void;
+  isFavorite: boolean;
+  onToggleFavorite: (game: GamePixGame) => void;
+}) => {
   const imageSrc = game.banner_image || game.bannerUrl || game.thumbnailUrl || game.thumbnailUrl100;
 
   return (
-    <div className="col-6 col-md-4 col-lg-3 col-xl-2 mb-4">
+    <div className="col-6 col-md-4 col-lg-3 col-xl-2 mb-4 position-relative group">
       <div 
         className="cursor-pointer text-decoration-none" 
         onClick={() => onClick(game)}
@@ -62,23 +220,43 @@ const GameCard = ({ game, onClick }: { game: GamePixGame, onClick: (game: GamePi
           </div>
         </div>
       </div>
+
+      {/* Favorite Button - Increased Z-Index and hover styles */}
+      <button 
+        className="btn position-absolute top-0 start-0 m-2 p-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center transition-transform hover-scale"
+        style={{ 
+          zIndex: 20, 
+          backgroundColor: isFavorite ? 'rgba(220, 53, 69, 0.9)' : 'rgba(0,0,0,0.5)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          width: '36px', 
+          height: '36px',
+          backdropFilter: 'blur(4px)'
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleFavorite(game);
+        }}
+        title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+      >
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="18" 
+          height="18" 
+          viewBox="0 0 24 24" 
+          fill={isFavorite ? "white" : "none"} 
+          stroke="white" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
+          <path d="m12 21.35-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+      </button>
     </div>
   );
 };
 
-// --- Placeholder Pages ---
-const ToolsPage = () => (
-  <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1 text-center py-5">
-    <div className="mb-4 p-4 bg-dark bg-opacity-50 rounded-circle d-inline-flex">
-      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-    </div>
-    <h1 className="display-4 fw-bold text-white mb-3">Tools Coming Soon</h1>
-    <p className="lead text-white-50 mb-4" style={{ maxWidth: '600px' }}>
-      We are building some amazing tools to enhance your gaming experience. Stay tuned for updates!
-    </p>
-  </div>
-);
-
+// --- Placeholder for Blog ---
 const BlogPage = () => (
   <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1 text-center py-5">
     <div className="mb-4 p-4 bg-dark bg-opacity-50 rounded-circle d-inline-flex">
@@ -93,6 +271,9 @@ const BlogPage = () => (
 
 function App() {
   const [games, setGames] = useState<GamePixGame[]>([]);
+  const [favoriteGames, setFavoriteGames] = useState<GamePixGame[]>([]);
+  const [favoriteTools, setFavoriteTools] = useState<Tool[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -101,9 +282,42 @@ function App() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   
-  // Router State: 'home' | 'game' | 'tools' | 'blog'
+  // Router & Modal State
   const [currentView, setCurrentView] = useState<'home' | 'game' | 'tools' | 'blog'>('home');
   const [activeGame, setActiveGame] = useState<GamePixGame | null>(null);
+  const [isToolsOpen, setIsToolsOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Load favorites
+  useEffect(() => {
+    try {
+        const storedGameFavs = localStorage.getItem('playhub_favorites');
+        if (storedGameFavs) setFavoriteGames(JSON.parse(storedGameFavs));
+        
+        const storedToolFavs = localStorage.getItem('playhub_tool_favorites');
+        if (storedToolFavs) setFavoriteTools(JSON.parse(storedToolFavs));
+    } catch (e) {
+        console.error("Failed to parse favorites", e);
+    }
+  }, []);
+
+  const toggleGameFavorite = (game: GamePixGame) => {
+    setFavoriteGames(prev => {
+      const exists = prev.find(f => f.id === game.id);
+      const newFavs = exists ? prev.filter(f => f.id !== game.id) : [...prev, game];
+      localStorage.setItem('playhub_favorites', JSON.stringify(newFavs));
+      return newFavs;
+    });
+  };
+
+  const toggleToolFavorite = (tool: Tool) => {
+    setFavoriteTools(prev => {
+      const exists = prev.find(f => f.id === tool.id);
+      const newFavs = exists ? prev.filter(f => f.id !== tool.id) : [...prev, tool];
+      localStorage.setItem('playhub_tool_favorites', JSON.stringify(newFavs));
+      return newFavs;
+    });
+  };
 
   const fetchGames = async (pageNumber: number) => {
     const isFirstLoad = pageNumber === 1;
@@ -186,6 +400,7 @@ function App() {
   };
 
   const handleGameClick = (game: GamePixGame) => {
+    console.log("Navigating to game:", game.title);
     setActiveGame(game);
     setCurrentView('game');
   };
@@ -194,7 +409,7 @@ function App() {
     setActiveGame(null);
     setCurrentView('home');
   };
-
+  
   const handleToolsClick = () => {
     setActiveGame(null);
     setCurrentView('tools');
@@ -224,25 +439,62 @@ function App() {
   if (currentView === 'game' && activeGame) {
       const related = games.filter(g => g.category === activeGame.category && g.id !== activeGame.id);
       return (
+        <>
           <GamePlay 
               game={activeGame} 
               relatedGames={related} 
               onBack={handleHomeClick}
               onPlayGame={handleGameClick}
+              isFavorite={favoriteGames.some(f => f.id === activeGame.id)}
+              onToggleFavorite={() => toggleGameFavorite(activeGame)}
           />
+          <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
+          
+          <button 
+            className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center position-fixed"
+            style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }}
+            onClick={() => setIsToolsOpen(true)}
+            title="Game Tools"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+          </button>
+
+          <FavoritesSidebar 
+            isOpen={isSidebarOpen} 
+            onClose={() => setIsSidebarOpen(false)} 
+            favoriteGames={favoriteGames}
+            favoriteTools={favoriteTools}
+            onPlayGame={handleGameClick}
+            onLaunchTool={() => { /* Logic to launch tool from sidebar - complex, maybe just go to tools page */ }}
+            onRemoveGameFavorite={toggleGameFavorite}
+            onRemoveToolFavorite={toggleToolFavorite}
+          />
+        </>
       );
   }
 
   return (
-    <div className="d-flex flex-column min-vh-100 w-100">
+    <div className="d-flex flex-column min-vh-100 w-100 position-relative overflow-x-hidden">
       <Header 
         onSearch={setSearchTerm} 
         onHome={handleHomeClick} 
         onTools={handleToolsClick} 
         onBlog={handleBlogClick}
+        onOpenSidebar={() => setIsSidebarOpen(true)}
+        favoritesCount={favoriteGames.length + favoriteTools.length}
       />
       
-      {/* Only show CategoryBar on Home view */}
+      <FavoritesSidebar 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+        favoriteGames={favoriteGames}
+        favoriteTools={favoriteTools}
+        onPlayGame={handleGameClick}
+        onLaunchTool={(tool) => { /* Simple alert for now, ideal implementation would open modal */ alert("Launch " + tool.title); setIsSidebarOpen(false); }}
+        onRemoveGameFavorite={toggleGameFavorite}
+        onRemoveToolFavorite={toggleToolFavorite}
+      />
+      
       {currentView === 'home' && (
         <CategoryBar 
           categories={categories} 
@@ -253,7 +505,10 @@ function App() {
 
       <main className="flex-grow-1 container-fluid px-4 py-5 d-flex flex-column">
         {currentView === 'tools' ? (
-          <ToolsPage />
+          <ToolsPage 
+            favoriteTools={favoriteTools}
+            onToggleFavorite={toggleToolFavorite}
+          />
         ) : currentView === 'blog' ? (
           <BlogPage />
         ) : (
@@ -284,7 +539,9 @@ function App() {
                     <GameCard 
                       key={`${game.id}-${index}`} 
                       game={game} 
-                      onClick={handleGameClick} 
+                      onClick={handleGameClick}
+                      isFavorite={favoriteGames.some(f => f.id === game.id)}
+                      onToggleFavorite={toggleGameFavorite}
                     />
                   ))}
               </div>
@@ -309,6 +566,17 @@ function App() {
         )}
       </main>
       <Footer />
+
+      <button 
+        className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center position-fixed"
+        style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }}
+        onClick={() => setIsToolsOpen(true)}
+        title="Game Tools"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </button>
+
+      <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
     </div>
   );
 }

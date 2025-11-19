@@ -2,7 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 
-// Define interface locally to avoid import issues
+// --- Interface Definition (Local) ---
+// This must match the structure of the game object passed from App.tsx
 interface GamePixGame {
   id: number;
   title: string;
@@ -23,20 +24,24 @@ interface GamePlayProps {
   relatedGames: GamePixGame[];
   onBack: () => void;
   onPlayGame: (game: GamePixGame) => void;
+  isFavorite: boolean;
+  onToggleFavorite: () => void;
 }
 
-const GamePlay: React.FC<GamePlayProps> = ({ game, relatedGames, onBack, onPlayGame }) => {
+const GamePlay: React.FC<GamePlayProps> = ({ 
+  game, 
+  relatedGames, 
+  onBack, 
+  onPlayGame, 
+  isFavorite, 
+  onToggleFavorite 
+}) => {
   const topRef = useRef<HTMLDivElement>(null);
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to top and update SEO meta when game changes
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: 'smooth' });
-    
-    // SEO: Update Page Title
     document.title = `Play ${game.title} - Free Online ${game.category} Game | PlayHubGame`;
-    
-    // SEO: Update Meta Description (Basic implementation)
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
         metaDesc.setAttribute('content', `Play ${game.title} for free! ${game.description?.substring(0, 150)}... No downloads required.`);
@@ -45,7 +50,6 @@ const GamePlay: React.FC<GamePlayProps> = ({ game, relatedGames, onBack, onPlayG
 
   const toggleFullScreen = () => {
     if (!gameContainerRef.current) return;
-
     if (!document.fullscreenElement) {
       gameContainerRef.current.requestFullscreen().catch((err) => {
         console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
@@ -60,8 +64,6 @@ const GamePlay: React.FC<GamePlayProps> = ({ game, relatedGames, onBack, onPlayG
       <Header onSearch={() => {}} onHome={onBack} />
 
       <main className="flex-grow-1 container-fluid px-0 px-md-4 py-4">
-        
-        {/* Breadcrumb / Navigation */}
         <nav aria-label="breadcrumb" className="container mb-4">
             <button onClick={onBack} className="btn btn-outline-light rounded-pill px-4 d-flex align-items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
@@ -69,10 +71,8 @@ const GamePlay: React.FC<GamePlayProps> = ({ game, relatedGames, onBack, onPlayG
             </button>
         </nav>
 
-        {/* Game Player & Details Section */}
         <article className="container mb-5">
             <div className="row g-4">
-                {/* Game Frame */}
                 <div className="col-12 col-lg-9">
                     <section 
                         ref={gameContainerRef}
@@ -87,8 +87,6 @@ const GamePlay: React.FC<GamePlayProps> = ({ game, relatedGames, onBack, onPlayG
                             loading="eager"
                             allow="autoplay; fullscreen; gyroscope; accelerometer; magnetometer; gamepad"
                         ></iframe>
-
-                         {/* Full Screen Toggle Button (visible on hover or always on mobile) */}
                          <button 
                             onClick={toggleFullScreen}
                             className="btn btn-dark bg-opacity-75 position-absolute bottom-0 end-0 m-3 rounded-circle p-2 d-flex align-items-center justify-content-center border border-white border-opacity-25"
@@ -100,56 +98,54 @@ const GamePlay: React.FC<GamePlayProps> = ({ game, relatedGames, onBack, onPlayG
                         </button>
                     </section>
                     
-                    {/* Game Meta Data & SEO Content */}
                     <section className="mt-4 text-white">
-                        <header className="mb-4">
-                            <div className="d-flex flex-wrap align-items-center gap-3 mb-2">
+                        <header className="mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <div className="d-flex flex-wrap align-items-center gap-3">
                                 <h1 className="display-5 fw-bold mb-0">{game.title}</h1>
                                 <span className="badge bg-primary fs-6 rounded-pill px-3 py-2 text-uppercase">{game.category}</span>
                             </div>
+
+                            {/* Favorite Toggle Button */}
+                            <button 
+                                className={`btn rounded-pill px-4 d-flex align-items-center gap-2 ${isFavorite ? 'btn-danger text-white' : 'btn-outline-light text-white-50'}`}
+                                onClick={onToggleFavorite}
+                            >
+                                <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="20" 
+                                    height="20" 
+                                    viewBox="0 0 24 24" 
+                                    fill={isFavorite ? "currentColor" : "none"} 
+                                    stroke="currentColor" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round"
+                                >
+                                    <path d="m12 21.35-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                                {isFavorite ? 'Favorited' : 'Add to Favorites'}
+                            </button>
                         </header>
                         
-                        {/* Detailed Description for SEO */}
+                        <div className="alert alert-dark d-flex align-items-center border border-secondary border-opacity-25 mb-4" role="alert">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warning me-3"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+                            <div>
+                                <strong>Having trouble playing?</strong> If the game doesn't load, try disabling your ad blocker.
+                            </div>
+                        </div>
+                        
                         <div className="game-description">
                             <h2 className="h4 text-white mb-3">About this Game</h2>
                             <p className="lead text-white-50">
-                                {game.description || `Experience the thrill of ${game.title}, a top-rated ${game.category} game on PlayHubGame. Play instantly without any downloads!`}
+                                {game.description || `Experience the thrill of ${game.title} on PlayHubGame.`}
                             </p>
-                            
-                            {/* Additional SEO-friendly details */}
-                            <div className="row mt-4 g-3">
-                                <div className="col-auto">
-                                    <div className="p-3 bg-white bg-opacity-10 rounded-3">
-                                        <span className="d-block text-white-50 small text-uppercase">Category</span>
-                                        <span className="d-block fw-bold">{game.category}</span>
-                                    </div>
-                                </div>
-                                <div className="col-auto">
-                                    <div className="p-3 bg-white bg-opacity-10 rounded-3">
-                                        <span className="d-block text-white-50 small text-uppercase">Platform</span>
-                                        <span className="d-block fw-bold">Browser (HTML5)</span>
-                                    </div>
-                                </div>
-                                <div className="col-auto">
-                                    <div className="p-3 bg-white bg-opacity-10 rounded-3">
-                                        <span className="d-block text-white-50 small text-uppercase">Game Type</span>
-                                        <span className="d-block fw-bold">Free to Play</span>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </section>
                 </div>
-
-                {/* Sidebar / Ads Placeholder */}
                 <aside className="col-12 col-lg-3">
                     <div className="bg-dark bg-opacity-50 rounded-4 p-4 h-100 border border-secondary border-opacity-25 text-center d-flex flex-column align-items-center justify-content-start sticky-top" style={{ top: '100px', zIndex: 1 }}>
                         <span className="text-white-50 text-uppercase small letter-spacing-2 mb-3">Sponsored</span>
-                        {/* Ad Placeholder */}
                         <div className="p-4 bg-black bg-opacity-50 rounded w-100 d-flex align-items-center justify-content-center" style={{ border: '2px dashed #444', minHeight: '250px' }}>
-                             <span className="text-white-50">Ad Space</span>
-                        </div>
-                        <div className="mt-4 p-4 bg-black bg-opacity-50 rounded w-100 d-flex align-items-center justify-content-center" style={{ border: '2px dashed #444', minHeight: '250px' }}>
                              <span className="text-white-50">Ad Space</span>
                         </div>
                     </div>
