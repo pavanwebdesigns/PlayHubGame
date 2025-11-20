@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
-// --- Types (Re-defined here to avoid import issues) ---
-interface Tool {
+// --- Tool Card Component ---
+interface ToolCardProps {
   id: string;
   icon: string;
   title: string;
   description: string;
-  category: string;
   isReady: boolean;
-}
-
-interface ToolCardProps extends Tool {
+  category: string;
   onLaunch: () => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
@@ -100,60 +97,173 @@ const ToolCard: React.FC<ToolCardProps> = ({ icon, title, description, isReady, 
   </div>
 );
 
-// --- Tool Modal Content Components ---
+// -- Exporting Tool Components for Re-use in Full Pages --
 
-const SimpleToolModal = ({ tool, onClose }: { tool: any, onClose: () => void }) => (
-    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(5px)', zIndex: 1060 }} tabIndex={-1}>
-      <div className="modal-dialog modal-dialog-centered modal-lg">
-        <div className="modal-content bg-dark text-white border-secondary shadow-lg rounded-4">
-          <div className="modal-header border-secondary border-opacity-25">
-            <h5 className="modal-title d-flex align-items-center gap-2">
-                <span className="fs-4">{tool.icon}</span> 
-                {tool.title}
-            </h5>
-            <button type="button" className="btn-close btn-close-white" onClick={onClose}></button>
-          </div>
-          <div className="modal-body p-4" style={{ minHeight: '300px' }}>
-             {tool.id === 'sys-info' ? <SystemInfoTool /> : 
-              tool.id === 'password-gen' ? <PasswordGenTool /> :
-              tool.id === 'breath' ? <BreathTool /> :
-              tool.id === 'reaction' ? <ReactionTool /> :
-              <div className="text-center py-5">
-                  <div className="display-1 mb-3">🚧</div>
-                  <h3>{tool.title} is ready to be built!</h3>
-                  <p className="text-white-50">The logic for this tool will be implemented in the next update.</p>
-              </div>
-             }
-          </div>
-        </div>
-      </div>
+export const ReactionGame = () => {
+  const [gameState, setGameState] = useState<'idle' | 'waiting' | 'ready' | 'finished'>('idle');
+  const [message, setMessage] = useState('Click to Start');
+  const [startTime, setStartTime] = useState(0);
+  const [score, setScore] = useState<number | null>(null);
+  const timeoutRef = useRef<number | null>(null);
+
+  const handleStart = () => {
+    setGameState('waiting');
+    setMessage('Wait for Green...');
+    setScore(null);
+    
+    const randomDelay = Math.floor(Math.random() * 2000) + 1000; 
+    timeoutRef.current = setTimeout(() => {
+      setGameState('ready');
+      setMessage('CLICK NOW!');
+      setStartTime(Date.now());
+    }, randomDelay);
+  };
+
+  const handleClick = () => {
+    if (gameState === 'idle' || gameState === 'finished') {
+      handleStart();
+    } else if (gameState === 'waiting') {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      setGameState('finished');
+      setMessage('Too early!');
+    } else if (gameState === 'ready') {
+      const endTime = Date.now();
+      const reactionTime = endTime - startTime;
+      setScore(reactionTime);
+      setGameState('finished');
+      setMessage(`${reactionTime} ms`);
+    }
+  };
+
+  let bgColor = 'bg-secondary';
+  if (gameState === 'waiting') bgColor = 'bg-danger';
+  if (gameState === 'ready') bgColor = 'bg-success';
+  if (gameState === 'finished') bgColor = 'bg-primary';
+
+  return (
+    <div 
+      className={`p-5 rounded-4 text-center text-white cursor-pointer shadow-lg transition-all ${bgColor}`}
+      style={{ minHeight: '400px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', transition: 'background-color 0.2s' }}
+      onMouseDown={handleClick}
+    >
+      <h2 className="display-3 fw-bold mb-4">⚡ Reaction Test</h2>
+      <h3 className="display-1 fw-bold">{message}</h3>
+      {gameState === 'finished' && score && (
+         <p className="fs-4 mt-3">Your reaction time: {score}ms</p>
+      )}
+      {gameState === 'idle' && <p className="mt-3 opacity-75 fs-5">Click anywhere in this box to begin</p>}
     </div>
-);
+  );
+};
 
-// -- Tool Logic Components --
-const SystemInfoTool = () => {
-    const info = {
-        os: navigator.platform,
-        userAgent: navigator.userAgent,
-        language: navigator.language,
-        screen: `${window.screen.width}x${window.screen.height}`,
-        cores: navigator.hardwareConcurrency || 'Unknown'
+export const CpsTest = () => {
+    const [clicks, setClicks] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(5);
+    const [isActive, setIsActive] = useState(false);
+    const [result, setResult] = useState<number | null>(null);
+
+    useEffect(() => {
+        let interval: number | null = null;
+        if (isActive && timeLeft > 0) {
+            interval = setInterval(() => {
+                setTimeLeft(prev => prev - 1);
+            }, 1000);
+        } else if (timeLeft === 0) {
+            setIsActive(false);
+            setResult(clicks / 5);
+            if(interval) clearInterval(interval);
+        }
+        return () => { if(interval) clearInterval(interval); };
+    }, [isActive, timeLeft, clicks]);
+
+    const handleClick = () => {
+        if (timeLeft === 0) {
+            setClicks(0);
+            setTimeLeft(5);
+            setResult(null);
+            setIsActive(true);
+            return;
+        }
+        if (!isActive) setIsActive(true);
+        setClicks(prev => prev + 1);
     };
+
     return (
-        <div className="p-3">
+        <div className="text-center py-5">
+            <h3 className="mb-5 display-6 fw-bold text-white">🖱️ CPS Test (5s)</h3>
+            <button 
+                className="btn btn-outline-light rounded-circle d-flex align-items-center justify-content-center mx-auto mb-5 shadow-lg active:scale-95 transition-transform"
+                style={{ width: '200px', height: '200px', fontSize: '2.5rem', userSelect: 'none', borderWidth: '3px' }}
+                onMouseDown={handleClick}
+            >
+               {timeLeft === 0 ? "Retry" : "CLICK!"}
+            </button>
+            <div className="row g-4 justify-content-center">
+                <div className="col-auto px-5 border-end border-secondary border-opacity-25">
+                    <div className="display-4 fw-bold text-white">{clicks}</div>
+                    <div className="text-white-50 text-uppercase small letter-spacing-2">Clicks</div>
+                </div>
+                <div className="col-auto px-5">
+                    <div className="display-4 fw-bold text-white">{timeLeft}s</div>
+                    <div className="text-white-50 text-uppercase small letter-spacing-2">Time Left</div>
+                </div>
+            </div>
+            {result !== null && (
+                <div className="alert alert-success mt-5 mb-0 fs-3 d-inline-block px-5">
+                    Your Speed: <strong>{result} CPS</strong>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export const SystemInfoTool = () => {
+    const [info, setInfo] = useState<any>({ width: 0, height: 0, ua: '' });
+
+    useEffect(() => {
+        setInfo({
+            width: window.screen.width,
+            height: window.screen.height,
+            ua: navigator.userAgent,
+            os: navigator.platform,
+            language: navigator.language,
+            cores: navigator.hardwareConcurrency
+        });
+    }, []);
+
+    return (
+        <div className="py-4">
             <ul className="list-group list-group-flush bg-transparent">
-                {Object.entries(info).map(([key, val]) => (
-                    <li key={key} className="list-group-item bg-transparent text-white border-secondary border-opacity-25 d-flex justify-content-between">
-                        <span className="text-capitalize opacity-75">{key}</span>
-                        <span className="fw-bold font-monospace text-primary">{val}</span>
-                    </li>
-                ))}
+                <li className="list-group-item bg-transparent text-white border-secondary border-opacity-25 d-flex justify-content-between align-items-center py-4">
+                    <span className="fs-5">Screen Resolution</span>
+                    <span className="fw-bold text-primary fs-4 font-monospace">{info.width} x {info.height}</span>
+                </li>
+                <li className="list-group-item bg-transparent text-white border-secondary border-opacity-25 d-flex justify-content-between align-items-center py-4">
+                    <span className="fs-5">Window Size</span>
+                    <span className="fw-bold text-primary fs-4 font-monospace">{window.innerWidth} x {window.innerHeight}</span>
+                </li>
+                 <li className="list-group-item bg-transparent text-white border-secondary border-opacity-25 d-flex justify-content-between align-items-center py-4">
+                    <span className="fs-5">Operating System</span>
+                    <span className="fw-bold text-primary fs-4 font-monospace">{info.os}</span>
+                </li>
+                <li className="list-group-item bg-transparent text-white border-secondary border-opacity-25 d-flex justify-content-between align-items-center py-4">
+                    <span className="fs-5">Language</span>
+                    <span className="fw-bold text-primary fs-4 font-monospace">{info.language}</span>
+                </li>
+                 <li className="list-group-item bg-transparent text-white border-secondary border-opacity-25 d-flex justify-content-between align-items-center py-4">
+                    <span className="fs-5">CPU Cores</span>
+                    <span className="fw-bold text-primary fs-4 font-monospace">{info.cores}</span>
+                </li>
+                <li className="list-group-item bg-transparent text-white border-secondary border-opacity-25 py-4">
+                    <span className="d-block mb-2 fs-5">User Agent</span>
+                    <code className="d-block p-4 bg-black bg-opacity-50 rounded-3 text-white-50" style={{ fontSize: '0.9rem' }}>{info.ua}</code>
+                </li>
             </ul>
         </div>
     );
-}
+};
 
-const PasswordGenTool = () => {
+export const PasswordGenTool = () => {
     const [pass, setPass] = useState('');
     const generate = () => {
         const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
@@ -162,45 +272,24 @@ const PasswordGenTool = () => {
         setPass(result);
     }
     return (
-        <div className="text-center py-4">
-            <div className="display-4 font-monospace mb-4 p-3 bg-black bg-opacity-25 rounded text-break user-select-all">{pass || 'Click Generate'}</div>
-            <button className="btn btn-primary btn-lg" onClick={generate}>Generate Password</button>
-        </div>
-    )
-}
-
-const BreathTool = () => {
-    const [stage, setStage] = useState('Inhale');
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setStage(s => s === 'Inhale' ? 'Hold' : s === 'Hold' ? 'Exhale' : 'Inhale');
-        }, 4000);
-        return () => clearInterval(interval);
-    }, []);
-    return (
         <div className="text-center py-5">
-            <div className={`display-1 fw-bold transition-all duration-1000 ${stage === 'Inhale' ? 'scale-110 text-info' : stage === 'Hold' ? 'text-white' : 'scale-90 text-primary'}`}>
-                {stage}
+            <div className="display-2 font-monospace mb-5 p-5 bg-black bg-opacity-50 rounded-4 text-break user-select-all text-white border border-white border-opacity-10">
+                {pass || 'Click Generate'}
             </div>
-            <p className="mt-4 text-white-50">Follow the rhythm to relax.</p>
+            <button className="btn btn-primary btn-lg px-5 py-3 fs-3 rounded-pill shadow-lg" onClick={generate}>Generate Password</button>
         </div>
     )
 }
 
-const ReactionTool = () => (
-    <div className="text-center">
-        <p className="lead">Please use the quick-access floating button for the Reaction Test!</p>
-    </div>
-)
 
 interface ToolsPageProps {
-  favoriteTools: Tool[];
-  onToggleFavorite: (tool: Tool) => void;
+  favoriteTools?: any[];
+  onToggleFavorite?: (tool: any) => void;
+  onNavigateToTool: (toolId: string) => void;
 }
 
 // --- Main Page Component ---
-const ToolsPage: React.FC<ToolsPageProps> = ({ favoriteTools, onToggleFavorite }) => {
-  const [activeTool, setActiveTool] = useState<any | null>(null);
+const ToolsPage: React.FC<ToolsPageProps> = ({ favoriteTools = [], onToggleFavorite = () => {}, onNavigateToTool }) => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
 
@@ -218,7 +307,7 @@ const ToolsPage: React.FC<ToolsPageProps> = ({ favoriteTools, onToggleFavorite }
   const tools = [
     // 1. Health
     { id: 'breath', category: 'health', icon: '🫁', title: 'Breath Trainer', description: 'Guided 4-7-8 breathing for calmness.', isReady: true },
-    { id: 'heart', category: 'health', icon: '❤️', title: 'Heart Rate Monitor', description: 'Measure pulse via webcam (experimental).', isReady: false },
+    { id: 'heart', category: 'health', icon: '❤️', title: 'Heart Rate Monitor', description: 'Measure pulse via webcam (Coming Soon).', isReady: false }, // DISABLED
     { id: 'focus', category: 'health', icon: '🧘', title: 'Focus Timer', description: 'Pomodoro timer with ambient sounds.', isReady: true },
     { id: 'sleep', category: 'health', icon: '🌙', title: 'Sleep Sounds', description: 'White noise generator.', isReady: true },
     { id: 'mood', category: 'health', icon: '☀️', title: 'Mood Journal', description: 'Local daily mood tracker.', isReady: true },
@@ -330,16 +419,13 @@ const ToolsPage: React.FC<ToolsPageProps> = ({ favoriteTools, onToggleFavorite }
           <div key={tool.id} className="col-12 col-md-6 col-lg-4 col-xl-3">
             <ToolCard 
                 {...tool} 
-                onLaunch={() => setActiveTool(tool)}
-                isFavorite={favoriteTools.some(f => f.id === tool.id)}
+                onLaunch={() => onNavigateToTool(tool.id)}
+                isFavorite={favoriteTools?.some(f => f.id === tool.id)}
                 onToggleFavorite={() => onToggleFavorite(tool)}
             />
           </div>
         ))}
       </div>
-
-      {/* Tool Modal */}
-      {activeTool && <SimpleToolModal tool={activeTool} onClose={() => setActiveTool(null)} />}
       
       {/* Empty State */}
       {filteredTools.length === 0 && (

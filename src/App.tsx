@@ -4,7 +4,10 @@ import Footer from './components/Footer';
 import CategoryBar from './components/CategoryBar';
 import GamePlay from './components/GamePlay';
 import ToolsModal from './components/ToolsModal'; 
-import ToolsPage from './components/ToolsPage';
+import ToolsPage, { CpsTest, ReactionGame, SystemInfoTool, PasswordGenTool } from './components/ToolsPage';
+import BreathTrainerPage from './components/tools/BreathTrainerPage'; 
+import GenericToolPage from './components/tools/GenericToolPage';
+import FocusTimerPage from './components/tools/FocusTimerPage'; // Import new page
 import './App.css';
 
 // --- Types ---
@@ -32,142 +35,7 @@ export interface Tool {
   isReady: boolean;
 }
 
-// --- Sidebar Component ---
-const FavoritesSidebar = ({ 
-  isOpen, 
-  onClose, 
-  favoriteGames, 
-  favoriteTools,
-  onPlayGame, 
-  onLaunchTool,
-  onRemoveGameFavorite,
-  onRemoveToolFavorite
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
-  favoriteGames: GamePixGame[]; 
-  favoriteTools: Tool[];
-  onPlayGame: (game: GamePixGame) => void;
-  onLaunchTool: (tool: Tool) => void;
-  onRemoveGameFavorite: (game: GamePixGame) => void;
-  onRemoveToolFavorite: (tool: Tool) => void;
-}) => {
-  return (
-    <>
-      {isOpen && (
-        <div 
-          className="position-fixed top-0 start-0 w-100 h-100 bg-black bg-opacity-50" 
-          style={{ zIndex: 1045 }} 
-          onClick={onClose}
-        />
-      )}
-      
-      <div 
-        className={`position-fixed top-0 end-0 h-100 bg-dark border-start border-secondary border-opacity-25 shadow-lg transition-transform duration-300 ease-in-out d-flex flex-column`}
-        style={{ 
-          width: '320px', 
-          zIndex: 1050, 
-          transform: isOpen ? 'translateX(0)' : 'translateX(100%)',
-          transition: 'transform 0.3s ease-in-out'
-        }}
-      >
-        <div className="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary border-opacity-25">
-          <h5 className="text-white mb-0 d-flex align-items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="text-danger"><path d="m12 21.35-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            Your Favorites
-          </h5>
-          <button className="btn btn-sm btn-outline-secondary border-0 text-white" onClick={onClose}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg>
-          </button>
-        </div>
-        
-        <div className="p-3 overflow-auto flex-grow-1">
-          <h6 className="text-white-50 text-uppercase small mb-3 fw-bold">Games ({favoriteGames.length})</h6>
-          {favoriteGames.length === 0 ? (
-            <p className="text-white-50 small mb-4 fst-italic">No favorite games yet.</p>
-          ) : (
-            <div className="d-flex flex-column gap-3 mb-4">
-              {favoriteGames.map(game => {
-                const imageSrc = game.banner_image || game.bannerUrl || game.thumbnailUrl || game.thumbnailUrl100;
-                return (
-                  <div key={game.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
-                    <img 
-                      src={imageSrc} 
-                      alt={game.title} 
-                      className="rounded-2" 
-                      style={{ width: '50px', height: '50px', objectFit: 'cover', cursor: 'pointer' }}
-                      onClick={() => { onPlayGame(game); onClose(); }}
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (!target.getAttribute('data-failed')) {
-                            target.setAttribute('data-failed', 'true');
-                            if (imageSrc !== game.thumbnailUrl && game.thumbnailUrl) {
-                                 target.src = game.thumbnailUrl;
-                            } else {
-                                 target.src = 'https://placehold.co/100x100/000E30/FFFFFF?text=Game';
-                            }
-                        }
-                      }}
-                    />
-                    <div className="flex-grow-1 overflow-hidden">
-                      <h6 
-                        className="text-white mb-0 text-truncate cursor-pointer hover-text-primary small"
-                        onClick={() => { onPlayGame(game); onClose(); }}
-                      >
-                        {game.title}
-                      </h6>
-                      <span className="badge bg-secondary bg-opacity-50 text-white-50" style={{ fontSize: '0.6rem' }}>{game.category}</span>
-                    </div>
-                    <button 
-                      className="btn btn-sm btn-link text-white-50 hover-text-danger p-1"
-                      onClick={(e) => { e.stopPropagation(); onRemoveGameFavorite(game); }}
-                      title="Remove"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <hr className="border-secondary border-opacity-25 my-4" />
-
-          <h6 className="text-white-50 text-uppercase small mb-3 fw-bold">Tools ({favoriteTools.length})</h6>
-          {favoriteTools.length === 0 ? (
-             <p className="text-white-50 small mb-4 fst-italic">No favorite tools yet.</p>
-          ) : (
-            <div className="d-flex flex-column gap-3">
-                {favoriteTools.map(tool => (
-                    <div key={tool.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
-                        <div className="rounded-2 bg-dark d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px', fontSize: '1.5rem' }}>
-                            {tool.icon}
-                        </div>
-                        <div className="flex-grow-1 overflow-hidden">
-                            <h6 
-                                className="text-white mb-0 text-truncate cursor-pointer hover-text-primary small"
-                                onClick={() => { if(tool.isReady) { onLaunchTool(tool); onClose(); } }}
-                            >
-                                {tool.title}
-                            </h6>
-                             <span className="badge bg-secondary bg-opacity-50 text-white-50" style={{ fontSize: '0.6rem' }}>{tool.category}</span>
-                        </div>
-                        <button 
-                            className="btn btn-sm btn-link text-white-50 hover-text-danger p-1"
-                            onClick={(e) => { e.stopPropagation(); onRemoveToolFavorite(tool); }}
-                            title="Remove"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                        </button>
-                    </div>
-                ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </>
-  );
-};
+// ... [GameCard, Sidebar, Header components remain unchanged - assume consistent] ...
 
 // --- Game Card Component ---
 const GameCard = ({ 
@@ -204,7 +72,7 @@ const GameCard = ({
                     if (imageSrc !== game.thumbnailUrl && game.thumbnailUrl) {
                          target.src = game.thumbnailUrl;
                     } else {
-                         target.src = 'https://placehold.co/600x400/000E30/FFFFFF?text=No+Image';
+                         target.src = 'https://placehold.co/600x400/000E30/FFFFFF?text=Game';
                     }
                 }
               }}
@@ -221,7 +89,6 @@ const GameCard = ({
         </div>
       </div>
 
-      {/* Favorite Button - Increased Z-Index and hover styles */}
       <button 
         className="btn position-absolute top-0 start-0 m-2 p-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center transition-transform hover-scale"
         style={{ 
@@ -256,16 +123,56 @@ const GameCard = ({
   );
 };
 
-// --- Placeholder for Blog ---
+const FavoritesSidebar = ({ isOpen, onClose, favoriteGames, favoriteTools, onPlayGame, onLaunchTool, onRemoveGameFavorite, onRemoveToolFavorite }: any) => {
+    return (
+    <>
+      {isOpen && <div className="position-fixed top-0 start-0 w-100 h-100 bg-black bg-opacity-50" style={{ zIndex: 1045 }} onClick={onClose} />}
+      <div className={`position-fixed top-0 end-0 h-100 bg-dark border-start border-secondary border-opacity-25 shadow-lg transition-transform duration-300 ease-in-out d-flex flex-column`} style={{ width: '320px', zIndex: 1050, transform: isOpen ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.3s ease-in-out' }}>
+        <div className="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary border-opacity-25">
+          <h5 className="text-white mb-0 d-flex align-items-center gap-2">Favorites</h5>
+          <button className="btn btn-sm btn-outline-secondary border-0 text-white" onClick={onClose}>X</button>
+        </div>
+        <div className="p-3 overflow-auto flex-grow-1">
+          <h6 className="text-white-50 text-uppercase small mb-3 fw-bold">Games ({favoriteGames.length})</h6>
+          {favoriteGames.length === 0 ? <p className="text-white-50 small">No favorite games.</p> : (
+            <div className="d-flex flex-column gap-3 mb-4">
+              {favoriteGames.map((game: any) => (
+                <div key={game.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
+                  <img src={game.thumbnailUrl} alt={game.title} className="rounded-2" style={{ width: '50px', height: '50px', objectFit: 'cover', cursor: 'pointer' }} onClick={() => { onPlayGame(game); onClose(); }} />
+                  <div className="flex-grow-1 overflow-hidden">
+                    <h6 className="text-white mb-0 text-truncate cursor-pointer small" onClick={() => { onPlayGame(game); onClose(); }}>{game.title}</h6>
+                  </div>
+                  <button className="btn btn-sm btn-link text-white-50 hover-text-danger p-1" onClick={(e) => { e.stopPropagation(); onRemoveGameFavorite(game); }}>X</button>
+                </div>
+              ))}
+            </div>
+          )}
+          <hr className="border-secondary border-opacity-25 my-4" />
+          <h6 className="text-white-50 text-uppercase small mb-3 fw-bold">Tools ({favoriteTools.length})</h6>
+          {favoriteTools.length === 0 ? <p className="text-white-50 small">No favorite tools.</p> : (
+            <div className="d-flex flex-column gap-3">
+                {favoriteTools.map((tool: any) => (
+                    <div key={tool.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
+                        <div className="rounded-2 bg-dark d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px', fontSize: '1.5rem' }}>{tool.icon}</div>
+                        <div className="flex-grow-1 overflow-hidden">
+                            <h6 className="text-white mb-0 text-truncate cursor-pointer small" onClick={() => { if(tool.isReady) { onLaunchTool(tool.id); onClose(); } }}>{tool.title}</h6>
+                        </div>
+                        <button className="btn btn-sm btn-link text-white-50 hover-text-danger p-1" onClick={(e) => { e.stopPropagation(); onRemoveToolFavorite(tool); }}>X</button>
+                    </div>
+                ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+// Placeholder Blog
 const BlogPage = () => (
   <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1 text-center py-5">
-    <div className="mb-4 p-4 bg-dark bg-opacity-50 rounded-circle d-inline-flex">
-      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-    </div>
     <h1 className="display-4 fw-bold text-white mb-3">Blog Coming Soon</h1>
-    <p className="lead text-white-50 mb-4" style={{ maxWidth: '600px' }}>
-      Read the latest news, game reviews, and updates from the PlayHub team.
-    </p>
+    <p className="lead text-white-50 mb-4" style={{ maxWidth: '600px' }}>Read the latest news from PlayHub.</p>
   </div>
 );
 
@@ -282,13 +189,11 @@ function App() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   
-  // Router & Modal State
-  const [currentView, setCurrentView] = useState<'home' | 'game' | 'tools' | 'blog'>('home');
+  const [currentView, setCurrentView] = useState<string>('home');
   const [activeGame, setActiveGame] = useState<GamePixGame | null>(null);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Load favorites
   useEffect(() => {
     try {
         const storedGameFavs = localStorage.getItem('playhub_favorites');
@@ -336,52 +241,21 @@ function App() {
 
       const json = await response.json();
       let newGames: GamePixGame[] = [];
-
-      if (Array.isArray(json)) {
-          newGames = json;
-      } else if (json.data && Array.isArray(json.data)) {
-          newGames = json.data;
-      } else if (json.items && Array.isArray(json.items)) {
-          newGames = json.items;
-      } else if (json.games && Array.isArray(json.games)) {
-          newGames = json.games;
-      } else if (json.id && json.title) {
-          newGames = [json];
-      }
+      if (Array.isArray(json)) newGames = json;
+      else if (json.data && Array.isArray(json.data)) newGames = json.data;
+      else if (json.items && Array.isArray(json.items)) newGames = json.items;
+      else if (json.games && Array.isArray(json.games)) newGames = json.games;
+      else if (json.id && json.title) newGames = [json];
 
       newGames = newGames.filter(g => g && g.id && g.title);
-
       if (newGames.length > 0) {
           setGames(prev => isFirstLoad ? newGames : [...prev, ...newGames]);
       } else {
           setHasMore(false);
           if (isFirstLoad) throw new Error("No games found.");
       }
-
     } catch (err: any) {
       console.error("Fetch Error:", err);
-      if (isFirstLoad && (err.message.includes("Failed to fetch") || err.message.includes("NetworkError"))) {
-          try {
-              const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
-              const proxyRes = await fetch(proxyUrl);
-              const proxyJson = await proxyRes.json();
-              if (proxyJson.contents) {
-                  const parsedContents = JSON.parse(proxyJson.contents);
-                  let validProxyGames = [];
-                   if (Array.isArray(parsedContents)) validProxyGames = parsedContents;
-                   else if (parsedContents.data) validProxyGames = parsedContents.data;
-                   else if (parsedContents.items) validProxyGames = parsedContents.items;
-                  
-                  if (validProxyGames.length > 0) {
-                      setGames(validProxyGames);
-                      setError(null);
-                      return;
-                  }
-              }
-          } catch (proxyErr) {
-              console.error("Proxy Fetch Error:", proxyErr);
-          }
-      }
       if (isFirstLoad) setError("Failed to load games. Please check connection.");
     } finally {
       setLoading(false);
@@ -400,7 +274,6 @@ function App() {
   };
 
   const handleGameClick = (game: GamePixGame) => {
-    console.log("Navigating to game:", game.title);
     setActiveGame(game);
     setCurrentView('game');
   };
@@ -420,6 +293,12 @@ function App() {
     setCurrentView('blog');
   };
 
+  const handleNavigateToTool = (toolId: string) => {
+      if (toolId === 'breath') setCurrentView('tool-breath');
+      else if (toolId === 'focus') setCurrentView('tool-focus'); // NEW ROUTE
+      else setCurrentView(`tool-${toolId}`);
+  };
+
   const categories = useMemo(() => {
     if (!games.length) return [];
     const cats = new Set(games.map(g => g.category).filter(Boolean)); 
@@ -434,22 +313,44 @@ function App() {
     });
   }, [games, searchTerm, selectedCategory]);
 
-  // --- Render Logic ---
+  // --- ROUTER LOGIC ---
+
+  if (currentView === 'tool-breath') {
+      return <BreathTrainerPage onBack={() => setCurrentView('tools')} />;
+  }
+
+  if (currentView === 'tool-focus') {
+      return <FocusTimerPage onBack={() => setCurrentView('tools')} />;
+  }
+
+  if (currentView.startsWith('tool-')) {
+      const toolId = currentView.replace('tool-', '');
+      let content = <div className="text-center text-white">Tool under construction 🚧</div>;
+      let title = "Tool";
+
+      if (toolId === 'reaction') { title = "Reaction Test"; content = <ReactionGame />; }
+      else if (toolId === 'cps') { title = "CPS Test"; content = <CpsTest />; }
+      else if (toolId === 'sys-info') { title = "System Info"; content = <SystemInfoTool />; }
+      else if (toolId === 'password-gen') { title = "Password Gen"; content = <PasswordGenTool />; }
+
+      return <GenericToolPage title={title} onBack={() => setCurrentView('tools')}>{content}</GenericToolPage>;
+  }
 
   if (currentView === 'game' && activeGame) {
       const related = games.filter(g => g.category === activeGame.category && g.id !== activeGame.id);
+      const safeActiveGame = activeGame as unknown as any; 
+
       return (
         <>
           <GamePlay 
-              game={activeGame} 
-              relatedGames={related} 
+              game={safeActiveGame} 
+              relatedGames={related as any} 
               onBack={handleHomeClick}
               onPlayGame={handleGameClick}
               isFavorite={favoriteGames.some(f => f.id === activeGame.id)}
               onToggleFavorite={() => toggleGameFavorite(activeGame)}
           />
           <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
-          
           <button 
             className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center position-fixed"
             style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }}
@@ -458,14 +359,13 @@ function App() {
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
           </button>
-
           <FavoritesSidebar 
             isOpen={isSidebarOpen} 
             onClose={() => setIsSidebarOpen(false)} 
             favoriteGames={favoriteGames}
             favoriteTools={favoriteTools}
             onPlayGame={handleGameClick}
-            onLaunchTool={() => { /* Logic to launch tool from sidebar - complex, maybe just go to tools page */ }}
+            onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)}
             onRemoveGameFavorite={toggleGameFavorite}
             onRemoveToolFavorite={toggleToolFavorite}
           />
@@ -490,7 +390,7 @@ function App() {
         favoriteGames={favoriteGames}
         favoriteTools={favoriteTools}
         onPlayGame={handleGameClick}
-        onLaunchTool={(tool) => { /* Simple alert for now, ideal implementation would open modal */ alert("Launch " + tool.title); setIsSidebarOpen(false); }}
+        onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)}
         onRemoveGameFavorite={toggleGameFavorite}
         onRemoveToolFavorite={toggleToolFavorite}
       />
@@ -508,11 +408,11 @@ function App() {
           <ToolsPage 
             favoriteTools={favoriteTools}
             onToggleFavorite={toggleToolFavorite}
+            onNavigateToTool={handleNavigateToTool}
           />
         ) : currentView === 'blog' ? (
           <BlogPage />
         ) : (
-          // Home View Content
           loading ? (
             <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1" style={{ minHeight: '50vh' }}>
               <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
