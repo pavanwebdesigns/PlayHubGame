@@ -24,10 +24,8 @@ const ToolCard: React.FC<ToolCardProps> = ({ icon, title, description, isReady, 
       border: '1px solid rgba(255,255,255,0.05)'
     }}
   >
-    {/* Hover Glow Effect */}
     <div className="position-absolute top-0 start-0 w-100 h-100 bg-gradient-to-br from-primary to-transparent opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none" style={{ background: 'radial-gradient(circle at center, rgba(60,100,255,0.15) 0%, transparent 70%)' }}></div>
 
-    {/* Favorite Button */}
     <button 
         className="btn position-absolute top-0 end-0 m-3 p-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center transition-transform hover-scale z-2"
         style={{ 
@@ -307,7 +305,7 @@ const ToolsPage: React.FC<ToolsPageProps> = ({ favoriteTools = [], onToggleFavor
   const tools = [
     // 1. Health
     { id: 'breath', category: 'health', icon: '🫁', title: 'Breath Trainer', description: 'Guided 4-7-8 breathing for calmness.', isReady: true },
-    { id: 'heart', category: 'health', icon: '❤️', title: 'Heart Rate Monitor', description: 'Measure pulse via webcam (Coming Soon).', isReady: false }, // DISABLED
+    { id: 'heart', category: 'health', icon: '❤️', title: 'Heart Rate Monitor', description: 'Measure pulse via webcam (Coming Soon).', isReady: false }, 
     { id: 'focus', category: 'health', icon: '🧘', title: 'Focus Timer', description: 'Pomodoro timer with ambient sounds.', isReady: true },
     { id: 'sleep', category: 'health', icon: '🌙', title: 'Sleep Sounds', description: 'White noise generator.', isReady: true },
     { id: 'mood', category: 'health', icon: '☀️', title: 'Mood Journal', description: 'Local daily mood tracker.', isReady: true },
@@ -324,7 +322,7 @@ const ToolsPage: React.FC<ToolsPageProps> = ({ favoriteTools = [], onToggleFavor
     { id: 'sys-info', category: 'prod', icon: '💻', title: 'System Info', description: 'Detailed device specs.', isReady: true },
 
     // 3. Internet
-    { id: 'speed', category: 'web', icon: '🚀', title: 'Speed Test', description: 'Measure connection latency.', isReady: true },
+    { id: 'speed', category: 'web', icon: '🚀', title: 'Speed Test', description: 'Measure connection latency.', isReady: true }, // ENABLED
     { id: 'ip', category: 'web', icon: '🔒', title: 'IP Finder', description: 'Show public IP & ISP.', isReady: true },
     { id: 'uptime', category: 'web', icon: '🌐', title: 'Uptime Checker', description: 'Check if a site is down.', isReady: false },
     { id: 'qr', category: 'web', icon: '🧩', title: 'QR Generator', description: 'Create & scan QR codes.', isReady: true },
@@ -366,8 +364,8 @@ const ToolsPage: React.FC<ToolsPageProps> = ({ favoriteTools = [], onToggleFavor
   return (
     <div className="flex-grow-1 container-fluid py-4 px-4 px-lg-5" style={{ background: 'linear-gradient(to bottom, #000000, #000E30)' }}>
       
-      {/* Compact Header Section */}
-      <div className="mb-4">
+      {/* Compact Header Section - Reduced margins */}
+      <div className="mb-2">
          <h1 className="display-5 fw-bold text-white mb-1">
             Ultimate <span className="text-primary">Tools</span> Suite
          </h1>

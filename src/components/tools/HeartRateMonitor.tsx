@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const HeartRateMonitor = () => {
   const [isActive, setIsActive] = useState(false);
   const [bpm, setBpm] = useState<number | null>(null);
   const [status, setStatus] = useState('Ready');
-  const [progress, setProgress] = useState(0);
+  const [ , setProgress] = useState(0);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -147,8 +147,8 @@ const FocusTimerPage: React.FC<FocusTimerPageProps> = ({ onBack }) => {
     durationRef.current = newDuration;
     
     if (circleRef.current) {
-        const radius = 120;
-        const circumference = 2 * Math.PI * radius;
+        // const radius = 120;
+        // const circumference = 2 * Math.PI * radius;
         circleRef.current.style.strokeDashoffset = '0';
     }
   };

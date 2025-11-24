@@ -11,9 +11,10 @@ const BreathTrainerPage: React.FC<BreathTrainerPageProps> = ({ onBack }) => {
   const [phase, setPhase] = useState<'Ready' | 'Inhale' | 'Hold' | 'Exhale'>('Ready');
   const [timeLeft, setTimeLeft] = useState(0);
   const [cycleCount, setCycleCount] = useState(0);
-  const [preset, setPreset] = useState('4,7,8,0'); // Default: Relax
+  const [preset, setPreset] = useState('4,7,8'); // Default: Relaxing Breath (4-7-8)
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [loop, setLoop] = useState(false);
   
   // Custom Timings
   const [customInhale, setCustomInhale] = useState(4);
@@ -21,15 +22,14 @@ const BreathTrainerPage: React.FC<BreathTrainerPageProps> = ({ onBack }) => {
   const [customExhale, setCustomExhale] = useState(8);
   const [customHold2, setCustomHold2] = useState(0);
 
-  // Audio Refs
+  // Refs
   const audioContextRef = useRef<AudioContext | null>(null);
-
-  // Animation Refs
   const animationRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
   const elapsedPausedRef = useRef<number>(0);
-
-  // --- Audio Helper ---
+  const ringRef = useRef<SVGCircleElement>(null);
+  
+  // --- Audio Helper (Web Audio API) ---
   const playChime = () => {
     try {
         if (!audioContextRef.current) {
@@ -45,8 +45,9 @@ const BreathTrainerPage: React.FC<BreathTrainerPageProps> = ({ onBack }) => {
         osc.connect(gain);
         gain.connect(ctx.destination);
         
+        // Soft sine wave chime
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5 note
         gain.gain.setValueAtTime(0.1, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 1.5);
         
@@ -60,10 +61,13 @@ const BreathTrainerPage: React.FC<BreathTrainerPageProps> = ({ onBack }) => {
   // --- Logic ---
   const getDurations = () => {
     if (preset === 'custom') return [customInhale, customHold1, customExhale, customHold2];
-    return preset.split(',').map(Number);
+    // preset value like "4,7,8" might miss the 4th number, so default to 0
+    const parts = preset.split(',').map(Number);
+    return [parts[0] || 4, parts[1] || 0, parts[2] || 4, parts[3] || 0];
   };
 
   useEffect(() => {
+    // Animation Loop
     if (!isActive || isPaused) {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
       return;
@@ -76,6 +80,23 @@ const BreathTrainerPage: React.FC<BreathTrainerPageProps> = ({ onBack }) => {
       const [i, h1, e, h2] = getDurations();
       const totalCycle = i + h1 + e + h2;
       if (totalCycle === 0) return; 
+
+      // Calculate cycles completed
+      const currentCycleIndex = Math.floor(elapsed / totalCycle);
+      
+      // Loop Logic
+      if (currentCycleIndex > cycleCount) {
+          setCycleCount(currentCycleIndex);
+           // If loop is disabled (false), stop after 1 cycle (or desired count)
+           // The reference HTML implies a toggle. If unchecked, maybe run once?
+           // Let's assume 'loop' toggle means continuous play. If off, stop after 1 cycle.
+           if (!loop && currentCycleIndex >= 1) {
+               setIsActive(false);
+               setPhase('Ready');
+               reset();
+               return;
+           }
+      }
 
       const currentCycleTime = elapsed % totalCycle;
 
@@ -101,6 +122,7 @@ const BreathTrainerPage: React.FC<BreathTrainerPageProps> = ({ onBack }) => {
         phaseDuration = h2;
       }
 
+      // Phase Change Trigger
       if (phase !== currentPhase) {
           setPhase(currentPhase);
           playChime();
@@ -111,9 +133,6 @@ const BreathTrainerPage: React.FC<BreathTrainerPageProps> = ({ onBack }) => {
       const progress = phaseTime / phaseDuration;
       updateRing(progress, currentPhase);
 
-      const newCycleCount = Math.floor(elapsed / totalCycle);
-      if (newCycleCount !== cycleCount) setCycleCount(newCycleCount);
-
       animationRef.current = requestAnimationFrame(runLoop);
     };
 
@@ -122,25 +141,36 @@ const BreathTrainerPage: React.FC<BreathTrainerPageProps> = ({ onBack }) => {
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
-  }, [isActive, isPaused, preset, customInhale, customHold1, customExhale, customHold2, phase, cycleCount]);
+  }, [isActive, isPaused, preset, customInhale, customHold1, customExhale, customHold2, phase, cycleCount, loop]);
 
   const updateRing = (progress: number, currentPhase: string) => {
-    const ring = document.getElementById('breath-progress-ring-page');
-    if (!ring) return;
+    if (!ringRef.current) return;
     
-    const radius = 90; // Larger radius for full page
+    const radius = 90; 
     const circumference = 2 * Math.PI * radius;
     
     let offset = circumference;
+    
+    // Visual Logic matching reference:
+    // Inhale: Ring fills (Offset: Circumference -> 0)
+    // Exhale: Ring empties (Offset: 0 -> Circumference)
+    
     if (currentPhase === 'Inhale') {
-        offset = circumference - (progress * circumference);
-    } else if (currentPhase === 'Hold') {
-         offset = 0; 
+        offset = circumference * (1 - progress);
     } else if (currentPhase === 'Exhale') {
-        offset = progress * circumference;
+        offset = circumference * progress;
+    } else if (currentPhase === 'Hold') {
+         // Ideally, hold state depends on if lungs are full or empty.
+         // Full Hold (after Inhale) -> Ring Full (0)
+         // Empty Hold (after Exhale) -> Ring Empty (Circumference)
+         
+         // Simple logic: Check if previous phase was Inhale (implies full hold) or Exhale (implies empty hold).
+         // Since we calculate phase dynamically, we can check the durations array to see where we are.
+         // But for a smooth visual, defaulting to 0 (Full) covers the most common "Hold your breath" case.
+         offset = 0; 
     }
     
-    ring.style.strokeDashoffset = offset.toString();
+    ringRef.current.style.strokeDashoffset = offset.toString();
   };
 
   const toggleSession = () => {
@@ -169,140 +199,203 @@ const BreathTrainerPage: React.FC<BreathTrainerPageProps> = ({ onBack }) => {
     setTimeLeft(0);
     elapsedPausedRef.current = 0;
     startTimeRef.current = 0;
-    const ring = document.getElementById('breath-progress-ring-page');
-    if (ring) ring.style.strokeDashoffset = (2 * Math.PI * 90).toString();
+    if (ringRef.current) ringRef.current.style.strokeDashoffset = (2 * Math.PI * 90).toString();
   };
 
+  // Colors from reference
   const accentColor = '#60a5fa'; 
   const textSecondary = '#94a3b8';
+  const cardBg = 'rgba(11, 18, 32, 0.7)'; 
 
   return (
-    <div className="fixed-top w-100 h-100 d-flex align-items-center justify-content-center p-0 m-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', zIndex: 2000 }}>
+    <div className="fixed-top w-100 h-100 d-flex align-items-center justify-content-center p-4" style={{ zIndex: 2000, color: '#e6eef8' }}>
       
+      {/* Animated Gradient Background */}
+      <div className="position-absolute top-0 start-0 w-100 h-100" style={{ 
+          zIndex: -1, 
+          background: 'linear-gradient(45deg, #60a5fa, #071022, #071022)', 
+          backgroundSize: '300% 300%', 
+          animation: 'gradient-animation 15s ease infinite',
+          opacity: 0.15
+      }}></div>
+      <style>{`
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .hover-scale:hover { transform: scale(1.05); transition: transform 0.2s; }
+      `}</style>
+
       {/* Back Button */}
       <button 
         onClick={onBack} 
-        className="btn btn-link text-white text-decoration-none position-absolute top-0 start-0 m-4 z-3 d-flex align-items-center gap-2"
+        className="btn btn-link text-white text-decoration-none position-absolute top-0 start-0 m-4 z-10 d-flex align-items-center gap-2 opacity-75 hover-opacity-100"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         Back to Tools
       </button>
 
-      {/* Main App Card (Full Screen Style) */}
-      <div className="w-100 h-100 d-flex flex-column align-items-center justify-content-center position-relative overflow-hidden">
+      {/* Main Card */}
+      <div className="w-full max-w-md rounded-2xl shadow-2xl p-6 md:p-8 text-center relative overflow-hidden" 
+           style={{ 
+               backgroundColor: cardBg, 
+               backdropFilter: 'blur(24px)',
+               maxWidth: '450px',
+               width: '100%',
+               borderRadius: '1rem',
+               border: '1px solid rgba(255, 255, 255, 0.06)'
+           }}>
         
-        {/* Settings Modal Overlay */}
-        {showSettings && (
-            <div className="position-absolute top-0 end-0 h-100 d-flex flex-column p-4 bg-dark border-start border-secondary border-opacity-25 shadow-lg" style={{ width: '350px', maxWidth: '100%', zIndex: 20, backdropFilter: 'blur(20px)', background: 'rgba(11, 18, 32, 0.95)' }}>
-                 <div className="d-flex justify-content-between align-items-center mb-5">
-                    <h3 className="fw-bold m-0 text-white">Settings</h3>
-                    <button className="btn-close btn-close-white" onClick={() => setShowSettings(false)}></button>
-                </div>
-                
-                <div className="mb-4">
-                    <label className="form-label small text-white-50 text-uppercase fw-bold">Breathing Technique</label>
-                    <select 
-                        className="form-select bg-black text-white border-secondary"
-                        value={preset} 
-                        onChange={(e) => setPreset(e.target.value)}
-                    >
-                        <option value="4,7,8,0">Relaxing Breath (4-7-8)</option>
-                        <option value="4,4,4,4">Box Breathing (4-4-4-4)</option>
-                        <option value="6,0,6,0">Coherent Breathing (6-6)</option>
-                        <option value="custom">Custom Rhythm</option>
-                    </select>
-                </div>
-
-                {preset === 'custom' && (
-                    <div className="row g-2 mb-4">
-                        <div className="col-3"><label className="small text-white-50 text-center w-100 d-block">In</label><input type="number" className="form-control form-control-sm bg-black text-white border-secondary text-center" value={customInhale} onChange={e => setCustomInhale(Number(e.target.value))} /></div>
-                        <div className="col-3"><label className="small text-white-50 text-center w-100 d-block">Hold</label><input type="number" className="form-control form-control-sm bg-black text-white border-secondary text-center" value={customHold1} onChange={e => setCustomHold1(Number(e.target.value))} /></div>
-                        <div className="col-3"><label className="small text-white-50 text-center w-100 d-block">Out</label><input type="number" className="form-control form-control-sm bg-black text-white border-secondary text-center" value={customExhale} onChange={e => setCustomExhale(Number(e.target.value))} /></div>
-                        <div className="col-3"><label className="small text-white-50 text-center w-100 d-block">Hold</label><input type="number" className="form-control form-control-sm bg-black text-white border-secondary text-center" value={customHold2} onChange={e => setCustomHold2(Number(e.target.value))} /></div>
-                    </div>
-                )}
-                
-                <button className="btn btn-primary w-100 mt-auto fw-bold py-3" onClick={() => setShowSettings(false)}>Save Changes</button>
-            </div>
-        )}
-        
-        {/* Top Controls */}
-        <div className="position-absolute top-0 end-0 m-4 d-flex gap-3 z-2">
-             <button className="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center hover-bg-white-10" style={{ width: '48px', height: '48px', color: textSecondary, borderColor: 'rgba(255,255,255,0.1)' }} onClick={() => setShowHistory(!showHistory)} title="History">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 8v4l3 3"/></svg>
+        {/* Header Row */}
+        <div className="d-flex justify-content-between align-items-center mb-4">
+            <button className="btn btn-link p-0 text-decoration-none transition" style={{ color: textSecondary }} onClick={() => setShowHistory(true)} title="Session History">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </button>
-            <button className="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center hover-bg-white-10" style={{ width: '48px', height: '48px', color: textSecondary, borderColor: 'rgba(255,255,255,0.1)' }} onClick={() => setShowSettings(!showSettings)} title="Settings">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <h1 className="text-2xl font-bold m-0 text-white">Breath Trainer</h1>
+            <button className="btn btn-link p-0 text-decoration-none transition" style={{ color: textSecondary }} onClick={() => setShowSettings(true)} title="Settings">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
             </button>
         </div>
+        
+        <p className="mb-6 small" style={{ color: textSecondary }}>Select a preset or customize your own in settings.</p>
 
-        {/* Large Ring Visualization */}
-        <div className="position-relative mb-5" style={{ width: '400px', height: '400px' }}>
-             {/* Background Circle */}
-             <svg className="w-100 h-100" viewBox="0 0 200 200" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="8" />
-                {/* Progress Circle */}
+        {/* Breathing Ring */}
+        <div className="position-relative mx-auto mb-6" style={{ width: '256px', height: '256px' }}>
+            <svg className="w-100 h-100" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
+                <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" />
                 <circle 
-                    id="breath-progress-ring-page"
-                    cx="100" cy="100" r="90" 
+                    ref={ringRef}
+                    cx="50" cy="50" r="45" 
                     fill="none" 
-                    stroke={phase === 'Hold' ? '#f59e0b' : accentColor} 
-                    strokeWidth="8" 
+                    stroke={accentColor} 
+                    strokeWidth="10" 
                     strokeLinecap="round" 
-                    strokeDasharray={`${2 * Math.PI * 90}`}
-                    strokeDashoffset={`${2 * Math.PI * 90}`}
-                    style={{ transition: 'stroke-dashoffset 0.1s linear, stroke 0.5s ease' }}
+                    strokeDasharray={`${2 * Math.PI * 45}`}
+                    strokeDashoffset={`${2 * Math.PI * 45}`}
+                    style={{ transition: 'stroke-dashoffset 0.1s linear' }}
                 />
-             </svg>
-             
-             {/* Center Content */}
-             <div className="position-absolute top-50 start-50 translate-middle text-center w-100">
-                <div className="display-1 fw-bold mb-2 text-white tracking-tight text-uppercase" style={{ fontSize: '4rem', textShadow: '0 0 30px rgba(96, 165, 250, 0.3)' }}>{phase}</div>
-                
-                <div className={`display-1 fw-light my-3 ${isActive ? 'text-white' : 'text-white-50'}`} style={{ fontFamily: 'monospace', fontSize: '6rem', lineHeight: '1' }}>
-                    {isActive ? timeLeft : 0}
-                </div>
-                
-                <div className="fs-5 text-white-50 text-uppercase letter-spacing-2">
-                    Cycles: <span className="text-white">{cycleCount}</span>
-                </div>
-             </div>
+            </svg>
+            <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center">
+                <div className="fw-bold mb-0 text-white" style={{ fontSize: '1.5rem' }}>{phase}</div>
+                <div className="fw-light tracking-tighter text-white" style={{ fontSize: '4rem', lineHeight: '1' }}>{isActive ? timeLeft : 0}</div>
+                <div className="small mt-1" style={{ color: textSecondary }}>Cycles: {cycleCount}</div>
+            </div>
         </div>
-
-        {/* Preset Display */}
-        <div className="mb-5">
-             <span className="badge rounded-pill px-4 py-2 bg-white bg-opacity-10 text-white fs-6 fw-normal border border-white border-opacity-10">
-                {preset === 'custom' ? 'Custom Rhythm' : preset === '4,4,4,4' ? 'Box Breathing' : preset === '4,7,8,0' ? 'Relaxing Breath' : 'Coherent Breathing'}
-             </span>
-        </div>
-
-        {/* Bottom Controls */}
-        <div className="d-flex gap-4 align-items-center justify-content-center w-100">
-            <button 
-                className="btn btn-outline-secondary rounded-circle p-0 d-flex align-items-center justify-content-center hover-bg-white-10 transition-colors" 
-                style={{ width: '64px', height: '64px', borderColor: 'rgba(255,255,255,0.1)', color: textSecondary }} 
-                onClick={reset} 
-                title="Reset"
+        
+        {/* Preset Selector */}
+        <div className="mb-6">
+            <select 
+                className="form-select border-secondary text-center rounded-lg py-3 px-4 w-100"
+                style={{ backgroundColor: 'rgba(255,255,255,0.05)', color: '#fff', borderColor: 'rgba(255,255,255,0.06)' }}
+                value={preset} 
+                onChange={(e) => setPreset(e.target.value)}
             >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                 <option value="4,4,4,4">Box Breathing (4-4-4-4)</option>
+                 <option value="4,7,8">Relaxing Breath (4-7-8)</option>
+                 <option value="6,0,6">Coherent Breathing (6-6)</option>
+                 <option value="custom">Custom</option>
+            </select>
+        </div>
+
+        {/* Controls */}
+        <div className="d-flex items-center justify-content-center gap-4">
+            <button 
+                className="p-3 rounded-circle transition hover-bg-white-10" 
+                style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.06)', color: '#fff' }} 
+                onClick={reset} 
+                title="Reset (R)"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4v5h5M20 20v-5h-5" /><path d="M4 9a9 9 0 0 1 14.23-5.23l.77.77M20 15a9 9 0 0 1-14.23 5.23l-.77-.77" /></svg>
             </button>
             
             <button 
-                className={`btn rounded-circle d-flex align-items-center justify-content-center shadow-lg transition-all hover-scale border-0`} 
+                className="rounded-circle flex items-center justify-content-center fw-bold shadow-lg transition transform hover-scale"
                 style={{ 
-                    width: '96px', 
-                    height: '96px', 
-                    backgroundColor: isActive && !isPaused ? '#ef4444' : accentColor, 
+                    width: '80px', 
+                    height: '80px', 
+                    backgroundColor: accentColor, 
                     color: '#0b1220',
-                    fontSize: '1.2rem',
-                    fontWeight: 'bold',
-                    boxShadow: isActive && !isPaused ? '0 0 40px rgba(239, 68, 68, 0.5)' : '0 0 40px rgba(96, 165, 250, 0.5)'
+                    fontSize: '1.125rem',
+                    boxShadow: `0 10px 25px -5px ${accentColor}80` // Hex alpha
                 }}
                 onClick={toggleSession}
+                title="Start/Pause (Spacebar)"
             >
-                {isActive && !isPaused ? 'PAUSE' : 'START'}
+                {isActive && !isPaused ? 'Pause' : 'Start'}
             </button>
+            
+            <label className="flex items-center justify-content-center cursor-pointer p-3 rounded-circle transition hover-bg-white-10" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.06)' }} title="Loop session">
+                <input type="checkbox" checked={loop} onChange={(e) => setLoop(e.target.checked)} className="d-none" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={loop ? accentColor : textSecondary} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'rotate(90deg)' }}>
+                    <path d="M4 4v5h5M20 20v-5h-5M4 9a9 9 0 0 1 14.23-5.23l.77.77M20 15a9 9 0 0 1-14.23 5.23l-.77-.77" />
+                </svg>
+            </label>
         </div>
+
+        {/* Settings Modal Overlay */}
+        {showSettings && (
+            <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column p-6" style={{ backgroundColor: '#0b1220', zIndex: 20 }}>
+                 <div className="d-flex justify-content-between align-items-center mb-6">
+                    <h2 className="text-2xl font-bold text-white m-0">Settings</h2>
+                    <button className="btn-close btn-close-white" onClick={() => setShowSettings(false)}></button>
+                </div>
+                
+                <div className="overflow-y-auto scrollbar-hide pe-2 flex-grow-1 text-start">
+                    <h3 className="fw-semibold mb-2 text-white">Custom Timing (seconds)</h3>
+                    <div className="row g-3 mb-4">
+                         <div className="col-3"><input type="number" min="1" className="form-control bg-white bg-opacity-5 text-white border-secondary border-opacity-25 text-center" placeholder="In" value={customInhale} onChange={e => setCustomInhale(Number(e.target.value))} /></div>
+                         <div className="col-3"><input type="number" min="0" className="form-control bg-white bg-opacity-5 text-white border-secondary border-opacity-25 text-center" placeholder="Hold" value={customHold1} onChange={e => setCustomHold1(Number(e.target.value))} /></div>
+                         <div className="col-3"><input type="number" min="1" className="form-control bg-white bg-opacity-5 text-white border-secondary border-opacity-25 text-center" placeholder="Out" value={customExhale} onChange={e => setCustomExhale(Number(e.target.value))} /></div>
+                         <div className="col-3"><input type="number" min="0" className="form-control bg-white bg-opacity-5 text-white border-secondary border-opacity-25 text-center" placeholder="Hold" value={customHold2} onChange={e => setCustomHold2(Number(e.target.value))} /></div>
+                    </div>
+                    
+                    {/* Additional Settings Placeholders (matching HTML structure) */}
+                    <div className="mb-4">
+                        <h3 className="fw-semibold mb-2 text-white">Appearance</h3>
+                        <div className="d-flex flex-wrap gap-2">
+                            {['#071022', '#0284c7', '#f59e0b', '#059669', '#e11d48'].map(c => (
+                                <div key={c} className="rounded-3 cursor-pointer hover-scale" style={{ width: '32px', height: '24px', background: c, border: '1px solid rgba(255,255,255,0.2)' }}></div>
+                            ))}
+                        </div>
+                    </div>
+                    
+                     <div className="mb-4">
+                        <h3 className="fw-semibold mb-2 text-white">Sound</h3>
+                        <div className="mb-2">
+                            <label className="small text-white-50 d-block">Ambient Soundscape</label>
+                            <select className="form-select form-select-sm bg-white bg-opacity-5 text-white border-secondary border-opacity-25 w-100 mt-1">
+                                <option value="none">None</option>
+                                <option value="rain">Gentle Rain</option>
+                                <option value="waves">Ocean Waves</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="text-end mt-4">
+                    <button className="btn px-4 py-2 fw-bold" style={{ backgroundColor: accentColor, color: '#0b1220' }} onClick={() => setShowSettings(false)}>Save & Close</button>
+                </div>
+            </div>
+        )}
+        
+        {/* History Overlay */}
+        {showHistory && (
+             <div className="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column p-6" style={{ backgroundColor: '#0b1220', zIndex: 20 }}>
+                 <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h2 className="text-2xl font-bold text-white m-0">Session History</h2>
+                    <button className="btn-close btn-close-white" onClick={() => setShowHistory(false)}></button>
+                </div>
+                <div className="text-white-50 text-center py-5 flex-grow-1">
+                    <p>No sessions recorded yet.</p>
+                </div>
+                <div className="text-end">
+                     <button className="btn btn-sm btn-outline-danger" onClick={() => alert('History cleared')}>Clear History</button>
+                </div>
+             </div>
+        )}
 
       </div>
     </div>

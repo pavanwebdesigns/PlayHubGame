@@ -7,7 +7,8 @@
   --font-jersey: "Jersey 15", sans-serif;
 }
 
-body {
+/* Reset Body to fill screen properly */
+html, body {
   margin: 0;
   padding: 0;
   font-family: var(--font-jersey);
@@ -18,8 +19,10 @@ body {
   min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
+  display: block; /* Removes default flex centering */
 }
 
+/* Ensure root takes full width/height without margins */
 #root {
   width: 100%;
   min-height: 100vh;

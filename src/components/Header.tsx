@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOp
   };
 
   return (
-    <header className="sticky-top bg-playhub-main border-bottom border-playhub shadow-sm">
+    <header className="sticky-top bg-playhub-main border-bottom border-playhub shadow-sm" style={{ zIndex: 1030 }}>
       <nav className="navbar navbar-expand-md navbar-dark py-3">
         <div className="container-fluid px-4">
           <a className="navbar-brand d-flex align-items-center gap-2" href="#" onClick={handleLogoClick}>
