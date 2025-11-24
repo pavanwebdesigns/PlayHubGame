@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import CategoryBar from './components/CategoryBar';
@@ -235,7 +235,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // Use a ref to track if initial load from URL is done to prevent overwriting
-  const isInitialLoadDone = useRef(false);
+  // const isInitialLoadDone = useRef(false);
 
   useEffect(() => {
     try {
