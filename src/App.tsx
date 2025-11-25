@@ -4,11 +4,17 @@ import Footer from './components/Footer';
 import CategoryBar from './components/CategoryBar';
 import GamePlay from './components/GamePlay';
 import ToolsModal from './components/ToolsModal'; 
-import ToolsPage, { CpsTest, ReactionGame, SystemInfoTool, PasswordGenTool } from './components/ToolsPage';
+import ToolsPage, { CpsTest, ReactionGame, SystemInfoTool } from './components/ToolsPage';
 import BreathTrainerPage from './components/tools/BreathTrainerPage'; 
 import GenericToolPage from './components/tools/GenericToolPage';
 import FocusTimerPage from './components/tools/FocusTimerPage'; 
 import SpeedTestPage from './components/tools/SpeedTestPage'; 
+import BMICalculatorPage from './components/tools/BMICalculatorPage'; 
+import AgeCalculatorPage from './components/tools/AgeCalculatorPage'; 
+import ScreenRulerPage from './components/tools/ScreenRulerPage'; 
+import PasswordGenPage from './components/tools/PasswordGenPage'; 
+import IpFinderPage from './components/tools/IpFinderPage'; 
+import EMICalculatorPage from './components/tools/EMICalculatorPage'; 
 import './App.css';
 
 // --- Types ---
@@ -48,7 +54,6 @@ const GameCard = ({
   isFavorite: boolean;
   onToggleFavorite: (game: GamePixGame) => void;
 }) => {
-  // Append timestamp to force refresh images and bypass cache
   const timestamp = Date.now();
   const getFreshUrl = (url: string) => url ? `${url}?t=${timestamp}` : '';
 
@@ -60,22 +65,21 @@ const GameCard = ({
   return (
     <div className="col-6 col-md-4 col-lg-3 col-xl-2 mb-4 position-relative group">
       <div 
-        className="cursor-pointer text-decoration-none" 
+        className="cursor-pointer text-decoration-none h-100" 
         onClick={() => onClick(game)}
         style={{ cursor: 'pointer' }}
       >
         <div className="card game-card h-100 border-0 shadow-sm bg-transparent">
-          <div className="position-relative w-100 rounded-4 overflow-hidden" style={{ aspectRatio: '16/9', backgroundColor: '#2a2a2a' }}>
+          <div className="position-relative w-100 rounded-4 overflow-hidden shadow-sm border border-white border-opacity-10" style={{ aspectRatio: '16/9', backgroundColor: '#2a2a2a' }}>
             <img 
               src={imageSrc} 
               alt={game.title}
-              className="w-100 h-100 object-fit-cover"
+              className="w-100 h-100 object-fit-cover transition-transform duration-500 group-hover:scale-110"
               loading="lazy"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 if (!target.getAttribute('data-failed')) {
                     target.setAttribute('data-failed', 'true');
-                    // Fallback chain with fresh URLs
                     if (game.thumbnailUrl && imageSrc !== getFreshUrl(game.thumbnailUrl)) {
                          target.src = getFreshUrl(game.thumbnailUrl);
                     } else {
@@ -84,12 +88,12 @@ const GameCard = ({
                 }
               }}
             />
-            <span className="position-absolute top-0 end-0 m-2 badge bg-black bg-opacity-75 text-uppercase rounded-pill" style={{ fontSize: '0.7rem', letterSpacing: '0.5px', backdropFilter: 'blur(2px)' }}>
+            <span className="position-absolute top-0 end-0 m-2 badge bg-black bg-opacity-75 text-uppercase rounded-pill border border-white border-opacity-10" style={{ fontSize: '0.6rem', letterSpacing: '0.5px', backdropFilter: 'blur(4px)' }}>
               {game.category}
             </span>
           </div>
           <div className="mt-2 text-center">
-            <h5 className="text-white text-truncate mb-0 fw-bold px-1" style={{ fontSize: '1.1rem', letterSpacing: '0.5px' }}>
+            <h5 className="text-white text-truncate mb-0 fw-bold px-1 group-hover:text-primary transition-colors" style={{ fontSize: '1rem', letterSpacing: '0.3px' }}>
               {game.title}
             </h5>
           </div>
@@ -97,13 +101,13 @@ const GameCard = ({
       </div>
 
       <button 
-        className="btn position-absolute top-0 start-0 m-2 p-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center transition-transform hover-scale"
+        className="btn position-absolute top-0 start-0 m-2 p-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center transition-transform hover-scale active:scale-90"
         style={{ 
           zIndex: 20, 
-          backgroundColor: isFavorite ? 'rgba(220, 53, 69, 0.9)' : 'rgba(0,0,0,0.5)',
+          backgroundColor: isFavorite ? '#ef4444' : 'rgba(0,0,0,0.6)',
           border: '1px solid rgba(255,255,255,0.2)',
-          width: '36px', 
-          height: '36px',
+          width: '32px', 
+          height: '32px',
           backdropFilter: 'blur(4px)'
         }}
         onClick={(e) => {
@@ -114,8 +118,8 @@ const GameCard = ({
       >
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
-          width="18" 
-          height="18" 
+          width="16" 
+          height="16" 
           viewBox="0 0 24 24" 
           fill={isFavorite ? "white" : "none"} 
           stroke="white" 
@@ -148,7 +152,6 @@ const FavoritesSidebar = ({ isOpen, onClose, favoriteGames, favoriteTools, onPla
           {favoriteGames.length === 0 ? <p className="text-white-50 small">No favorite games.</p> : (
             <div className="d-flex flex-column gap-3 mb-4">
               {favoriteGames.map((game: any) => {
-                 // Robust image logic
                  const imageSrc = game.banner_image ? getFreshUrl(game.banner_image) : 
                                   game.bannerUrl ? getFreshUrl(game.bannerUrl) : 
                                   game.thumbnailUrl ? getFreshUrl(game.thumbnailUrl) : 
@@ -166,7 +169,7 @@ const FavoritesSidebar = ({ isOpen, onClose, favoriteGames, favoriteTools, onPla
                         const target = e.target as HTMLImageElement;
                         if (!target.getAttribute('data-failed')) {
                             target.setAttribute('data-failed', 'true');
-                            if (game.thumbnailUrl) {
+                            if (game.thumbnailUrl && imageSrc !== getFreshUrl(game.thumbnailUrl)) {
                                  target.src = getFreshUrl(game.thumbnailUrl);
                             } else {
                                  target.src = 'https://placehold.co/100x100/000E30/FFFFFF?text=Game';
@@ -224,7 +227,6 @@ function App() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   
-  // Initial state from URL
   const [currentView, setCurrentView] = useState<string>(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('page') || 'home';
@@ -234,9 +236,7 @@ function App() {
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Use a ref to track if initial load from URL is done to prevent overwriting
-  // const isInitialLoadDone = useRef(false);
-
+  // Load favorites
   useEffect(() => {
     try {
         const storedGameFavs = localStorage.getItem('playhub_favorites');
@@ -301,7 +301,6 @@ function App() {
   useEffect(() => { fetchGames(1); }, []);
   const handleLoadMore = () => { const nextPage = page + 1; setPage(nextPage); fetchGames(nextPage); };
   
-  // --- UPDATED NAVIGATION HANDLERS ---
   const updateUrl = (view: string, gameId?: string) => {
       const params = new URLSearchParams(window.location.search);
       if (view === 'home') {
@@ -345,6 +344,12 @@ function App() {
       if (toolId === 'breath') newView = 'tool-breath';
       else if (toolId === 'focus') newView = 'tool-focus';
       else if (toolId === 'speed') newView = 'tool-speed'; 
+      else if (toolId === 'bmi') newView = 'tool-bmi';
+      else if (toolId === 'age') newView = 'tool-age';
+      else if (toolId === 'ruler') newView = 'tool-ruler';
+      else if (toolId === 'password-gen') newView = 'tool-password-gen';
+      else if (toolId === 'ip') newView = 'tool-ip';
+      else if (toolId === 'emi') newView = 'tool-emi';
       
       setCurrentView(newView);
       updateUrl(newView);
@@ -364,23 +369,45 @@ function App() {
     });
   }, [games, searchTerm, selectedCategory]);
 
-  // --- URL RECOVERY LOGIC (Runs only when games change) ---
+  // URL Restoration
   useEffect(() => {
-    // Only try to restore game if we haven't done it yet, or if activeGame is null but url says we should be in game
     const params = new URLSearchParams(window.location.search);
+    const viewParam = params.get('page');
     const gameIdParam = params.get('game');
 
-    if (gameIdParam && games.length > 0 && !activeGame) {
+    if (viewParam && viewParam !== 'home') {
+        setCurrentView(viewParam);
+    }
+
+    if (gameIdParam && games.length > 0 && (!activeGame || activeGame.id.toString() !== gameIdParam)) {
         const foundGame = games.find(g => g.id.toString() === gameIdParam);
         if (foundGame) {
             setActiveGame(foundGame);
-            setCurrentView('game');
+            if (currentView !== 'game') setCurrentView('game');
         }
     }
   }, [games]); 
 
-  // --- ROUTER LOGIC ---
+  useEffect(() => {
+      const onPopState = () => {
+          const params = new URLSearchParams(window.location.search);
+          const view = params.get('page') || 'home';
+          const gameId = params.get('game');
+          
+          setCurrentView(view);
+          if (gameId && games.length > 0) {
+               const g = games.find(x => x.id.toString() === gameId);
+               if(g) setActiveGame(g);
+          } else {
+              setActiveGame(null);
+          }
+      };
+      window.addEventListener('popstate', onPopState);
+      return () => window.removeEventListener('popstate', onPopState);
+  }, [games]);
 
+
+  // --- ROUTER LOGIC ---
   let content = null;
 
   if (currentView === 'tool-breath') {
@@ -389,6 +416,18 @@ function App() {
       content = <FocusTimerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
   } else if (currentView === 'tool-speed') {
       content = <SpeedTestPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+  } else if (currentView === 'tool-bmi') {
+      content = <BMICalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+  } else if (currentView === 'tool-age') {
+      content = <AgeCalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+  } else if (currentView === 'tool-ruler') {
+      content = <ScreenRulerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+  } else if (currentView === 'tool-password-gen') {
+      content = <PasswordGenPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+  } else if (currentView === 'tool-ip') {
+      content = <IpFinderPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />; 
+  } else if (currentView === 'tool-emi') {
+      content = <EMICalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />; 
   } else if (currentView.startsWith('tool-')) {
       const toolId = currentView.replace('tool-', '');
       let innerContent = <div className="text-center text-white">Tool under construction 🚧</div>;
@@ -397,8 +436,7 @@ function App() {
       if (toolId === 'reaction') { title = "Reaction Test"; innerContent = <ReactionGame />; }
       else if (toolId === 'cps') { title = "CPS Test"; innerContent = <CpsTest />; }
       else if (toolId === 'sys-info') { title = "System Info"; innerContent = <SystemInfoTool />; }
-      else if (toolId === 'password-gen') { title = "Password Gen"; innerContent = <PasswordGenTool />; }
-
+      
       content = <GenericToolPage title={title} onBack={() => { setCurrentView('tools'); updateUrl('tools'); }}>{innerContent}</GenericToolPage>;
   } else if (currentView === 'game' && activeGame) {
       const related = games.filter(g => g.category === activeGame.category && g.id !== activeGame.id);
@@ -421,7 +459,6 @@ function App() {
         </>
       );
   } else {
-      // Default: Home Grid or Blog or Tools List
       content = (
         <div className="d-flex flex-column min-vh-100 w-100 position-relative overflow-x-hidden">
           <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} favoritesCount={favoriteGames.length + favoriteTools.length} />
