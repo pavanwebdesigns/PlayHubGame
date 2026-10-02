@@ -1,29 +1,51 @@
-# PlayHubPlace. Hostinger already terminates TLS, so this file does not redirect to HTTPS.
+# PlayHubPlace static export.
+# Hostinger terminates TLS. www goes to the apex in one hop from this file.
+# HTTP is upgraded only when Apache still sees a plain connection, so a request
+# Hostinger already upgraded does not redirect again.
 
-# Refuse source and dev files if they are ever copied into the web root.
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
 
+    # Refuse source and dev files if they are ever copied into the web root.
     RewriteRule ^package(-lock)?\.json$ - [F,L]
     RewriteRule ^src(/|$) - [F,L]
     RewriteRule ^docs(/|$) - [F,L]
     RewriteRule ^\.cursor(/|$) - [F,L]
-    RewriteRule \.(ts|tsx|md)$ - [F,L]
+    RewriteRule \.(ts|tsx|md|mdx)$ - [F,L]
 
-    RewriteRule ^assets/ - [E=LONG_CACHE:1]
+    # www → https://playhubplace.com, including the path. Query string is kept.
+    RewriteCond %{HTTP_HOST} ^www\.playhubplace\.com$ [NC]
+    RewriteRule ^ https://playhubplace.com%{REQUEST_URI} [R=301,L]
 
-    RewriteRule ^index\.html$ - [L]
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule . /index.html [L]
+    # HTTP → HTTPS. Both conditions must hold or this would loop behind the TLS proxy.
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteRule ^ https://playhubplace.com%{REQUEST_URI} [R=301,L]
+
+    # Old tool URLs. The reaction and CPS rules come before the generic tool- rule.
+    RewriteCond %{QUERY_STRING} (?:^|&)page=(?:tool-reaction|reaction-test)(?:&|$)
+    RewriteRule ^$ https://playhubplace.com/originals/reaction-time-test/? [R=301,L]
+
+    RewriteCond %{QUERY_STRING} (?:^|&)page=(?:tool-cps|cps-test)(?:&|$)
+    RewriteRule ^$ https://playhubplace.com/originals/cps-test/? [R=301,L]
+
+    RewriteCond %{QUERY_STRING} (?:^|&)page=tools(?:&|$) [OR]
+    RewriteCond %{QUERY_STRING} (?:^|&)page=tool-[A-Za-z0-9-]+(?:&|$)
+    RewriteRule ^$ https://workutilities.com/? [R=301,L]
+
+    RewriteRule ^_next/static/ - [E=LONG_CACHE:1]
 </IfModule>
 
-ErrorDocument 404 /index.html
+ErrorDocument 404 /404.html
 
 <IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "fullscreen=(self \"https://play.gamepix.com\"), autoplay=(\"https://play.gamepix.com\"), gamepad=(\"https://play.gamepix.com\"), accelerometer=(\"https://play.gamepix.com\"), gyroscope=(\"https://play.gamepix.com\")"
+    Header always set Content-Security-Policy-Report-Only "default-src 'self'; base-uri 'self'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://*.gamepix.com data:; frame-src https://play.gamepix.com; connect-src 'self'"
     Header set Cache-Control "public, max-age=31536000, immutable" env=LONG_CACHE
-    <Files "index.html">
+    <FilesMatch "\.html$">
         Header set Cache-Control "no-cache"
-    </Files>
+    </FilesMatch>
 </IfModule>

@@ -34,4 +34,4 @@ The workflow on `main` still publishes the Vite `dist/` from the last release. T
 
 Merging into `main` runs Publish, and that updates the live site. Hostinger pulls `deploy` from its webhook. To roll back, open Actions → Publish → Run workflow and set `ref` to the last good commit on `main`. Do not point Hostinger at `main`, and do not force-push `deploy`.
 
-`public/.htaccess` is copied into the build. It does not add an HTTPS redirect yet. `http://playhubplace.com` already 301s to the apex. `https://www.playhubplace.com/` still returns 200, so the www host gets a redirect in task 1.5.
+`public/.htaccess` is copied into the build. It 301s `www.playhubplace.com` to `https://playhubplace.com` and upgrades HTTP only when Apache still sees a plain connection (`HTTPS` is off and `X-Forwarded-Proto` is not `https`). Hostinger already 301s `http://playhubplace.com` to the apex. `http://www` stays two hops until that edge rule changes, because Hostinger upgrades it to `https://www` before this file runs.
