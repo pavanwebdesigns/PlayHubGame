@@ -13,19 +13,23 @@ const sizeClass = {
 export function GameTile({
   game,
   size,
+  className,
 }: {
   game: TileGame;
   size: keyof typeof sizeClass;
+  className?: string;
 }) {
   const isNew = isNewGame(game.publishedAt, buildToday());
 
   return (
     <a
       href={`/game/${game.slug}/`}
-      className={`game-tile relative block rounded-tile ${sizeClass[size]}`}
+      className={`game-tile relative block rounded-tile ${sizeClass[size]}${className ? ` ${className}` : ''}`}
       data-orientation={game.orientation}
     >
-      <span className="relative block overflow-hidden rounded-tile">
+      <span
+        className={`tile-media relative block overflow-hidden rounded-tile${isNew ? ' tile-media-new' : ''}`}
+      >
         <CoverImage
           src={game.cover}
           alt={game.title}
@@ -36,7 +40,7 @@ export function GameTile({
           <FavoriteMark slug={game.slug} />
         </span>
         {isNew ? (
-          <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-button bg-night px-2 text-ui text-spark">
+          <span className="tile-new absolute top-2 left-2 inline-flex items-center gap-1 rounded-button bg-night px-2 text-ui text-spark">
             <span
               className="size-2 rounded-button bg-spark"
               aria-hidden="true"

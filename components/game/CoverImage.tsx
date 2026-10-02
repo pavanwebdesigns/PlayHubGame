@@ -22,13 +22,13 @@ export function CoverImage({
       {failed ? (
         <span className="cover-fallback">
           <span
-            className="line-clamp-2 w-full min-w-0 font-display text-display-xs text-ink"
+            className="cover-title line-clamp-2 w-full min-w-0 text-ink"
             aria-hidden={alt.length === 0}
           >
             {title}
           </span>
           <span
-            className="max-w-full truncate text-ui leading-tight text-ink-muted"
+            className="cover-mark max-w-full truncate text-ui leading-tight text-ink-muted"
             aria-hidden="true"
           >
             {SITE_NAME}

@@ -163,6 +163,44 @@ body {
   min-width: 64rem;
 }
 
+@media (max-width: 480px) {
+  .tile-grid:not([data-columns]) .hide-cols-2 {
+    display: none;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .tile-grid:not([data-columns]) .hide-cols-3 {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .tile-grid:not([data-columns]) .hide-cols-4 {
+    display: none;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1440px) {
+  .tile-grid:not([data-columns]) .hide-cols-6 {
+    display: none;
+  }
+}
+
+@media (min-width: 1441px) {
+  .tile-grid:not([data-columns]) .hide-cols-8 {
+    display: none;
+  }
+}
+
+.tile-grid[data-columns='2'] .hide-cols-2,
+.tile-grid[data-columns='3'] .hide-cols-3,
+.tile-grid[data-columns='4'] .hide-cols-4,
+.tile-grid[data-columns='6'] .hide-cols-6,
+.tile-grid[data-columns='8'] .hide-cols-8 {
+  display: none;
+}
+
 .tile-xl {
   grid-column: span 2;
   grid-row: span 2;
@@ -189,6 +227,7 @@ body {
   aspect-ratio: var(--cover-aspect, 1.6);
   overflow: hidden;
   background: var(--deck);
+  container-type: inline-size;
 }
 
 .cover-fallback {
@@ -201,6 +240,22 @@ body {
   gap: 0.25rem;
   padding: 0.5rem;
   text-align: center;
+}
+
+.tile-media-new .cover-fallback {
+  padding-top: 2.25rem;
+}
+
+.cover-title {
+  font-family: var(--font-display);
+  font-size: clamp(0.75rem, 11cqi, 1.5rem);
+  line-height: 1.15;
+}
+
+@container (max-width: 11.25rem) {
+  .cover-mark {
+    display: none;
+  }
 }
 
 .tile-hub {

@@ -4,7 +4,12 @@ import { coverAspect } from '@/lib/cover-aspect';
 import { isSearchShortcutBlocked } from '@/lib/search-shortcut';
 import { isFavoriteSlug } from '@/lib/favorites';
 import { isNewGame, toTileGame } from '@/lib/tile-game';
-import { featuredSideCells, mdCountForPackedGrid } from '@/lib/tile-pack';
+import {
+  featuredSideCells,
+  fullRowMdCount,
+  mdHiddenAt,
+  mdTilesToRender,
+} from '@/lib/tile-pack';
 import type { GameRecord } from '@/lib/catalog/types';
 
 const record: GameRecord = {
@@ -91,15 +96,20 @@ describe('cover aspect', () => {
 });
 
 describe('tile grid packing', () => {
-  it('fills the cells beside a large tile at every column count', () => {
+  it('ends every breakpoint on a full row', () => {
+    const rendered = mdTilesToRender(7);
+    expect(rendered).toBe(12);
     for (const columns of [2, 3, 4, 6, 8]) {
-      const md = mdCountForPackedGrid(columns, 7);
-      expect(md).toBeGreaterThanOrEqual(featuredSideCells(columns));
-      expect(featuredSideCells(columns) - md).toBeLessThanOrEqual(0);
+      const shown = fullRowMdCount(columns, rendered);
+      expect(shown).toBeGreaterThanOrEqual(featuredSideCells(columns));
+      expect((shown - featuredSideCells(columns)) % columns).toBe(0);
+      expect((4 + shown) % columns).toBe(0);
     }
-    expect(mdCountForPackedGrid(4, 7)).toBe(7);
-    expect(mdCountForPackedGrid(6, 7)).toBe(8);
-    expect(mdCountForPackedGrid(8, 7)).toBe(12);
+    expect(fullRowMdCount(3, 12)).toBe(11);
+    expect(fullRowMdCount(6, 12)).toBe(8);
+    expect(mdHiddenAt(11, 12)).toEqual([3, 6]);
+    expect(mdHiddenAt(8, 12)).toEqual([6]);
+    expect(mdHiddenAt(0, 12)).toEqual([]);
   });
 });
 

@@ -3,8 +3,8 @@ import { CategoryCard } from '@/components/game/CategoryCard';
 import { GameTile } from '@/components/game/GameTile';
 import { Row } from '@/components/game/Row';
 import { Spotlight } from '@/components/game/Spotlight';
-import { TILE_COLUMNS, TileGrid } from '@/components/game/TileGrid';
-import { mdCountForPackedGrid } from '@/lib/tile-pack';
+import { TileGrid } from '@/components/game/TileGrid';
+import { mdTilesToRender, TILE_COLUMNS } from '@/lib/tile-pack';
 import type { TileGame } from '@/lib/tile-game';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { Footer } from '@/components/layout/Footer';
@@ -22,11 +22,11 @@ const collections = [
   { href: '/collection/one-thumb/', label: 'One-thumb games' },
 ];
 
-function packedTiles(columns: number, games: readonly TileGame[]) {
+function galleryTiles(games: readonly TileGame[]) {
   const lead = games[0];
   const rest = games.slice(1);
   if (!lead || rest.length === 0) return [];
-  const mdCount = mdCountForPackedGrid(columns, rest.length);
+  const mdCount = mdTilesToRender(rest.length);
   const tiles: { game: TileGame; size: 'xl' | 'md' }[] = [
     { game: lead, size: 'xl' },
   ];
@@ -43,6 +43,7 @@ export function GameSections() {
   const second = sampleGames[1];
   const missing = sampleGames[2];
   if (!first || !second || !missing) return null;
+  const tiles = galleryTiles(sampleGames);
 
   return (
     <>
@@ -60,10 +61,7 @@ export function GameSections() {
           <div key={columns} className="grid min-w-0 gap-3">
             <h3 className="text-lead">{columns} columns</h3>
             <div className="min-w-0 overflow-x-auto">
-              <TileGrid
-                columns={columns}
-                tiles={packedTiles(columns, sampleGames)}
-              />
+              <TileGrid columns={columns} tiles={tiles} />
             </div>
           </div>
         ))}
