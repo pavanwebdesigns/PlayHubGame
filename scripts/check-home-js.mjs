@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
 
-/** Hard ceiling from the master brief. */
-export const HOME_JS_BUDGET = 140 * 1024;
+/** Hard ceiling. 135 KB gzip after the Phase 3 home diet. */
+export const HOME_JS_BUDGET = 135 * 1024;
 /** Measured on 2 Oct 2026. Growth past this needs a home-js: note in the PR. */
 export const HOME_JS_BASELINE = 134_029;
 export const HOME_JS_GROWTH = 5 * 1024;

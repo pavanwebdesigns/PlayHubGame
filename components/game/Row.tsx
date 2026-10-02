@@ -1,5 +1,4 @@
 import { GameTile } from '@/components/game/GameTile';
-import { RowScroller } from '@/components/game/RowScroller';
 import type { TileGame } from '@/lib/tile-game';
 
 export function Row({
@@ -19,11 +18,11 @@ export function Row({
           See all
         </a>
       </div>
-      <RowScroller label={title}>
+      <div className="row-scroller" tabIndex={0} role="region" aria-label={title}>
         {games.map((game) => (
           <GameTile key={game.slug} game={game} size="row" />
         ))}
-      </RowScroller>
+      </div>
     </section>
   );
 }

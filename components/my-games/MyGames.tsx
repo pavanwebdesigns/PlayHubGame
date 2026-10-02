@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
-import { Dialog } from '@/components/ui/Dialog';
+import { useState, useSyncExternalStore, type ComponentType } from 'react';
+import type { Dialog } from '@/components/ui/Dialog';
 import { buttonClass } from '@/components/ui/Button';
 import {
   readFavorites,
@@ -19,6 +19,15 @@ import { getTileMap, subscribeTileMap } from '@/lib/tile-lookup';
 export function MyGames() {
   const [tab, setTab] = useState<'saved' | 'recent'>('saved');
   const [confirm, setConfirm] = useState(false);
+  const [ConfirmDialog, setConfirmDialog] = useState<ComponentType<
+    Parameters<typeof Dialog>[0]
+  > | null>(null);
+
+  function askClear() {
+    setConfirm(true);
+    if (ConfirmDialog) return;
+    void import('@/components/ui/Dialog').then((mod) => setConfirmDialog(() => mod.Dialog));
+  }
   const favoritesRaw = useSyncExternalStore(
     subscribeFavorites,
     readFavoritesSnapshot,
@@ -131,11 +140,12 @@ export function MyGames() {
           <button
             type="button"
             className={`${buttonClass('secondary')} mt-4`}
-            onClick={() => setConfirm(true)}
+            onClick={askClear}
           >
             Clear history
           </button>
-          <Dialog open={confirm} onClose={() => setConfirm(false)} title="Clear history?">
+          {ConfirmDialog ? (
+          <ConfirmDialog open={confirm} onClose={() => setConfirm(false)} title="Clear history?">
             <p className="text-ink">
               This removes recently played games from this browser.
             </p>
@@ -158,7 +168,8 @@ export function MyGames() {
                 Cancel
               </button>
             </div>
-          </Dialog>
+          </ConfirmDialog>
+          ) : null}
         </div>
       )}
     </div>

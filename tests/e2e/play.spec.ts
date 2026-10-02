@@ -59,6 +59,34 @@ test('a landscape game asks for a sideways phone', async ({ page }) => {
   await expect(page.getByText('Turn your phone sideways to play')).toBeVisible();
 });
 
+async function tabUntil(page: import('@playwright/test').Page, locator: import('@playwright/test').Locator) {
+  for (let step = 0; step < 50; step += 1) {
+    const focused = await locator.evaluate((element) => element === document.activeElement);
+    if (focused) return;
+    await page.keyboard.press('Tab');
+  }
+  throw new Error('Tab did not reach the control');
+}
+
+test('tab from home through play, Esc, and Back', async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) > 1024, 'phone immersive');
+  await page.goto('/');
+  const tile = page.locator('a.game-tile').filter({ visible: true }).first();
+  await tabUntil(page, tile);
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/\/game\//);
+  const play = page.getByRole('button', { name: 'Play' });
+  await tabUntil(page, play);
+  await page.keyboard.press('Enter');
+  await expect(page.locator('iframe')).toHaveCount(1);
+  await expect(page.locator('[data-immersive="true"]')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[data-immersive="true"]')).toHaveCount(0);
+  await expect(page).toHaveURL(/\/game\//);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+});
+
 test('keyboard starts the game', async ({ page }) => {
   await page.goto('/game/drop-planets/');
   await page.getByRole('button', { name: 'Play' }).focus();

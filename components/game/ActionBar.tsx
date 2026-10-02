@@ -1,10 +1,10 @@
 'use client';
 
-import { Flag, Heart, Maximize, Share2 } from 'lucide-react';
-import { useState, useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore, type ComponentType } from 'react';
+import { useSiteIcons } from '@/components/icons/IconProvider';
 import { buttonClass } from '@/components/ui/Button';
-import { Dialog } from '@/components/ui/Dialog';
 import { useToast } from '@/components/ui/Toast';
+import type { Dialog } from '@/components/ui/Dialog';
 import { CONTACT_EMAIL, contactEmailPublished } from '@/config/site';
 import {
   readFavorites,
@@ -37,8 +37,18 @@ export function ActionBar({
   onTheatre: () => void;
   onFullscreen: () => void;
 }) {
+  const icons = useSiteIcons();
   const { showToast } = useToast();
   const [open, setOpen] = useState(false);
+  const [ReportDialog, setReportDialog] = useState<ComponentType<
+    Parameters<typeof Dialog>[0]
+  > | null>(null);
+
+  function openReport() {
+    setOpen(true);
+    if (ReportDialog) return;
+    void import('@/components/ui/Dialog').then((mod) => setReportDialog(() => mod.Dialog));
+  }
   const raw = useSyncExternalStore(
     subscribeFavorites,
     readFavoritesSnapshot,
@@ -75,19 +85,17 @@ export function ActionBar({
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       <button type="button" className={buttonClass('secondary')} onClick={toggleSave}>
-        <Heart
-          aria-hidden="true"
-          size={20}
-          className={saved ? 'fill-spark text-spark' : undefined}
-        />
+        <span className={saved ? '[&_svg]:fill-spark [&_svg]:text-spark' : undefined}>
+          {icons.heart}
+        </span>
         {saved ? 'Saved' : 'Save'}
       </button>
       <button type="button" className={buttonClass('secondary')} onClick={() => void share()}>
-        <Share2 aria-hidden="true" size={20} />
+        {icons.share}
         Share
       </button>
       <button type="button" className={buttonClass('secondary')} onClick={onFullscreen}>
-        <Maximize aria-hidden="true" size={20} />
+        {icons.maximize}
         Full screen
       </button>
       <button
@@ -98,11 +106,12 @@ export function ActionBar({
       >
         Theatre
       </button>
-      <button type="button" className={buttonClass('ghost')} onClick={() => setOpen(true)}>
-        <Flag aria-hidden="true" size={20} />
+      <button type="button" className={buttonClass('ghost')} onClick={openReport}>
+        {icons.flag}
         Report a problem
       </button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Report a problem">
+      {ReportDialog ? (
+      <ReportDialog open={open} onClose={() => setOpen(false)} title="Report a problem">
         {contactEmailPublished() ? (
           <ul className="grid gap-2">
             {REASONS.map(([id, label]) => (
@@ -119,7 +128,8 @@ export function ActionBar({
         ) : (
           <p className="text-ink">Reporting isn’t open yet.</p>
         )}
-      </Dialog>
+      </ReportDialog>
+      ) : null}
     </div>
   );
 }

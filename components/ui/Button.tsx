@@ -1,5 +1,4 @@
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
-import type { LucideIcon } from 'lucide-react';
 
 const variants = {
   play: 'bg-play text-night hover:brightness-110',
@@ -25,7 +24,7 @@ export function buttonClass(
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
   size?: ButtonSize;
-  icon?: LucideIcon;
+  icon?: ReactNode;
   loading?: boolean;
   children?: ReactNode;
 };
@@ -35,7 +34,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     {
       variant = 'play',
       size = 'md',
-      icon: Icon,
+      icon,
       loading = false,
       className,
       children,
@@ -62,7 +61,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         <span
           className={`inline-flex items-center gap-2 ${loading ? 'invisible' : ''}`}
         >
-          {Icon ? <Icon aria-hidden="true" size={20} /> : null}
+          {icon}
           {children}
         </span>
         {loading ? (

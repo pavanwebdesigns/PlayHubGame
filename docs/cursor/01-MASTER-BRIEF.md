@@ -19,11 +19,11 @@ Facts below were measured on the live site, the repo and the GamePix feed on 2 O
 |---|---|
 | Core Web Vitals, 75th percentile, mobile | LCP ≤ 2.5 s, INP ≤ 200 ms, CLS ≤ 0.1 |
 | Lighthouse mobile (home, game page, category page) | Performance ≥ 90, Accessibility 100, Best Practices 100 (≥ 95 once third-party ads run), SEO 100 |
-| Initial JS on home (gzip) | ≤ 140 KB |
+| Initial JS on home (gzip) | ≤ 135 KB |
 | Taps from home to a running game | ≤ 2 |
 | Indexed pages with original content | grows every week (tracked in Search Console) |
 
-The 140 KB home budget is the React and Next.js runtime. The measured baseline on 2 Oct 2026 is 134,029 bytes gzip. CI fails a pull request that grows past that by more than 5 KB unless the pull request body contains a `home-js:` note.
+The 135 KB home budget is the React and Next.js runtime. The measured baseline on 2 Oct 2026 is 134,029 bytes gzip. CI fails a pull request that grows past that by more than 5 KB unless the pull request body contains a `home-js:` note.
 
 ---
 
@@ -97,7 +97,7 @@ Phase 0 is merged and live (`9e6ae0a` on `main`). The public site is still the V
 | A2 | **Keep Hostinger** (it serves the site today: `platform: hostinger`, `server: hcdn`, Brotli on). Use `trailingSlash: true` so `/game/slug/` maps to `game/slug/index.html` with no rewrite rules. | Static export runs on any web server. Static export does **not** support ISR, server actions, redirects/headers in `next.config`, or the default image loader — do those in `.htaccess` and a custom loader. |
 | A3 | **Build-time data pipeline.** A script fetches the full feed, validates it with `zod`, normalizes it and writes JSON the build reads. Nightly rebuild picks up new games. | No feed calls from the browser for page content; fast, indexable, resilient. |
 | A4 | **Curated catalog (~1,600 game pages).** Build a page only for games with `quality_score ≥ 0.70`, plus the 200 newest, plus a manual allowlist, minus a denylist. | Google's spam policy names "scraping feeds … to generate many pages … where little value is provided" as scaled content abuse. Poki itself lists ~1,500 games. |
-| A5 | **Index gate.** A page is `index,follow` and listed in the sitemap only when its content file exists: `content/games/{slug}.mdx`, `content/hubs/{hub}.mdx`, or `content/collections/{slug}.mdx`. Others render normally but are `noindex,follow`. No manual index flags. | Each indexed page earns its place; the site grows in quality, not just count. |
+| A5 | **Index gate.** A page is `index,follow` and listed in the sitemap only when its content file exists: `content/games/{slug}.mdx`, `content/categories/{hub}.mdx`, or `content/collections/{slug}.mdx`. Others render normally but are `noindex,follow`. No manual index flags. | Each indexed page earns its place; the site grows in quality, not just count. |
 | A6 | **Tailwind CSS v4** with design tokens as CSS variables. Remove Bootstrap (CSS and JS). | One styling system, small CSS, tokens enforce the design system. |
 | A7 | **Icons: `lucide-react` only.** Remove `react-icons` and inline icon SVGs. | Consistent stroke and size. |
 | A8 | **Client state:** favorites and recently played in `localStorage`, wrapped in try/catch, and must work when storage throws. Game favorites keep the existing key `playhub_favorites` so saved games survive the rebuild. That key is the one exception. Every new key uses `ph:<name>:v1`. No accounts until Phase 7 + legal review. | Zero personal data collected. |
@@ -114,7 +114,7 @@ Phase 0 is merged and live (`9e6ae0a` on `main`). The public site is still the V
 |---|---|---|
 | `/` | Home | yes |
 | `/game/{slug}/` | Game page | only if content exists (A5) |
-| `/category/{hub}/` | ~20 hub categories | only if `content/hubs/{hub}.mdx` exists |
+| `/category/{hub}/` | ~20 hub categories | only if `content/categories/{hub}.mdx` exists |
 | `/collection/{slug}/` | Mood collections (one-thumb, two-player, brain, relax, 5-minute, new) | only if `content/collections/{slug}.mdx` exists |
 | `/new/` | Newest games | yes |
 | `/search/` | Search results (client-side) | no |

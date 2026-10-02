@@ -1,0 +1,194 @@
+name: Preview
+
+on:
+  push:
+    branches: [rebuild/next]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Commit SHA or tag on rebuild/next to build. Defaults to rebuild/next.'
+        required: false
+        default: rebuild/next
+        type: string
+
+concurrency:
+  group: preview-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  preview:
+    name: Publish preview branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
+          persist-credentials: false
+
+      - name: Record source commit
+        id: git
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore catalog cache
+        uses: actions/cache@v4
+        with:
+          path: .catalog-cache
+          key: catalog-${{ github.run_id }}
+          restore-keys: |
+            catalog-
+
+      - name: Restore catalog snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p .catalog-snapshot
+          auth=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w 0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" \
+            fetch --depth 1 origin catalog-snapshot || true
+          if git rev-parse --verify --quiet FETCH_HEAD >/dev/null; then
+            git archive FETCH_HEAD | tar -x -C .catalog-snapshot
+          else
+            echo "catalog-snapshot is not on the remote yet."
+          fi
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          CATALOG_CACHE_DIR: ${{ github.workspace }}/.catalog-cache
+          CATALOG_SNAPSHOT_DIR: ${{ github.workspace }}/.catalog-snapshot
+
+      - name: Keep the catalog cache
+        run: node scripts/save-catalog-cache.mjs
+
+      - name: Store catalog snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx tsx scripts/push-catalog-snapshot.ts
+
+      - name: Guard checks
+        id: guard
+        run: |
+          set -euo pipefail
+          test -f out/index.html
+          test -f out/ads.txt
+          grep -F -q '#gpx-property-LC991' out/ads.txt
+          test -f out/.htaccess
+          test -f out/robots.txt
+          test -f out/sitemap.xml
+          test -f out/game/prism-match-3d/index.html
+          bad=$(find out \( -name '*.map' -o -name '.env' -o -name '.DS_Store' \) -print)
+          if [ -n "$bad" ]; then
+            echo "Refusing to publish:"
+            printf '%s\n' "$bad"
+            exit 1
+          fi
+          js=$(node scripts/main-js.mjs)
+          if [ -z "$js" ]; then
+            echo "Could not find a /_next/static script in out/index.html."
+            exit 1
+          fi
+          echo "js=$js" >> "$GITHUB_OUTPUT"
+
+      - name: Keep the preview out of search indexes
+        run: |
+          set -euo pipefail
+          node scripts/mark-preview.mjs
+          grep -F -q 'Header set X-Robots-Tag "noindex, nofollow"' out/.htaccess
+          grep -F -x 'Disallow: /' out/robots.txt
+          if grep -R -q 'preview.playhubplace.com' out --include='*.html'; then
+            echo "A built page points at the preview host. Canonicals must stay on https://playhubplace.com."
+            exit 1
+          fi
+          grep -F -q 'rel="canonical" href="https://playhubplace.com/' out/index.html
+          grep -F -q 'rel="canonical" href="https://playhubplace.com/game/prism-match-3d/"' out/game/prism-match-3d/index.html
+
+      - name: Publish out to preview
+        id: publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_SHA: ${{ steps.git.outputs.sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GITHUB_TOKEN}" ]; then
+            echo "GITHUB_TOKEN is empty."
+            exit 1
+          fi
+          auth=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w 0)
+          remote="https://github.com/${GITHUB_REPOSITORY}.git"
+          git_auth=(-c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}")
+          rm -rf /tmp/site-preview
+
+          set +e
+          git "${git_auth[@]}" ls-remote --exit-code --heads "$remote" preview >/dev/null
+          remote_status=$?
+          set -e
+          if [ "$remote_status" -eq 0 ]; then
+            git "${git_auth[@]}" clone --depth 1 --branch preview "$remote" /tmp/site-preview
+            find /tmp/site-preview -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+            cp -a "${GITHUB_WORKSPACE}/out/." /tmp/site-preview/
+          elif [ "$remote_status" -eq 2 ]; then
+            mkdir -p /tmp/site-preview
+            cp -a "${GITHUB_WORKSPACE}/out/." /tmp/site-preview/
+            git -C /tmp/site-preview init -b preview
+          else
+            echo "Could not check the preview branch (git ls-remote exited ${remote_status})."
+            exit 1
+          fi
+
+          git -C /tmp/site-preview add -A
+          git -C /tmp/site-preview ls-files --error-unmatch .htaccess ads.txt index.html robots.txt >/dev/null
+          if git -C /tmp/site-preview ls-files | grep -E '(^|/)(package\.json|package-lock\.json|src/|app/|legacy/|node_modules/|\.github/)' >/dev/null; then
+            echo "Refusing to publish source files."
+            git -C /tmp/site-preview ls-files
+            exit 1
+          fi
+
+          git -C /tmp/site-preview diff --cached --name-only > /tmp/preview-paths.txt
+          scope=$(npx tsx "${GITHUB_WORKSPACE}/scripts/classify-deploy-diff.ts" /tmp/preview-paths.txt)
+          count=$(grep -c . /tmp/preview-paths.txt || true)
+          echo "scope=$scope"
+          echo "files=$count"
+          echo "scope=$scope" >> "$GITHUB_OUTPUT"
+          if [ "$scope" = "skip" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Built files match the preview branch. No commit."
+            exit 0
+          fi
+          if [ "$scope" = "home" ]; then
+            echo "Only the home page changed. Committing those files."
+          fi
+
+          git -C /tmp/site-preview \
+            -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "Preview ${SOURCE_SHA} (${scope})"
+          git -C /tmp/site-preview "${git_auth[@]}" push "$remote" HEAD:preview
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "### Preview"
+            echo "- Source commit: \`${{ steps.git.outputs.sha }}\`"
+            echo "- Ref input: \`${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event_name }}\`"
+            echo "- Branch: \`preview\` (no force)"
+            echo "- Commit pushed: \`${{ steps.publish.outputs.changed }}\`"
+            echo "- Main JS: \`${{ steps.guard.outputs.js }}\`"
+            echo "- Indexing: \`noindex, nofollow\` header, \`Disallow: /\`, canonicals stay on https://playhubplace.com"
+          } >> "$GITHUB_STEP_SUMMARY"

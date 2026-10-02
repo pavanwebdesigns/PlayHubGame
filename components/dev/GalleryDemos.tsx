@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Play } from 'lucide-react';
+import { useSiteIcons } from '@/components/icons/IconProvider';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { Dialog } from '@/components/ui/Dialog';
@@ -10,10 +10,11 @@ import { Sheet } from '@/components/ui/Sheet';
 import { useToast } from '@/components/ui/Toast';
 
 export function ButtonLoadingDemo() {
+  const icons = useSiteIcons();
   const [loading, setLoading] = useState(false);
   return (
     <Button
-      icon={Play}
+      icon={icons.play}
       loading={loading}
       onClick={() => {
         setLoading(true);

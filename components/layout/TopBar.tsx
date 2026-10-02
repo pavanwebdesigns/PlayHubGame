@@ -1,13 +1,39 @@
 'use client';
 
-import { Search } from 'lucide-react';
-import { useEffect, useState, type FormEvent } from 'react';
-import { SearchField } from '@/components/ui/SearchField';
+import { useEffect, useRef, useState } from 'react';
+import { useSiteIcons } from '@/components/icons/IconProvider';
 import { SITE_NAME } from '@/config/site';
 
 export function TopBar({ preview = false }: { preview?: boolean }) {
+  const icons = useSiteIcons();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    if (preview) return;
+    let cancel = false;
+    let unbind = () => {};
+    const start = () => {
+      void import('./bind-search-shortcut').then((mod) => {
+        if (!cancel) unbind = mod.bindSearchShortcut();
+      });
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(start);
+      return () => {
+        cancel = true;
+        window.cancelIdleCallback(id);
+        unbind();
+      };
+    }
+    const timer = window.setTimeout(start, 200);
+    return () => {
+      cancel = true;
+      window.clearTimeout(timer);
+      unbind();
+    };
+  }, [preview]);
 
   useEffect(() => {
     if (preview) return;
@@ -24,14 +50,6 @@ export function TopBar({ preview = false }: { preview?: boolean }) {
     return () => window.removeEventListener('scroll', onScroll);
   }, [preview]);
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const next = query.trim();
-    window.location.assign(
-      next ? `/search/?q=${encodeURIComponent(next)}` : '/search/',
-    );
-  }
-
   return (
     <header
       className="top-bar flex items-center gap-3 px-4"
@@ -46,13 +64,40 @@ export function TopBar({ preview = false }: { preview?: boolean }) {
         aria-label="Search"
         className="press ml-auto inline-flex h-tap w-tap items-center justify-center rounded-button text-ink lg:hidden"
       >
-        <Search aria-hidden="true" size={20} />
+        {icons.search}
       </a>
-      <form
-        onSubmit={onSubmit}
-        className="ml-auto hidden min-w-0 flex-1 lg:block"
-      >
-        <SearchField value={query} onValueChange={setQuery} />
+      <form action="/search/" method="get" className="ml-auto hidden min-w-0 flex-1 lg:block">
+        <div className="relative flex min-h-tap w-full items-center rounded-input border border-edge bg-night">
+          <label className="sr-only" htmlFor="top-search">
+            Search games
+          </label>
+          <input
+            id="top-search"
+            ref={inputRef}
+            data-top-search=""
+            name="q"
+            value={query}
+            placeholder="Search games"
+            onChange={(event) => setQuery(event.target.value)}
+            className="min-h-tap w-full bg-transparent px-3 text-ink outline-none placeholder:text-ink-muted"
+          />
+          <kbd className="mr-2 hidden text-ui text-ink-muted lg:inline" aria-hidden="true">
+            /
+          </kbd>
+          {query.length > 0 ? (
+            <button
+              type="button"
+              className="press mr-1 inline-flex h-tap w-tap items-center justify-center text-ink"
+              aria-label="Clear search"
+              onClick={() => {
+                setQuery('');
+                inputRef.current?.focus();
+              }}
+            >
+              {icons.clear}
+            </button>
+          ) : null}
+        </div>
       </form>
       <a
         href="/my-games/"

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, type InputHTMLAttributes } from 'react';
-import { X } from 'lucide-react';
+import { useSiteIcons } from '@/components/icons/IconProvider';
 import { isSearchShortcutBlocked } from '@/lib/search-shortcut';
 
 type SearchFieldProps = Omit<
@@ -29,6 +29,7 @@ export function SearchField({
   status = '',
   ...props
 }: SearchFieldProps) {
+  const icons = useSiteIcons();
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
 
@@ -83,7 +84,7 @@ export function SearchField({
             inputRef.current?.focus();
           }}
         >
-          <X aria-hidden="true" size={20} />
+          {icons.clear}
         </button>
       ) : null}
       <div aria-live="polite" className="sr-only">

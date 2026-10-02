@@ -1,6 +1,6 @@
 import { AboutHome } from '@/components/home/AboutHome';
 import { CategorySection } from '@/components/home/CategorySection';
-import { ContinuePlaying } from '@/components/home/ContinuePlaying';
+import { ContinuePlayingSlot } from '@/components/home/ContinuePlayingSlot';
 import { OriginalsRow } from '@/components/home/OriginalsRow';
 import { Row } from '@/components/game/Row';
 import { Spotlight } from '@/components/game/Spotlight';
@@ -72,7 +72,7 @@ export default function HomePage() {
   return (
     <main className="mx-auto grid max-w-6xl gap-8 px-4 py-6">
       <h1 className="font-display text-display text-ink">{SITE_NAME}</h1>
-      <ContinuePlaying />
+      <ContinuePlayingSlot />
       {spotlight ? <Spotlight game={toTileGame(spotlight)} /> : null}
       <section>
         <h2 className="mb-3 text-title text-ink">Today’s picks</h2>

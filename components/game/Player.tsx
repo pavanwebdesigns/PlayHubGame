@@ -1,6 +1,6 @@
 'use client';
 
-import { Smartphone } from 'lucide-react';
+import { useSiteIcons } from '@/components/icons/IconProvider';
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ActionBar } from '@/components/game/ActionBar';
 import { CoverImage } from '@/components/game/CoverImage';
@@ -63,6 +63,7 @@ export function Player({
   theatre: boolean;
   onTheatre: () => void;
 }) {
+  const icons = useSiteIcons();
   const shellRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -274,7 +275,7 @@ export function Player({
         </div>
         {showRotate ? (
           <div className="player-rotate">
-            <Smartphone aria-hidden="true" size={48} className="rotate-90" />
+            <span className="inline-flex rotate-90">{icons.phone}</span>
             <p className="text-lead text-ink">Turn your phone sideways to play</p>
           </div>
         ) : null}

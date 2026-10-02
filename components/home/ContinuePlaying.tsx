@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { Row } from '@/components/game/Row';
+import { ContinueSkeleton } from '@/components/home/ContinueSkeleton';
 import { parseRecent, readRecentSnapshot, subscribeRecent } from '@/lib/recent';
 import { getTileMap, subscribeTileMap } from '@/lib/tile-lookup';
 
@@ -17,7 +18,8 @@ export function ContinuePlaying() {
     getTileMap,
     () => null,
   );
-  if (!raw || entries.length === 0 || !tiles) return null;
+  if (!raw || entries.length === 0) return null;
+  if (!tiles) return <ContinueSkeleton />;
   const games = entries.flatMap((entry) => {
     const tile = tiles.get(entry.slug);
     return tile ? [tile] : [];

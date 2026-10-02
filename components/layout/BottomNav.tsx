@@ -1,15 +1,15 @@
 'use client';
 
-import { House, LayoutGrid, Search, Heart } from 'lucide-react';
-import { useState, useSyncExternalStore } from 'react';
-import { Sheet } from '@/components/ui/Sheet';
+import { useState, useSyncExternalStore, type ComponentType } from 'react';
+import { useSiteIcons } from '@/components/icons/IconProvider';
+import type { CategorySheet } from '@/components/layout/CategorySheet';
 
 type NavLink = { href: string; label: string };
 
 const items = [
-  { id: 'home', href: '/', label: 'Home', icon: House },
-  { id: 'search', href: '/search/', label: 'Search', icon: Search },
-  { id: 'my-games', href: '/my-games/', label: 'My games', icon: Heart },
+  { id: 'home', href: '/', label: 'Home' },
+  { id: 'search', href: '/search/', label: 'Search' },
+  { id: 'my-games', href: '/my-games/', label: 'My games' },
 ] as const;
 
 function subscribePath(listener: () => void): () => void {
@@ -32,7 +32,17 @@ export function BottomNav({
   collections: readonly NavLink[];
   preview?: boolean;
 }) {
+  const icons = useSiteIcons();
   const [open, setOpen] = useState(false);
+  const [Panel, setPanel] = useState<ComponentType<
+    Parameters<typeof CategorySheet>[0]
+  > | null>(null);
+
+  function openCategories() {
+    setOpen(true);
+    if (Panel) return;
+    void import('./CategorySheet').then((mod) => setPanel(() => mod.CategorySheet));
+  }
   const path = useSyncExternalStore(subscribePath, currentPath, () => '');
   const current =
     active ??
@@ -56,11 +66,9 @@ export function BottomNav({
           aria-current={current === 'home' ? 'page' : undefined}
           className="flex min-h-tap flex-1 flex-col items-center justify-center gap-1 text-ui text-ink"
         >
-          <House
-            aria-hidden="true"
-            size={20}
-            className={current === 'home' ? 'fill-ink' : undefined}
-          />
+          <span className={current === 'home' ? '[&_svg]:fill-ink' : undefined}>
+            {icons.house}
+          </span>
           <span className={current === 'home' ? 'font-semibold' : 'font-normal'}>
             Home
           </span>
@@ -69,9 +77,9 @@ export function BottomNav({
           type="button"
           className="flex min-h-tap flex-1 flex-col items-center justify-center gap-1 text-ui text-ink"
           aria-expanded={open}
-          onClick={() => setOpen(true)}
+          onClick={openCategories}
         >
-          <LayoutGrid aria-hidden="true" size={20} />
+          {icons.categories}
           <span className="font-normal">Categories</span>
         </button>
         {items.slice(1).map((item) => (
@@ -81,11 +89,9 @@ export function BottomNav({
             aria-current={current === item.id ? 'page' : undefined}
             className="flex min-h-tap flex-1 flex-col items-center justify-center gap-1 text-ui text-ink"
           >
-            <item.icon
-              aria-hidden="true"
-              size={20}
-              className={current === item.id ? 'fill-ink' : undefined}
-            />
+            <span className={current === item.id ? '[&_svg]:fill-ink' : undefined}>
+              {item.id === 'search' ? icons.search : icons.heart}
+            </span>
             <span
               className={current === item.id ? 'font-semibold' : 'font-normal'}
             >
@@ -94,33 +100,14 @@ export function BottomNav({
           </a>
         ))}
       </nav>
-      <Sheet open={open} onClose={() => setOpen(false)} title="Categories">
-        <ul className="grid gap-2">
-          {categories.map((item) => (
-            <li key={item.href}>
-              <a
-                href={item.href}
-                className="inline-flex min-h-tap items-center text-ink"
-              >
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-        <h3 className="mt-4 text-lead text-ink">Collections</h3>
-        <ul className="mt-2 grid gap-2">
-          {collections.map((item) => (
-            <li key={item.href}>
-              <a
-                href={item.href}
-                className="inline-flex min-h-tap items-center text-ink"
-              >
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </Sheet>
+      {Panel ? (
+        <Panel
+          open={open}
+          onClose={() => setOpen(false)}
+          categories={categories}
+          collections={collections}
+        />
+      ) : null}
     </>
   );
 }

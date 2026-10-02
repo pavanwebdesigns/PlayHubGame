@@ -43,6 +43,6 @@ Playwright, axe, and Lighthouse CI are devDependencies. They are not part of the
 Local `npm run build`, then one more `next build` after the favicon was added. Next did not print per-page timings, so the five slowest pages are not available.
 
 - `out/`: 9,529 files, 108,035,071 bytes
-- Home JS gzip for scripts a current browser downloads: 134,029 bytes. The budget is 140 KB (143,360 bytes), which covers the React and Next.js runtime. A pull request that grows past 139,149 bytes needs a `home-js:` note. The catalog and MiniSearch are not in that graph. The HTML also references a `nomodule` polyfill of 39,627 bytes gzip, which current browsers skip.
+- Home JS gzip for scripts a current browser downloads started at 134,029 bytes. The budget is 135 KB (138,240 bytes). A pull request that grows past 139,149 bytes needs a `home-js:` note. The catalog and MiniSearch are not in that graph. The HTML also references a `nomodule` polyfill of 39,627 bytes gzip, which current browsers skip.
 - Largest JS chunks, gzip: 71,576 bytes, 43,884 bytes, 39,627 bytes (`nomodule`), 9,030 bytes, 3,849 bytes
 - Lighthouse mobile, one run: home 100 / 100 / 100 / 100. `/game/prism-match-3d/` 98 / 100 / 100 / 69. `/search/` 99 / 100 / 100 / 66. `/category/puzzle/` 99 / 100 / 100 / 66. Order is performance, accessibility, best practices, SEO. CLS was 0 on each. The SEO scores under 100 are the noindex rule: a game, category, or collection page stays out of the index until its content file exists. Search is noindex on purpose.

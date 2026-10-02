@@ -1,35 +1,33 @@
 'use client';
 
-import { Heart } from 'lucide-react';
-import { useSyncExternalStore } from 'react';
-import {
-  isFavoriteSlug,
-  readFavoritesSnapshot,
-  subscribeFavorites,
-} from '@/lib/favorites';
+import { useEffect, useState, type ComponentType } from 'react';
 
 export function FavoriteMark({ slug }: { slug: string }) {
-  const raw = useSyncExternalStore(
-    subscribeFavorites,
-    readFavoritesSnapshot,
-    () => null,
-  );
-  const saved = isFavoriteSlug(raw, slug);
+  const [Live, setLive] = useState<ComponentType<{ slug: string }> | null>(null);
 
-  return (
-    <span
-      className="inline-flex h-tap w-tap items-center justify-center"
-      role={saved ? 'img' : undefined}
-      aria-label={saved ? 'Saved' : undefined}
-      aria-hidden={saved ? undefined : true}
-    >
-      <Heart
-        aria-hidden="true"
-        size={20}
-        className={
-          saved ? 'fill-spark text-spark' : 'fill-transparent text-transparent'
-        }
-      />
-    </span>
-  );
+  useEffect(() => {
+    let cancel = false;
+    const start = () => {
+      void import('./FavoriteMarkLive').then((mod) => {
+        if (!cancel) setLive(() => mod.FavoriteMarkLive);
+      });
+    };
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(start);
+      return () => {
+        cancel = true;
+        window.cancelIdleCallback(id);
+      };
+    }
+    const timer = window.setTimeout(start, 1);
+    return () => {
+      cancel = true;
+      window.clearTimeout(timer);
+    };
+  }, []);
+
+  if (!Live) {
+    return <span className="inline-flex h-tap w-tap" aria-hidden="true" />;
+  }
+  return <Live slug={slug} />;
 }

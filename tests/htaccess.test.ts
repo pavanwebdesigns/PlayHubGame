@@ -14,6 +14,7 @@ describe('public/.htaccess', () => {
     expect(htaccess).toContain('https://playhubplace.com%{REQUEST_URI}');
     expect(htaccess).not.toContain('/index.html');
     expect(htaccess).toContain('ErrorDocument 404 /404.html');
+    expect(htaccess).not.toContain('X-Robots-Tag');
   });
 
   it('sends the reaction and CPS tools to originals before the generic tool rule', () => {

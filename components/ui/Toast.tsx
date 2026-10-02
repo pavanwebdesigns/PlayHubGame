@@ -2,18 +2,18 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
-  useEffect,
-  useRef,
   useState,
+  type ComponentType,
   type ReactNode,
 } from 'react';
-
-const TOAST_MS = 3000;
 
 type ToastContextValue = {
   showToast: (message: string) => void;
 };
+
+type ToastViewProps = { message: string; onClear: () => void };
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
@@ -25,46 +25,19 @@ export function useToast(): ToastContextValue {
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [message, setMessage] = useState<string | null>(null);
-  const [paused, setPaused] = useState(false);
-  const remaining = useRef(TOAST_MS);
-  const started = useRef(0);
+  const [View, setView] = useState<ComponentType<ToastViewProps> | null>(null);
 
-  function showToast(next: string) {
-    remaining.current = TOAST_MS;
-    setPaused(false);
+  const showToast = useCallback((next: string) => {
     setMessage(next);
-  }
+    void import('./ToastView').then((mod) => setView(() => mod.ToastView));
+  }, []);
 
-  useEffect(() => {
-    if (!message || paused) return;
-    started.current = Date.now();
-    const timer = window.setTimeout(() => setMessage(null), remaining.current);
-    return () => {
-      remaining.current = Math.max(
-        0,
-        remaining.current - (Date.now() - started.current),
-      );
-      window.clearTimeout(timer);
-    };
-  }, [message, paused]);
+  const onClear = useCallback(() => setMessage(null), []);
 
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
-      <div
-        role="status"
-        className="pointer-events-none fixed inset-x-0 bottom-20 z-toast flex justify-center px-4"
-      >
-        {message ? (
-          <p
-            className="pointer-events-auto rounded-button bg-deck px-4 py-3 text-ink"
-            onMouseEnter={() => setPaused(true)}
-            onMouseLeave={() => setPaused(false)}
-          >
-            {message}
-          </p>
-        ) : null}
-      </div>
+      {message && View ? <View message={message} onClear={onClear} /> : null}
     </ToastContext.Provider>
   );
 }

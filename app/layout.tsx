@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import type { CSSProperties, ReactNode } from 'react';
-import { ToastProvider } from '@/components/ui/Toast';
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_URL } from '@/config/site';
 import { coverAspect } from '@/lib/cover-aspect';
 import { LEGACY_GAME_REDIRECT } from '@/lib/legacy-redirect';
+import { SiteIcons } from '@/components/icons/SiteIcons';
 import { anekLatin, jersey15 } from './fonts';
 import './globals.css';
 
@@ -32,15 +32,15 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: LEGACY_GAME_REDIRECT }} />
       </head>
       <body>
-        <ToastProvider>
-          <a
-            href="#content"
-            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:bg-play focus:px-3 focus:py-2 focus:text-night"
-          >
-            Skip to content
-          </a>
+        <a
+          href="#content"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:bg-play focus:px-3 focus:py-2 focus:text-night"
+        >
+          Skip to content
+        </a>
+        <SiteIcons>
           <div id="content">{children}</div>
-        </ToastProvider>
+        </SiteIcons>
       </body>
     </html>
   );
