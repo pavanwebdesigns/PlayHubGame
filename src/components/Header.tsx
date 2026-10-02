@@ -23,10 +23,11 @@ interface HeaderProps {
   onTools?: () => void;
   onBlog?: () => void;
   onOpenSidebar?: () => void;
+  onOpenTool?: (toolId: string) => void;
   favoritesCount?: number;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOpenSidebar, favoritesCount = 0 }) => {
+const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOpenSidebar, onOpenTool, favoritesCount = 0 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -159,6 +160,13 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOp
           </button>
           <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onOpenSidebar?.(); }}>
             <span className="fs-5">Favorites{favoritesCount > 0 ? ` (${favoritesCount})` : ''}</span>
+          </button>
+          <p className="text-white-50 small mb-1 mt-2 px-2">Quick tests</p>
+          <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onOpenTool?.('reaction'); }}>
+            <span className="fs-5">Reaction test</span>
+          </button>
+          <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onOpenTool?.('cps'); }}>
+            <span className="fs-5">CPS test</span>
           </button>
         </div>
       )}

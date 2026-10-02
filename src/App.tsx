@@ -590,17 +590,16 @@ function App() {
           onTools={handleToolsClick}
           onBlog={handleBlogClick}
           onOpenFavorites={() => setIsSidebarOpen(true)}
+          onOpenTool={handleNavigateToTool}
           favoritesCount={favoriteGames.length + visibleFavoriteTools.length}
         />
-        <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
-        <button className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center position-fixed" style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }} onClick={() => setIsToolsOpen(true)} title="Game Tools"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></button>
         <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={visibleFavoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
       </>
     );
   } else if (currentView === 'game') {
     content = (
       <div className="d-flex flex-column min-vh-100 w-100 bg-black">
-        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} favoritesCount={favoriteGames.length + visibleFavoriteTools.length} />
+        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} onOpenTool={handleNavigateToTool} favoritesCount={favoriteGames.length + visibleFavoriteTools.length} />
         <main className="container py-5 text-white">
           {gameLookup === 'missing' ? (
             <>
@@ -621,7 +620,7 @@ function App() {
     // Default: Home Grid or Blog or Tools List
     content = (
       <div className="d-flex flex-column min-vh-100 w-100 position-relative overflow-x-hidden pt-4">
-        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} favoritesCount={favoriteGames.length + visibleFavoriteTools.length} />
+        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} onOpenTool={handleNavigateToTool} favoritesCount={favoriteGames.length + visibleFavoriteTools.length} />
         <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={visibleFavoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
 
         {currentView === 'home' && (
@@ -679,7 +678,7 @@ function App() {
           )}
         </main>
         <Footer />
-        <button className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center position-fixed" style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }} onClick={() => setIsToolsOpen(true)} title="Game Tools"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></button>
+        <button className="btn btn-primary rounded-circle shadow-lg d-none d-md-flex align-items-center justify-content-center position-fixed" style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }} onClick={() => setIsToolsOpen(true)} title="Game Tools"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></button>
         <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
       </div>
     );

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import type { GamePixGame } from '../types';
@@ -14,6 +14,7 @@ interface GamePlayProps {
   onTools?: () => void;
   onBlog?: () => void;
   onOpenFavorites?: () => void;
+  onOpenTool?: (toolId: string) => void;
   favoritesCount?: number;
 }
 
@@ -27,10 +28,13 @@ const GamePlay: React.FC<GamePlayProps> = ({
   onTools,
   onBlog,
   onOpenFavorites,
+  onOpenTool,
   favoritesCount = 0,
 }) => {
   const topRef = useRef<HTMLDivElement>(null);
   const gameContainerRef = useRef<HTMLDivElement>(null);
+  const loadedRef = useRef(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: 'auto' });
@@ -39,6 +43,12 @@ const GamePlay: React.FC<GamePlayProps> = ({
     if (metaDesc) {
         metaDesc.setAttribute('content', `Play ${game.title} for free! ${game.description?.substring(0, 150)}... No downloads required.`);
     }
+    loadedRef.current = false;
+    setShowHelp(false);
+    const helpTimer = window.setTimeout(() => {
+      if (!loadedRef.current) setShowHelp(true);
+    }, 15000);
+    return () => window.clearTimeout(helpTimer);
   }, [game.id, game.title, game.category, game.description]);
 
   const toggleFullScreen = () => {
@@ -54,7 +64,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
   return (
     <div className="d-flex flex-column min-vh-100 w-100 bg-black" ref={topRef}>
-      <Header onSearch={() => {}} onHome={onBack} onTools={onTools} onBlog={onBlog} onOpenSidebar={onOpenFavorites} favoritesCount={favoritesCount} />
+      <Header onSearch={() => {}} onHome={onBack} onTools={onTools} onBlog={onBlog} onOpenSidebar={onOpenFavorites} onOpenTool={onOpenTool} favoritesCount={favoritesCount} />
 
       <main className="flex-grow-1 container-fluid px-0 px-md-4 py-4">
         <nav aria-label="breadcrumb" className="container mb-4">
@@ -64,9 +74,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
             </button>
         </nav>
 
-        <article className="container mb-5">
-            <div className="row g-4">
-                <div className="col-12 col-lg-9">
+        <article className="container mb-5" style={{ maxWidth: '1200px' }}>
                     <section 
                         ref={gameContainerRef}
                         className="ratio ratio-16x9 bg-dark rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-25 position-relative group" 
@@ -79,6 +87,10 @@ const GamePlay: React.FC<GamePlayProps> = ({
                             className="w-100 h-100"
                             loading="eager"
                             allow="autoplay; fullscreen; gyroscope; accelerometer; magnetometer; gamepad"
+                            onLoad={() => {
+                              loadedRef.current = true;
+                              setShowHelp(false);
+                            }}
                         ></iframe>
                          <button 
                             onClick={toggleFullScreen}
@@ -120,12 +132,14 @@ const GamePlay: React.FC<GamePlayProps> = ({
                             </button>
                         </header>
                         
+                        {showHelp && (
                         <div className="alert alert-dark d-flex align-items-center border border-secondary border-opacity-25 mb-4" role="alert">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warning me-3"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
                             <div>
                                 <strong>Having trouble playing?</strong> If the game doesn't load, try disabling your ad blocker.
                             </div>
                         </div>
+                        )}
                         
                         <div className="game-description">
                             <h2 className="h4 text-white mb-3">About this Game</h2>
@@ -134,16 +148,6 @@ const GamePlay: React.FC<GamePlayProps> = ({
                             </p>
                         </div>
                     </section>
-                </div>
-                <aside className="col-12 col-lg-3">
-                    <div className="bg-dark bg-opacity-50 rounded-4 p-4 h-100 border border-secondary border-opacity-25 text-center d-flex flex-column align-items-center justify-content-start sticky-top" style={{ top: '100px', zIndex: 1 }}>
-                        <span className="text-white-50 text-uppercase small letter-spacing-2 mb-3">Sponsored</span>
-                        <div className="p-4 bg-black bg-opacity-50 rounded w-100 d-flex align-items-center justify-content-center" style={{ border: '2px dashed #444', minHeight: '250px' }}>
-                             <span className="text-white-50">Ad Space</span>
-                        </div>
-                    </div>
-                </aside>
-            </div>
         </article>
 
         {/* Related Games Section */}
