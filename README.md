@@ -74,12 +74,10 @@ export default defineConfig([
 
 ## Deploying
 
-Merging a pull request into `main` builds the site on GitHub and uploads `dist/` to Hostinger. The live site updates within a few minutes.
+Hostinger's Git deployment must track the branch `deploy`, never `main`. `main` is the source code. The Publish workflow builds it and pushes only the built files onto `deploy`.
 
-Secrets and the protocol variable live in GitHub → Settings → Secrets and variables → Actions. The secret names are `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`, and `FTP_SERVER_DIR`. The variable is `FTP_PROTOCOL` (`ftps` unless plain FTP is required). Never put those values in the repo or in chat.
+Merging into `main` runs Publish. Hostinger pulls `deploy` from its webhook, and the live site should update within a few minutes. Each publish adds a normal commit when the built files changed, and that commit removes old hashed files so the pull deletes them on the server. If the build matches `deploy` already, Publish skips the commit.
 
-To see what a deploy would change without uploading, open Actions → Deploy → Run workflow. Set `ref` to the commit you want to build and check `dry_run`. The first run should be a dry run.
+To roll back, open Actions → Publish → Run workflow and set `ref` to the last good commit on `main`. That rebuilds the commit and pushes it to `deploy`.
 
-To roll back, open Actions → Deploy → Run workflow and set `ref` to the last good commit SHA. Leave `dry_run` unchecked.
-
-If the smoke test says the homepage is still serving the old JavaScript file, flush the CDN cache in hPanel, then re-run the workflow.
+If the smoke test still sees the old page after 5 minutes, confirm hPanel is set to branch `deploy`, flush the CDN cache, then re-run Publish.

@@ -1,5 +1,7 @@
 # Setup — Automatic deploy to Hostinger (do this before Phase 0's deploy step)
 
+> **Superseded for deploy.** Do not use FTP, and do not point Hostinger at `main`. The live site tracks the `deploy` branch. `.github/workflows/publish.yml` builds `dist/` and pushes those files as a normal commit. The tasks below are the history of the first attempt.
+
 **Attach:** `@docs/cursor/01-MASTER-BRIEF.md` `@docs/cursor/setup-auto-deploy.md`
 **Size:** half a day · **Rule:** set up deployment only. Don't change app code except the `.htaccess` move in task D3.
 

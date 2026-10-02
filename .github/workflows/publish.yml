@@ -1,0 +1,166 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Commit SHA or tag on main to build. Defaults to main."
+        required: false
+        default: main
+        type: string
+
+concurrency:
+  group: publish-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish deploy branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.sha }}
+          persist-credentials: false
+
+      - name: Record source commit
+        id: git
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Guard checks
+        id: guard
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist/ads.txt
+          grep -F -q '#gpx-property-LC991' dist/ads.txt
+          test -f dist/.htaccess
+          bad=$(find dist \( -name '*.map' -o -name '.env' -o -name '.DS_Store' \) -print)
+          if [ -n "$bad" ]; then
+            echo "Refusing to publish:"
+            printf '%s\n' "$bad"
+            exit 1
+          fi
+          js=$(grep -oE 'assets/index-[^"]+\.js' dist/index.html | head -n 1)
+          if [ -z "$js" ]; then
+            echo "Could not find the main JS file name in dist/index.html."
+            exit 1
+          fi
+          echo "js=$js" >> "$GITHUB_OUTPUT"
+
+      - name: Publish dist to deploy
+        id: publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_SHA: ${{ steps.git.outputs.sha }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GITHUB_TOKEN}" ]; then
+            echo "GITHUB_TOKEN is empty."
+            exit 1
+          fi
+          auth=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w 0)
+          remote="https://github.com/${GITHUB_REPOSITORY}.git"
+          git_auth=(-c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}")
+          rm -rf /tmp/site-publish
+
+          set +e
+          git "${git_auth[@]}" ls-remote --exit-code --heads "$remote" deploy >/dev/null
+          remote_status=$?
+          set -e
+          if [ "$remote_status" -eq 0 ]; then
+            git "${git_auth[@]}" clone --depth 1 --branch deploy "$remote" /tmp/site-publish
+            find /tmp/site-publish -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+            cp -a "${GITHUB_WORKSPACE}/dist/." /tmp/site-publish/
+          elif [ "$remote_status" -eq 2 ]; then
+            mkdir -p /tmp/site-publish
+            cp -a "${GITHUB_WORKSPACE}/dist/." /tmp/site-publish/
+            git -C /tmp/site-publish init -b deploy
+          else
+            echo "Could not check the deploy branch (git ls-remote exited ${remote_status})."
+            exit 1
+          fi
+
+          # git add -A stages new files and removals, so old hashed assets leave the branch.
+          git -C /tmp/site-publish add -A
+          git -C /tmp/site-publish ls-files --error-unmatch .htaccess ads.txt index.html >/dev/null
+          if git -C /tmp/site-publish ls-files | grep -E '(^|/)(package\.json|package-lock\.json|src/|node_modules/|\.github/)' >/dev/null; then
+            echo "Refusing to publish source files."
+            git -C /tmp/site-publish ls-files
+            exit 1
+          fi
+
+          if git -C /tmp/site-publish diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Built files match the deploy branch. No commit."
+            exit 0
+          fi
+
+          git -C /tmp/site-publish \
+            -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m "Publish ${SOURCE_SHA}"
+          git -C /tmp/site-publish "${git_auth[@]}" push "$remote" HEAD:deploy
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test
+        id: smoke
+        run: |
+          set -euo pipefail
+          js='${{ steps.guard.outputs.js }}'
+          deadline=$((SECONDS + 300))
+          ok=0
+          while [ "$SECONDS" -lt "$deadline" ]; do
+            html=$(curl -fsS --max-time 20 "https://playhubplace.com/" || true)
+            if printf '%s' "$html" | grep -F "$js" >/dev/null; then
+              ok=1
+              break
+            fi
+            echo "Live HTML does not reference $js yet."
+            sleep 15
+          done
+          ads=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "https://playhubplace.com/ads.txt" || true)
+          if [ "$ok" -ne 1 ]; then
+            echo "The live homepage still does not reference $js after 5 minutes. In hPanel, set Git to branch deploy (never main), flush the CDN cache, then re-run this workflow."
+            echo "result=fail" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          if [ "$ads" != "200" ]; then
+            echo "/ads.txt returned HTTP $ads. Expected 200."
+            echo "result=fail" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+          echo "Homepage references $js and /ads.txt returned 200."
+          echo "result=pass" >> "$GITHUB_OUTPUT"
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "### Publish"
+            echo "- Source commit: \`${{ steps.git.outputs.sha }}\`"
+            echo "- Ref input: \`${{ github.event_name == 'workflow_dispatch' && inputs.ref || 'push' }}\`"
+            echo "- Branch: \`deploy\`"
+            echo "- Commit pushed: \`${{ steps.publish.outputs.changed }}\`"
+            echo "- Main JS: \`${{ steps.guard.outputs.js }}\`"
+            echo "- Smoke test: \`${{ steps.smoke.outcome }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
