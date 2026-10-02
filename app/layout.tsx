@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     template: '%s | PlayHubPlace',
   },
   description: DEFAULT_DESCRIPTION,
+  icons: { icon: '/playlogo.svg' },
 };
 
 export default function RootLayout({

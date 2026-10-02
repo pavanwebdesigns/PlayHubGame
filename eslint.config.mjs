@@ -11,6 +11,8 @@ export default defineConfig([
     rules: {
       '@typescript-eslint/no-unused-vars': 'error',
       '@typescript-eslint/no-unused-expressions': 'error',
+      // Static export uses full page loads. next/link would put the client router on every page.
+      '@next/next/no-html-link-for-pages': 'off',
     },
   },
   globalIgnores([
@@ -19,5 +21,8 @@ export default defineConfig([
     'public/data/**',
     'dist/**',
     'dist-ssr/**',
+    'out/**',
+    '.next/**',
+    '.lighthouseci/**',
   ]),
 ]);

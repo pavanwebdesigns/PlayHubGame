@@ -10,6 +10,7 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:e2e": "playwright test",
     "format": "prettier --write .",
     "check-todos": "node --experimental-strip-types scripts/check-todos.ts"
   },
@@ -22,6 +23,9 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@lhci/cli": "0.15.1",
+    "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
@@ -29,6 +33,7 @@
     "eslint": "^9.39.1",
     "eslint-config-next": "16.3.8",
     "eslint-config-prettier": "10.1.8",
+    "playwright": "1.63.0",
     "prettier": "3.9.9",
     "tailwindcss": "4.3.3",
     "tsx": "4.23.15",

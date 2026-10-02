@@ -3,10 +3,12 @@ name: Publish
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '0 21 * * *'
   workflow_dispatch:
     inputs:
       ref:
-        description: "Commit SHA or tag on main to build. Defaults to main."
+        description: 'Commit SHA or tag on main to build. Defaults to main.'
         required: false
         default: main
         type: string
@@ -22,7 +24,7 @@ jobs:
   publish:
     name: Publish deploy branch
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,6 +35,29 @@ jobs:
       - name: Record source commit
         id: git
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore catalog cache
+        uses: actions/cache@v4
+        with:
+          path: .catalog-cache
+          key: catalog-${{ github.run_id }}
+          restore-keys: |
+            catalog-
+
+      - name: Restore catalog snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p .catalog-snapshot
+          auth=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w 0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" \
+            fetch --depth 1 origin catalog-snapshot || true
+          if git rev-parse --verify --quiet FETCH_HEAD >/dev/null; then
+            git archive FETCH_HEAD | tar -x -C .catalog-snapshot
+          else
+            echo "catalog-snapshot is not on the remote yet."
+          fi
 
       - name: Set up Node 24
         uses: actions/setup-node@v4
@@ -45,29 +70,43 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          CATALOG_CACHE_DIR: ${{ github.workspace }}/.catalog-cache
+          CATALOG_SNAPSHOT_DIR: ${{ github.workspace }}/.catalog-snapshot
+
+      - name: Keep the catalog cache
+        run: node scripts/save-catalog-cache.mjs
+
+      - name: Store catalog snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx tsx scripts/push-catalog-snapshot.ts
 
       - name: Guard checks
         id: guard
         run: |
           set -euo pipefail
-          test -f dist/index.html
-          test -f dist/ads.txt
-          grep -F -q '#gpx-property-LC991' dist/ads.txt
-          test -f dist/.htaccess
-          bad=$(find dist \( -name '*.map' -o -name '.env' -o -name '.DS_Store' \) -print)
+          test -f out/index.html
+          test -f out/ads.txt
+          grep -F -q '#gpx-property-LC991' out/ads.txt
+          test -f out/.htaccess
+          test -f out/robots.txt
+          test -f out/sitemap.xml
+          test -f out/game/prism-match-3d/index.html
+          bad=$(find out \( -name '*.map' -o -name '.env' -o -name '.DS_Store' \) -print)
           if [ -n "$bad" ]; then
             echo "Refusing to publish:"
             printf '%s\n' "$bad"
             exit 1
           fi
-          js=$(grep -oE 'assets/index-[^"]+\.js' dist/index.html | head -n 1)
+          js=$(node scripts/main-js.mjs)
           if [ -z "$js" ]; then
-            echo "Could not find the main JS file name in dist/index.html."
+            echo "Could not find a /_next/static script in out/index.html."
             exit 1
           fi
           echo "js=$js" >> "$GITHUB_OUTPUT"
 
-      - name: Publish dist to deploy
+      - name: Publish out to deploy
         id: publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -90,20 +129,19 @@ jobs:
           if [ "$remote_status" -eq 0 ]; then
             git "${git_auth[@]}" clone --depth 1 --branch deploy "$remote" /tmp/site-publish
             find /tmp/site-publish -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
-            cp -a "${GITHUB_WORKSPACE}/dist/." /tmp/site-publish/
+            cp -a "${GITHUB_WORKSPACE}/out/." /tmp/site-publish/
           elif [ "$remote_status" -eq 2 ]; then
             mkdir -p /tmp/site-publish
-            cp -a "${GITHUB_WORKSPACE}/dist/." /tmp/site-publish/
+            cp -a "${GITHUB_WORKSPACE}/out/." /tmp/site-publish/
             git -C /tmp/site-publish init -b deploy
           else
             echo "Could not check the deploy branch (git ls-remote exited ${remote_status})."
             exit 1
           fi
 
-          # git add -A stages new files and removals, so old hashed assets leave the branch.
           git -C /tmp/site-publish add -A
           git -C /tmp/site-publish ls-files --error-unmatch .htaccess ads.txt index.html >/dev/null
-          if git -C /tmp/site-publish ls-files | grep -E '(^|/)(package\.json|package-lock\.json|src/|node_modules/|\.github/)' >/dev/null; then
+          if git -C /tmp/site-publish ls-files | grep -E '(^|/)(package\.json|package-lock\.json|src/|app/|legacy/|node_modules/|\.github/)' >/dev/null; then
             echo "Refusing to publish source files."
             git -C /tmp/site-publish ls-files
             exit 1
@@ -138,18 +176,24 @@ jobs:
             echo "Live HTML does not reference $js yet."
             sleep 15
           done
-          ads=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "https://playhubplace.com/ads.txt" || true)
+          check() {
+            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "$1" || true)
+            echo "$1 $code"
+            if [ "$code" != "200" ]; then
+              echo "$1 returned HTTP $code. Expected 200."
+              return 1
+            fi
+          }
           if [ "$ok" -ne 1 ]; then
             echo "The live homepage still does not reference $js after 5 minutes. In hPanel, set Git to branch deploy (never main), flush the CDN cache, then re-run this workflow."
             echo "result=fail" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-          if [ "$ads" != "200" ]; then
-            echo "/ads.txt returned HTTP $ads. Expected 200."
-            echo "result=fail" >> "$GITHUB_OUTPUT"
-            exit 1
-          fi
-          echo "Homepage references $js and /ads.txt returned 200."
+          check "https://playhubplace.com/robots.txt"
+          check "https://playhubplace.com/sitemap.xml"
+          check "https://playhubplace.com/ads.txt"
+          check "https://playhubplace.com/game/prism-match-3d/"
+          echo "Homepage references $js and the smoke URLs returned 200."
           echo "result=pass" >> "$GITHUB_OUTPUT"
 
       - name: Job summary
@@ -158,8 +202,9 @@ jobs:
           {
             echo "### Publish"
             echo "- Source commit: \`${{ steps.git.outputs.sha }}\`"
-            echo "- Ref input: \`${{ github.event_name == 'workflow_dispatch' && inputs.ref || 'push' }}\`"
-            echo "- Branch: \`deploy\`"
+            echo "- Ref input: \`${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event_name }}\`"
+            echo "- Branch: \`deploy\` (no force)"
+            echo "- Catalog snapshot: \`catalog-snapshot\` (one commit, force, only that branch)"
             echo "- Commit pushed: \`${{ steps.publish.outputs.changed }}\`"
             echo "- Main JS: \`${{ steps.guard.outputs.js }}\`"
             echo "- Smoke test: \`${{ steps.smoke.outcome }}\`"

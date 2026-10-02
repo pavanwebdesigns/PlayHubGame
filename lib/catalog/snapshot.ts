@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { gunzipSync } from 'node:zlib';
 import { z } from 'zod';
 import { HUB_NAMES, type HubSlug } from '@/config/taxonomy';
 import type { CatalogMeta, GameRecord } from '@/lib/catalog/types';
@@ -35,18 +36,24 @@ export function snapshotSearchDirs(): string[] {
   ].filter((dir): dir is string => typeof dir === 'string' && dir.length > 0);
 }
 
+function readJsonFile(dir: string, name: string): unknown {
+  const gzipped = `${dir}/${name}.json.gz`;
+  const plain = `${dir}/${name}.json`;
+  try {
+    return JSON.parse(gunzipSync(readFileSync(gzipped)).toString('utf8'));
+  } catch {
+    return JSON.parse(readFileSync(plain, 'utf8'));
+  }
+}
+
 export function readSnapshot(dir: string): CatalogSnapshot | null {
   try {
-    const catalogJson = JSON.parse(
-      readFileSync(`${dir}/catalog.json`, 'utf8'),
-    ) as unknown;
+    const catalogJson = readJsonFile(dir, 'catalog');
     const parsed = z.array(gameRecordSchema).safeParse(catalogJson);
     if (!parsed.success) return null;
     let meta: CatalogMeta | null = null;
     try {
-      meta = JSON.parse(
-        readFileSync(`${dir}/meta.json`, 'utf8'),
-      ) as CatalogMeta;
+      meta = readJsonFile(dir, 'meta') as CatalogMeta;
     } catch {
       meta = null;
     }

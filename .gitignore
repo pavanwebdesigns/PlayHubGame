@@ -16,6 +16,12 @@ dist-ssr
 .next/
 out/
 *.tsbuildinfo
+.lighthouseci/
+test-results/
+playwright-report/
+blob-report/
+.catalog-cache/
+.catalog-snapshot/
 
 # Generated catalog. Never commit.
 data/
