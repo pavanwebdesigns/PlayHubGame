@@ -5,39 +5,29 @@ import { useRef, useState, useSyncExternalStore } from 'react';
 import {
   favoriteFromGame,
   readFavorites,
+  readFavoritesSnapshot,
+  subscribeFavorites,
   writeFavorites,
-  FAVORITES_KEY,
 } from '@/lib/favorites';
 import type { GameRecord } from '@/lib/catalog/types';
-
-function readRaw(): string | null {
-  try {
-    return localStorage.getItem(FAVORITES_KEY);
-  } catch {
-    return null;
-  }
-}
 
 export function GameFrame({ game }: { game: GameRecord }) {
   const frameRef = useRef<HTMLDivElement>(null);
   const [playing, setPlaying] = useState(false);
-  const [override, setOverride] = useState<boolean | null>(null);
   const stored = useSyncExternalStore(
-    () => () => {},
-    readRaw,
+    subscribeFavorites,
+    readFavoritesSnapshot,
     () => null,
   );
-  const saved =
-    override ?? readFavorites(stored).some((item) => item.id === game.id);
+  const saved = readFavorites(stored).some((item) => item.id === game.id);
 
   function toggleSave() {
-    const current = readFavorites(readRaw());
+    const current = readFavorites(readFavoritesSnapshot());
     const exists = current.some((item) => item.id === game.id);
     const next = exists
       ? current.filter((item) => item.id !== game.id)
       : [...current, favoriteFromGame(game)];
     writeFavorites(next);
-    setOverride(!exists);
   }
 
   return (
@@ -71,6 +61,7 @@ export function GameFrame({ game }: { game: GameRecord }) {
       </div>
       <div
         ref={frameRef}
+        data-game-frame
         className="overflow-hidden rounded-tile bg-deck"
         style={{ aspectRatio: '1.6' }}
       >

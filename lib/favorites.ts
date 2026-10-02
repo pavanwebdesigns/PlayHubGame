@@ -89,10 +89,44 @@ export function favoriteFromGame(game: GameRecord): StoredFavorite {
   };
 }
 
+const listeners = new Set<() => void>();
+
+export function subscribeFavorites(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+function emitFavorites(): void {
+  for (const listener of listeners) listener();
+}
+
+export function readFavoritesSnapshot(): string | null {
+  try {
+    return localStorage.getItem(FAVORITES_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function isFavoriteSlug(raw: string | null, slug: string): boolean {
+  return readFavorites(raw).some(
+    (item) => item.namespace === slug || item.id === slug,
+  );
+}
+
 export function writeFavorites(games: readonly StoredFavorite[]): void {
   try {
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(games));
   } catch {
-    // Storage can throw in private mode. The click still updates the page.
+    return;
   }
+  emitFavorites();
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === FAVORITES_KEY) emitFavorites();
+  });
 }

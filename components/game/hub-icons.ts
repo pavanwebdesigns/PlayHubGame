@@ -1,0 +1,60 @@
+import type { LucideIcon } from 'lucide-react';
+import {
+  Brain,
+  Car,
+  Castle,
+  Coffee,
+  Compass,
+  Crosshair,
+  Gem,
+  Hash,
+  Joystick,
+  Palette,
+  PersonStanding,
+  Puzzle,
+  Shirt,
+  Smile,
+  Snowflake,
+  Spade,
+  Smartphone,
+  Sparkles,
+  Swords,
+  Timer,
+  Trophy,
+  Users,
+  Zap,
+} from 'lucide-react';
+import type { CollectionSlug } from '@/config/collections';
+import type { HubSlug } from '@/config/taxonomy';
+
+export const HUB_ICONS: Record<HubSlug, LucideIcon> = {
+  action: Swords,
+  adventure: Compass,
+  arcade: Joystick,
+  puzzle: Puzzle,
+  'brain-memory': Brain,
+  'match-3': Gem,
+  casual: Smile,
+  shooting: Crosshair,
+  'racing-driving': Car,
+  sports: Trophy,
+  strategy: Castle,
+  'board-card': Spade,
+  'two-player': Users,
+  'girls-dress-up': Shirt,
+  'coloring-drawing': Palette,
+  'simulation-idle': Timer,
+  platformer: PersonStanding,
+  'skill-hyper-casual': Zap,
+  'math-word': Hash,
+  seasonal: Snowflake,
+};
+
+export const COLLECTION_ICONS: Record<CollectionSlug, LucideIcon> = {
+  'one-thumb': Smartphone,
+  'two-players': Users,
+  'train-your-brain': Brain,
+  'just-relax': Coffee,
+  'five-minute': Timer,
+  'new-this-week': Sparkles,
+};
