@@ -11,7 +11,7 @@ Facts below were measured on the live site, the repo and the GamePix feed on 2 O
 **What:** playhubplace.com — a free browser-games site. No download, no sign-up.
 **Who:** casual players on phones first (India + global): students, commuters, office-break players. Desktop second.
 **Primary job:** get a person from landing to playing a game in **2 taps or fewer**, then into their next game without friction.
-**Brand name:** `PlayHubPlace` everywhere. "PlayHubGame" is retired (it still appears in the meta description, footer and page titles — remove it).
+**Brand name:** `PlayHubPlace` everywhere. "PlayHubGame" is retired. Phase 0 removed it from titles, the meta description, and the footer.
 
 ### Success targets (measure, don't guess)
 
@@ -25,27 +25,26 @@ Facts below were measured on the live site, the repo and the GamePix feed on 2 O
 
 ---
 
-## 2. Current state (audit findings)
+## 2. State after Phase 0
 
-The site is a Vite + React 19 single-page app that pulls the GamePix feed in the browser and embeds games in an iframe.
+Phase 0 is merged and live (`9e6ae0a` on `main`). The public site is still the Vite + React 19 app. Views use `?page=` query strings, and the browser still fetches the GamePix feed. The Next.js rebuild on `rebuild/next` replaces that app. Nothing on `rebuild/next` is live until it merges to `main`.
 
-**Broken today**
-1. Mobile menu does nothing: the hamburger in `Header.tsx` targets `#mobileMenu`, which does not exist. Tools and Blog are unreachable on phones.
-2. 17 tools show **Launch** but open "Tool under construction 🚧": sleep, mood, affirm, todo, timezone, unit, stopwatch, gst, percent, palette, json, regex, text-speech, speech-text, goal, water, pass-strength. `ToolsPage.tsx` marks them `isReady: true`; `App.tsx` has no route for them.
-3. Thumbnails are ~9× too heavy: `getFreshUrl()` appends `?t=<timestamp>` to URLs that already contain `?w=320`, producing `...png?w=320?t=123`. The resize breaks (full 1360 px image) and the timestamp defeats caching. Measured: `?w=320` = 25 KB, broken URL = 218 KB for the same cover.
-4. Shared game links fail for any game outside the loaded pages: URL recovery only searches games already in memory.
-5. Footer Privacy / Terms / Contact all link to `#`.
-6. A dashed "Ad Space" placeholder sits ~24 px from the game frame on every game page.
-7. `robots.txt` and `sitemap.xml` return 404. No canonical, no Open Graph, no analytics.
-8. The repo file is named `. htaccess` (with a space), so Apache ignores it.
-9. The live JS bundle (`index-D6kPvhkj.js`) does not match local `dist` (`index-6ANYmaM8.js`); uncommitted work exists (`QRGeneratorPage.tsx`, `PingCheckerPage.tsx` untracked).
+**What Phase 0 fixed**
+- One `GamePixGame` type. `id` is a string, matching the feed (`"737HCH"`). Cover URLs set a single `w` parameter. The old double-`?` cache-bust is gone.
+- The mobile menu opens. It lists Games, Quick games (Reaction Time Test, CPS Test), Blog, and Favorites.
+- The tools section is gone, including the mobile wrench and tool favorites. `?page=tools` and `?page=tool-<id>` redirect to `https://workutilities.com/`. `?page=tool-reaction` opens Reaction Time Test and `?page=tool-cps` opens CPS Test.
+- Footer links go to About, Privacy, Terms, and Contact. Those pages exist. `CONTACT_EMAIL` is still `TODO(Pavan)`, and Contact does not show an address while that sentinel is in place.
+- `robots.txt`, a home-only `sitemap.xml`, a canonical URL, and a meta description are served. The name PlayHubGame is gone from titles and the footer.
+- `public/.htaccess` is the real filename. It denies source paths (`package.json`, `src/`, `docs/`, `.cursor/`, `*.ts`, `*.tsx`, `*.md`), caches `/assets/*`, and falls back to the SPA. It does not force HTTPS.
+- Body text uses a system font. Jersey 15 is limited to display headings.
+- Game favorites stay in `localStorage` under `playhub_favorites`.
+- Publish (`.github/workflows/publish.yml`) builds on a push to `main` and commits `dist/` to the `deploy` branch. Hostinger Git tracks `deploy` and does not build.
 
-**Code health**
-- `App.tsx` is 537 lines with a hand-written if/else router; views live in `?page=` query strings.
-- `GamePixGame` is declared three times (`types.ts`, `App.tsx`, `GamePlay.tsx`). It types `id` as `number` (the feed sends strings like `"737HCH"`) and lists fields the v2 feed does not send (`thumbnailUrl`, `thumbnailUrl100`, `bannerUrl`, `color`).
-- `any` is used in several places; Bootstrap 5.3.2 CSS + JS load from a CDN alongside React; icons are a mix of `react-icons` and inline SVG.
-- The pixel font Jersey 15 is used for all text, including body copy — hard to read at paragraph length.
-- `README.md` is still the Vite template.
+**Still true, and in scope for the rebuild**
+- Routes are query strings, not `/game/{slug}/`.
+- The game iframe is created when the game view opens. The rebuild must wait for Play.
+- The catalog is the full feed in the browser, not a curated static set.
+- `https://www.playhubplace.com/` returns 200. `http://playhubplace.com` already 301s to `https://playhubplace.com/`, and `http://www.playhubplace.com` 301s to `https://www.playhubplace.com/`. The www host still needs one canonical redirect to the apex.
 
 ---
 
@@ -96,14 +95,14 @@ The site is a Vite + React 19 single-page app that pulls the GamePix feed in the
 | A2 | **Keep Hostinger** (it serves the site today: `platform: hostinger`, `server: hcdn`, Brotli on). Use `trailingSlash: true` so `/game/slug/` maps to `game/slug/index.html` with no rewrite rules. | Static export runs on any web server. Static export does **not** support ISR, server actions, redirects/headers in `next.config`, or the default image loader — do those in `.htaccess` and a custom loader. |
 | A3 | **Build-time data pipeline.** A script fetches the full feed, validates it with `zod`, normalizes it and writes JSON the build reads. Nightly rebuild picks up new games. | No feed calls from the browser for page content; fast, indexable, resilient. |
 | A4 | **Curated catalog (~1,600 game pages).** Build a page only for games with `quality_score ≥ 0.70`, plus the 200 newest, plus a manual allowlist, minus a denylist. | Google's spam policy names "scraping feeds … to generate many pages … where little value is provided" as scaled content abuse. Poki itself lists ~1,500 games. |
-| A5 | **Index gate.** A game page is `index,follow` and listed in the sitemap only when it has our own written content (`content/games/{slug}.mdx`). Others render normally but are `noindex,follow`. | Each indexed page earns its place; the site grows in quality, not just count. |
+| A5 | **Index gate.** A page is `index,follow` and listed in the sitemap only when its content file exists: `content/games/{slug}.mdx`, `content/hubs/{hub}.mdx`, or `content/collections/{slug}.mdx`. Others render normally but are `noindex,follow`. No manual index flags. | Each indexed page earns its place; the site grows in quality, not just count. |
 | A6 | **Tailwind CSS v4** with design tokens as CSS variables. Remove Bootstrap (CSS and JS). | One styling system, small CSS, tokens enforce the design system. |
 | A7 | **Icons: `lucide-react` only.** Remove `react-icons` and inline icon SVGs. | Consistent stroke and size. |
-| A8 | **Client state:** favorites and recently played in `localStorage` (versioned keys, wrapped in try/catch, must work when storage throws). No accounts until Phase 7 + legal review. | Zero personal data collected. |
+| A8 | **Client state:** favorites and recently played in `localStorage`, wrapped in try/catch, and must work when storage throws. Game favorites keep the existing key `playhub_favorites` so saved games survive the rebuild. That key is the one exception. Every new key uses `ph:<name>:v1`. No accounts until Phase 7 + legal review. | Zero personal data collected. |
 | A9 | **Search:** client-side over a compact index of curated games (title, slug, category, tags) with a small library such as MiniSearch (≤ 10 KB gzip). | Instant, offline-capable, no backend. |
 | A10 | **Backend later (Phase 7): Supabase** for anonymous play counts and likes, behind row-level security and rate limits. | Real numbers for "Trending" and ratings — never invented ones. |
 | A11 | **Tools leave PlayHub.** The live Vite app has no tools section. `?page=tools` and `?page=tool-<id>` redirect to `https://workutilities.com/`. Reaction Time Test and CPS Test stay, at `?page=reaction-test` and `?page=cps-test`. Phase 1 serves those two at `/originals/reaction-time-test/` and `/originals/cps-test/`. | One topic per site; no duplicate maintenance. |
-| A12 | **CI/CD: GitHub Actions** — PR checks (typecheck, lint, unit, build, Lighthouse CI); deploy `out/` to Hostinger over SFTP/FTP from `main`; nightly scheduled rebuild. Credentials only in GitHub Secrets. | Repeatable, live always matches `main`. |
+| A12 | **CI/CD: GitHub Actions** — PR checks (typecheck, lint, unit, build, Lighthouse CI). On a push to `main`, `publish.yml` builds the site and commits the static files onto the `deploy` branch. Hostinger Git tracks `deploy` and does not build. Nightly rebuild at 21:00 UTC runs from `main` only. No FTP. | Repeatable, and the live site matches the last publish of `main`. |
 
 ---
 
@@ -113,8 +112,8 @@ The site is a Vite + React 19 single-page app that pulls the GamePix feed in the
 |---|---|---|
 | `/` | Home | yes |
 | `/game/{slug}/` | Game page | only if content exists (A5) |
-| `/category/{hub}/` | ~20 hub categories | yes (each needs 150–300 words of original copy) |
-| `/collection/{slug}/` | Mood collections (one-thumb, two-player, brain, relax, 5-minute, new) | yes once copy exists |
+| `/category/{hub}/` | ~20 hub categories | only if `content/hubs/{hub}.mdx` exists |
+| `/collection/{slug}/` | Mood collections (one-thumb, two-player, brain, relax, 5-minute, new) | only if `content/collections/{slug}.mdx` exists |
 | `/new/` | Newest games | yes |
 | `/search/` | Search results (client-side) | no |
 | `/my-games/` | Favorites + recently played | no |
