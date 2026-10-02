@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+
+# Generated catalog. Never commit.
+data/
+public/data/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -1,29 +1,29 @@
 # PlayHubPlace
 
-Free browser games at [playhubplace.com](https://playhubplace.com/). The site is a Vite + React app. Games are embedded from GamePix. Favorites stay in this browser. There are no accounts.
+Free browser games at [playhubplace.com](https://playhubplace.com/). Games are embedded from GamePix. Favorites stay in this browser under `playhub_favorites`. There are no accounts.
 
-Phase 0 is this Vite app. The Next.js rebuild is a later phase.
+This branch (`rebuild/next`) is the Next.js rebuild. It is not live. Merging it to `main` publishes the site, and that cut-over waits until the rebuild is ready.
+
+The previous Vite app is in `legacy/`. It is not part of the Next build. Delete it at launch.
 
 ## Scripts
 
-- `npm run dev` — local site
-- `npm run build` — typecheck and production build into `dist/`
+- `npm run dev` — local Next.js site
+- `npm run build` — warn on `TODO(Pavan)` (fail only when `GITHUB_REF` is `refs/heads/main`), then static export into `out/`
+- `npm run typecheck` — `tsc --noEmit`
 - `npm run lint` — ESLint
-- `npm test` — unit tests (`node:test`, no extra test runner)
-- `npm run preview` — serve the production build
+- `npm run format` — Prettier
 
 ## Config
 
-Site name, canonical URL, default title, and the contact address live in `src/config/site.ts`. `CONTACT_EMAIL` is `TODO(Pavan)` until a real address is published. The contact page does not show a mailto link while that sentinel is in place.
+Site name, canonical URL, GamePix partner id, catalog thresholds, and the contact address live in `config/site.ts`. `CONTACT_EMAIL` is `TODO(Pavan)` until a real address is published.
 
 ## Deploying
 
-Hostinger's Git deployment must track the branch `deploy`, never `main`. `main` is the source code. The Publish workflow builds it and pushes only the built files onto `deploy`.
+Hostinger's Git deployment tracks the branch `deploy`, never `main`. `main` is the source. The Publish workflow builds it and pushes only the built files onto `deploy`.
 
-Merging into `main` runs Publish, and that updates the live site. Hostinger pulls `deploy` from its webhook. The live site should update within a few minutes. Each publish adds a normal commit when the built files changed, and that commit removes old hashed files so the pull deletes them on the server. If the build matches `deploy` already, Publish skips the commit.
+The workflow on `main` still publishes the Vite `dist/` from the last release. This branch builds Next.js into `out/`. Publish is switched to `out/` in task 1.7, before any merge to `main`. Do not run Publish from `rebuild/next`.
 
-To roll back, open Actions → Publish → Run workflow and set `ref` to the last good commit on `main`. That rebuilds the commit and pushes it to `deploy`. Do not point Hostinger at `main`, and do not force-push `deploy`.
+Merging into `main` runs Publish, and that updates the live site. Hostinger pulls `deploy` from its webhook. To roll back, open Actions → Publish → Run workflow and set `ref` to the last good commit on `main`. Do not point Hostinger at `main`, and do not force-push `deploy`.
 
-If the smoke test still sees the old page after 5 minutes, confirm hPanel is set to branch `deploy`, flush the CDN cache, then re-run Publish.
-
-`public/.htaccess` is copied into the build. The next publish replaces the server `.htaccess`. It keeps the SPA fallback, caches `/assets/*`, and denies source files (`package.json`, `src/`, `docs/`, `.cursor/`, `*.ts`, `*.tsx`, `*.md`) if they ever appear in the web root. It does not add an HTTPS redirect.
+`public/.htaccess` is copied into the build. It does not add an HTTPS redirect yet. `http://playhubplace.com` already 301s to the apex. `https://www.playhubplace.com/` still returns 200, so the www host gets a redirect in task 1.5.

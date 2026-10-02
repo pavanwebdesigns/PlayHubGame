@@ -1,0 +1,56 @@
+@import 'tailwindcss';
+
+:root {
+  --night: #140b33;
+  --deck: #1d1347;
+  --raised: #2a1e5e;
+  --edge: #7e78e0;
+  --line: #3a2d78;
+  --ink: #f3f0ff;
+  --ink-muted: #b4aadb;
+  --play: #1fb8ff;
+  --spark: #ff2e93;
+  --ok: #3ddc97;
+  --danger: #ff6b6b;
+  --marquee: linear-gradient(90deg, #00b7ff, #6d68cc, #ff0089);
+  --font-display: 'Jersey 15', system-ui, sans-serif;
+  --font-text: 'Anek Latin', system-ui, sans-serif;
+  --radius-tile: 14px;
+  --radius-input: 12px;
+  --radius-sheet: 20px;
+  --radius-button: 999px;
+}
+
+@theme inline {
+  --color-night: var(--night);
+  --color-deck: var(--deck);
+  --color-raised: var(--raised);
+  --color-edge: var(--edge);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-play: var(--play);
+  --color-spark: var(--spark);
+  --color-ok: var(--ok);
+  --color-danger: var(--danger);
+  --font-display: var(--font-display);
+  --font-text: var(--font-text);
+  --radius-tile: var(--radius-tile);
+  --radius-input: var(--radius-input);
+  --radius-sheet: var(--radius-sheet);
+  --radius-button: var(--radius-button);
+}
+
+body {
+  margin: 0;
+  background: var(--night);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+:focus-visible {
+  outline: 2px solid var(--play);
+  outline-offset: 2px;
+}

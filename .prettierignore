@@ -1,0 +1,8 @@
+legacy
+out
+data
+dist
+.next
+node_modules
+package-lock.json
+public
