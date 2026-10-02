@@ -3,18 +3,20 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import CategoryBar from './components/CategoryBar';
 import GamePlay from './components/GamePlay';
-import ToolsModal from './components/ToolsModal'; 
-import ToolsPage, { CpsTest, ReactionGame, SystemInfoTool } from './components/ToolsPage';
-import BreathTrainerPage from './components/tools/BreathTrainerPage'; 
+import ToolsModal from './components/ToolsModal';
+import ToolsPage, { CpsTest, ReactionGame, SystemInfoTool, PasswordGenTool } from './components/ToolsPage';
+import BreathTrainerPage from './components/tools/BreathTrainerPage';
 import GenericToolPage from './components/tools/GenericToolPage';
-import FocusTimerPage from './components/tools/FocusTimerPage'; 
-import SpeedTestPage from './components/tools/SpeedTestPage'; 
-import BMICalculatorPage from './components/tools/BMICalculatorPage'; 
-import AgeCalculatorPage from './components/tools/AgeCalculatorPage'; 
-import ScreenRulerPage from './components/tools/ScreenRulerPage'; 
-import PasswordGenPage from './components/tools/PasswordGenPage'; 
-import IpFinderPage from './components/tools/IpFinderPage'; 
-import EMICalculatorPage from './components/tools/EMICalculatorPage'; 
+import FocusTimerPage from './components/tools/FocusTimerPage';
+import SpeedTestPage from './components/tools/SpeedTestPage';
+import BMICalculatorPage from './components/tools/BMICalculatorPage';
+import AgeCalculatorPage from './components/tools/AgeCalculatorPage';
+import ScreenRulerPage from './components/tools/ScreenRulerPage';
+import PasswordGenPage from './components/tools/PasswordGenPage';
+import IpFinderPage from './components/tools/IpFinderPage';
+import EMICalculatorPage from './components/tools/EMICalculatorPage';
+import PingCheckerPage from './components/tools/PingCheckerPage';
+import QRGeneratorPage from './components/tools/QRGeneratorPage';
 import './App.css';
 
 // --- Types ---
@@ -43,13 +45,13 @@ export interface Tool {
 }
 
 // --- Game Card Component ---
-const GameCard = ({ 
-  game, 
-  onClick, 
-  isFavorite, 
-  onToggleFavorite 
-}: { 
-  game: GamePixGame; 
+const GameCard = ({
+  game,
+  onClick,
+  isFavorite,
+  onToggleFavorite
+}: {
+  game: GamePixGame;
   onClick: (game: GamePixGame) => void;
   isFavorite: boolean;
   onToggleFavorite: (game: GamePixGame) => void;
@@ -57,34 +59,34 @@ const GameCard = ({
   const timestamp = Date.now();
   const getFreshUrl = (url: string) => url ? `${url}?t=${timestamp}` : '';
 
-  const imageSrc = game.banner_image ? getFreshUrl(game.banner_image) : 
-                   game.bannerUrl ? getFreshUrl(game.bannerUrl) : 
-                   game.thumbnailUrl ? getFreshUrl(game.thumbnailUrl) : 
-                   getFreshUrl(game.thumbnailUrl100);
+  const imageSrc = game.banner_image ? getFreshUrl(game.banner_image) :
+    game.bannerUrl ? getFreshUrl(game.bannerUrl) :
+      game.thumbnailUrl ? getFreshUrl(game.thumbnailUrl) :
+        getFreshUrl(game.thumbnailUrl100);
 
   return (
     <div className="col-6 col-md-4 col-lg-3 col-xl-2 mb-4 position-relative group">
-      <div 
-        className="cursor-pointer text-decoration-none h-100" 
+      <div
+        className="cursor-pointer text-decoration-none h-100"
         onClick={() => onClick(game)}
         style={{ cursor: 'pointer' }}
       >
         <div className="card game-card h-100 border-0 shadow-sm bg-transparent">
           <div className="position-relative w-100 rounded-4 overflow-hidden shadow-sm border border-white border-opacity-10" style={{ aspectRatio: '16/9', backgroundColor: '#2a2a2a' }}>
-            <img 
-              src={imageSrc} 
+            <img
+              src={imageSrc}
               alt={game.title}
               className="w-100 h-100 object-fit-cover transition-transform duration-500 group-hover:scale-110"
               loading="lazy"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 if (!target.getAttribute('data-failed')) {
-                    target.setAttribute('data-failed', 'true');
-                    if (game.thumbnailUrl && imageSrc !== getFreshUrl(game.thumbnailUrl)) {
-                         target.src = getFreshUrl(game.thumbnailUrl);
-                    } else {
-                         target.src = 'https://placehold.co/600x400/000E30/FFFFFF?text=Game';
-                    }
+                  target.setAttribute('data-failed', 'true');
+                  if (game.thumbnailUrl && imageSrc !== getFreshUrl(game.thumbnailUrl)) {
+                    target.src = getFreshUrl(game.thumbnailUrl);
+                  } else {
+                    target.src = 'https://placehold.co/600x400/000E30/FFFFFF?text=Game';
+                  }
                 }
               }}
             />
@@ -100,13 +102,13 @@ const GameCard = ({
         </div>
       </div>
 
-      <button 
+      <button
         className="btn position-absolute top-0 start-0 m-2 p-0 rounded-circle shadow-sm d-flex align-items-center justify-content-center transition-transform hover-scale active:scale-90"
-        style={{ 
-          zIndex: 20, 
+        style={{
+          zIndex: 20,
           backgroundColor: isFavorite ? '#ef4444' : 'rgba(0,0,0,0.6)',
           border: '1px solid rgba(255,255,255,0.2)',
-          width: '32px', 
+          width: '32px',
           height: '32px',
           backdropFilter: 'blur(4px)'
         }}
@@ -116,18 +118,18 @@ const GameCard = ({
         }}
         title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
       >
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          width="16" 
-          height="16" 
-          viewBox="0 0 24 24" 
-          fill={isFavorite ? "white" : "none"} 
-          stroke="white" 
-          strokeWidth="2" 
-          strokeLinecap="round" 
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill={isFavorite ? "white" : "none"}
+          stroke="white"
+          strokeWidth="2"
+          strokeLinecap="round"
           strokeLinejoin="round"
         >
-          <path d="m12 21.35-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          <path d="m12 21.35-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
         </svg>
       </button>
     </div>
@@ -136,10 +138,10 @@ const GameCard = ({
 
 // Sidebar
 const FavoritesSidebar = ({ isOpen, onClose, favoriteGames, favoriteTools, onPlayGame, onLaunchTool, onRemoveGameFavorite, onRemoveToolFavorite }: any) => {
-    const timestamp = Date.now(); 
-    const getFreshUrl = (url: string) => url ? `${url}?t=${timestamp}` : '';
+  const timestamp = Date.now();
+  const getFreshUrl = (url: string) => url ? `${url}?t=${timestamp}` : '';
 
-    return (
+  return (
     <>
       {isOpen && <div className="position-fixed top-0 start-0 w-100 h-100 bg-black bg-opacity-50" style={{ zIndex: 1045 }} onClick={onClose} />}
       <div className={`position-fixed top-0 end-0 h-100 bg-dark border-start border-secondary border-opacity-25 shadow-lg transition-transform duration-300 ease-in-out d-flex flex-column`} style={{ width: '320px', zIndex: 1050, transform: isOpen ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.3s ease-in-out' }}>
@@ -152,52 +154,53 @@ const FavoritesSidebar = ({ isOpen, onClose, favoriteGames, favoriteTools, onPla
           {favoriteGames.length === 0 ? <p className="text-white-50 small">No favorite games.</p> : (
             <div className="d-flex flex-column gap-3 mb-4">
               {favoriteGames.map((game: any) => {
-                 const imageSrc = game.banner_image ? getFreshUrl(game.banner_image) : 
-                                  game.bannerUrl ? getFreshUrl(game.bannerUrl) : 
-                                  game.thumbnailUrl ? getFreshUrl(game.thumbnailUrl) : 
-                                  getFreshUrl(game.thumbnailUrl100);
+                const imageSrc = game.banner_image ? getFreshUrl(game.banner_image) :
+                  game.bannerUrl ? getFreshUrl(game.bannerUrl) :
+                    game.thumbnailUrl ? getFreshUrl(game.thumbnailUrl) :
+                      getFreshUrl(game.thumbnailUrl100);
 
                 return (
-                <div key={game.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
-                  <img 
-                    src={imageSrc} 
-                    alt={game.title} 
-                    className="rounded-2" 
-                    style={{ width: '50px', height: '50px', objectFit: 'cover', cursor: 'pointer' }} 
-                    onClick={() => { onPlayGame(game); onClose(); }} 
-                    onError={(e) => {
+                  <div key={game.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
+                    <img
+                      src={imageSrc}
+                      alt={game.title}
+                      className="rounded-2"
+                      style={{ width: '50px', height: '50px', objectFit: 'cover', cursor: 'pointer' }}
+                      onClick={() => { onPlayGame(game); onClose(); }}
+                      onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         if (!target.getAttribute('data-failed')) {
-                            target.setAttribute('data-failed', 'true');
-                            if (game.thumbnailUrl && imageSrc !== getFreshUrl(game.thumbnailUrl)) {
-                                 target.src = getFreshUrl(game.thumbnailUrl);
-                            } else {
-                                 target.src = 'https://placehold.co/100x100/000E30/FFFFFF?text=Game';
-                            }
+                          target.setAttribute('data-failed', 'true');
+                          if (game.thumbnailUrl) {
+                            target.src = getFreshUrl(game.thumbnailUrl);
+                          } else {
+                            target.src = 'https://placehold.co/100x100/000E30/FFFFFF?text=Game';
+                          }
                         }
                       }}
-                  />
-                  <div className="flex-grow-1 overflow-hidden">
-                    <h6 className="text-white mb-0 text-truncate cursor-pointer small" onClick={() => { onPlayGame(game); onClose(); }}>{game.title}</h6>
+                    />
+                    <div className="flex-grow-1 overflow-hidden">
+                      <h6 className="text-white mb-0 text-truncate cursor-pointer small" onClick={() => { onPlayGame(game); onClose(); }}>{game.title}</h6>
+                    </div>
+                    <button className="btn btn-sm btn-link text-white-50 hover-text-danger p-1" onClick={(e) => { e.stopPropagation(); onRemoveGameFavorite(game); }}>X</button>
                   </div>
-                  <button className="btn btn-sm btn-link text-white-50 hover-text-danger p-1" onClick={(e) => { e.stopPropagation(); onRemoveGameFavorite(game); }}>X</button>
-                </div>
-              )})}
+                )
+              })}
             </div>
           )}
           <hr className="border-secondary border-opacity-25 my-4" />
           <h6 className="text-white-50 text-uppercase small mb-3 fw-bold">Tools ({favoriteTools.length})</h6>
           {favoriteTools.length === 0 ? <p className="text-white-50 small">No favorite tools.</p> : (
             <div className="d-flex flex-column gap-3">
-                {favoriteTools.map((tool: any) => (
-                    <div key={tool.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
-                        <div className="rounded-2 bg-dark d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px', fontSize: '1.5rem' }}>{tool.icon}</div>
-                        <div className="flex-grow-1 overflow-hidden">
-                            <h6 className="text-white mb-0 text-truncate cursor-pointer small" onClick={() => { if(tool.isReady) { onLaunchTool(tool.id); onClose(); } }}>{tool.title}</h6>
-                        </div>
-                        <button className="btn btn-sm btn-link text-white-50 hover-text-danger p-1" onClick={(e) => { e.stopPropagation(); onRemoveToolFavorite(tool); }}>X</button>
-                    </div>
-                ))}
+              {favoriteTools.map((tool: any) => (
+                <div key={tool.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
+                  <div className="rounded-2 bg-dark d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px', fontSize: '1.5rem' }}>{tool.icon}</div>
+                  <div className="flex-grow-1 overflow-hidden">
+                    <h6 className="text-white mb-0 text-truncate cursor-pointer small" onClick={() => { if (tool.isReady) { onLaunchTool(tool.id); onClose(); } }}>{tool.title}</h6>
+                  </div>
+                  <button className="btn btn-sm btn-link text-white-50 hover-text-danger p-1" onClick={(e) => { e.stopPropagation(); onRemoveToolFavorite(tool); }}>X</button>
+                </div>
+              ))}
             </div>
           )}
         </div>
@@ -218,7 +221,7 @@ function App() {
   const [games, setGames] = useState<GamePixGame[]>([]);
   const [favoriteGames, setFavoriteGames] = useState<GamePixGame[]>([]);
   const [favoriteTools, setFavoriteTools] = useState<Tool[]>([]);
-  
+
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -226,12 +229,13 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  
+
+  // Initial state from URL
   const [currentView, setCurrentView] = useState<string>(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('page') || 'home';
   });
-  
+
   const [activeGame, setActiveGame] = useState<GamePixGame | null>(null);
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -239,10 +243,10 @@ function App() {
   // Load favorites
   useEffect(() => {
     try {
-        const storedGameFavs = localStorage.getItem('playhub_favorites');
-        if (storedGameFavs) setFavoriteGames(JSON.parse(storedGameFavs));
-        const storedToolFavs = localStorage.getItem('playhub_tool_favorites');
-        if (storedToolFavs) setFavoriteTools(JSON.parse(storedToolFavs));
+      const storedGameFavs = localStorage.getItem('playhub_favorites');
+      if (storedGameFavs) setFavoriteGames(JSON.parse(storedGameFavs));
+      const storedToolFavs = localStorage.getItem('playhub_tool_favorites');
+      if (storedToolFavs) setFavoriteTools(JSON.parse(storedToolFavs));
     } catch (e) { console.error(e); }
   }, []);
 
@@ -278,19 +282,19 @@ function App() {
       else if (json.items && Array.isArray(json.items)) newGames = json.items;
       else if (json.games && Array.isArray(json.games)) newGames = json.games;
       else if (json.id && json.title) newGames = [json];
-      
+
       newGames = newGames.filter(g => g && g.id && g.title);
-      
-      if (newGames.length > 0) { 
-          setGames(prev => {
-             const combined = isFirstLoad ? newGames : [...prev, ...newGames];
-             const unique = Array.from(new Set(combined.map(a => a.id)))
-                .map(id => combined.find(a => a.id === id)!);
-             return unique;
-          }); 
-      } else { 
-          setHasMore(false); 
-          if (isFirstLoad) throw new Error("No games found."); 
+
+      if (newGames.length > 0) {
+        setGames(prev => {
+          const combined = isFirstLoad ? newGames : [...prev, ...newGames];
+          const unique = Array.from(new Set(combined.map(a => a.id)))
+            .map(id => combined.find(a => a.id === id)!);
+          return unique;
+        });
+      } else {
+        setHasMore(false);
+        if (isFirstLoad) throw new Error("No games found.");
       }
     } catch (err: any) {
       console.error("Fetch Error:", err);
@@ -300,64 +304,66 @@ function App() {
 
   useEffect(() => { fetchGames(1); }, []);
   const handleLoadMore = () => { const nextPage = page + 1; setPage(nextPage); fetchGames(nextPage); };
-  
+
+  // --- UPDATED NAVIGATION HANDLERS ---
   const updateUrl = (view: string, gameId?: string) => {
-      const params = new URLSearchParams(window.location.search);
-      if (view === 'home') {
-          params.delete('page');
-          params.delete('game');
-      } else {
-          params.set('page', view);
-          if (gameId) params.set('game', gameId);
-          else params.delete('game');
-      }
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      window.history.pushState({}, '', newUrl);
+    const params = new URLSearchParams(window.location.search);
+    if (view === 'home') {
+      params.delete('page');
+      params.delete('game');
+    } else {
+      params.set('page', view);
+      if (gameId) params.set('game', gameId);
+      else params.delete('game');
+    }
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({}, '', newUrl);
   };
 
-  const handleGameClick = (game: GamePixGame) => { 
-      setActiveGame(game); 
-      setCurrentView('game');
-      updateUrl('game', game.id.toString());
+  const handleGameClick = (game: GamePixGame) => {
+    setActiveGame(game);
+    setCurrentView('game');
+    updateUrl('game', game.id.toString());
   };
-  
-  const handleHomeClick = () => { 
-      setActiveGame(null); 
-      setCurrentView('home'); 
-      updateUrl('home');
+
+  const handleHomeClick = () => {
+    setActiveGame(null);
+    setCurrentView('home');
+    updateUrl('home');
   };
-  
-  const handleToolsClick = () => { 
-      setActiveGame(null); 
-      setCurrentView('tools'); 
-      updateUrl('tools');
+
+  const handleToolsClick = () => {
+    setActiveGame(null);
+    setCurrentView('tools');
+    updateUrl('tools');
   };
-  
-  const handleBlogClick = () => { 
-      setActiveGame(null); 
-      setCurrentView('blog'); 
-      updateUrl('blog');
+
+  const handleBlogClick = () => {
+    setActiveGame(null);
+    setCurrentView('blog');
+    updateUrl('blog');
   };
 
   const handleNavigateToTool = (toolId: string) => {
-      let newView = `tool-${toolId}`;
-      if (toolId === 'breath') newView = 'tool-breath';
-      else if (toolId === 'focus') newView = 'tool-focus';
-      else if (toolId === 'speed') newView = 'tool-speed'; 
-      else if (toolId === 'bmi') newView = 'tool-bmi';
-      else if (toolId === 'age') newView = 'tool-age';
-      else if (toolId === 'ruler') newView = 'tool-ruler';
-      else if (toolId === 'password-gen') newView = 'tool-password-gen';
-      else if (toolId === 'ip') newView = 'tool-ip';
-      else if (toolId === 'emi') newView = 'tool-emi';
-      
-      setCurrentView(newView);
-      updateUrl(newView);
+    let newView = `tool-${toolId}`;
+    if (toolId === 'breath') newView = 'tool-breath';
+    else if (toolId === 'focus') newView = 'tool-focus';
+    else if (toolId === 'speed') newView = 'tool-speed';
+    else if (toolId === 'bmi') newView = 'tool-bmi';
+    else if (toolId === 'age') newView = 'tool-age';
+    else if (toolId === 'ruler') newView = 'tool-ruler';
+    else if (toolId === 'password-gen') newView = 'tool-password-gen';
+    else if (toolId === 'ip') newView = 'tool-ip';
+    else if (toolId === 'emi') newView = 'tool-emi';
+    else if (toolId === 'ping') newView = 'tool-ping';
+
+    setCurrentView(newView);
+    updateUrl(newView);
   };
 
   const categories = useMemo(() => {
     if (!games.length) return [];
-    const cats = new Set(games.map(g => g.category).filter(Boolean)); 
+    const cats = new Set(games.map(g => g.category).filter(Boolean));
     return Array.from(cats).sort();
   }, [games]);
 
@@ -369,154 +375,163 @@ function App() {
     });
   }, [games, searchTerm, selectedCategory]);
 
-  // URL Restoration
+  // --- URL RECOVERY LOGIC (Runs only when games change) ---
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const viewParam = params.get('page');
     const gameIdParam = params.get('game');
 
     if (viewParam && viewParam !== 'home') {
-        setCurrentView(viewParam);
+      setCurrentView(viewParam);
     }
 
     if (gameIdParam && games.length > 0 && (!activeGame || activeGame.id.toString() !== gameIdParam)) {
-        const foundGame = games.find(g => g.id.toString() === gameIdParam);
-        if (foundGame) {
-            setActiveGame(foundGame);
-            if (currentView !== 'game') setCurrentView('game');
-        }
+      const foundGame = games.find(g => g.id.toString() === gameIdParam);
+      if (foundGame) {
+        setActiveGame(foundGame);
+        if (currentView !== 'game') setCurrentView('game');
+      }
     }
-  }, [games]); 
+  }, [games]);
 
+  // Browser Back Button Handling
   useEffect(() => {
-      const onPopState = () => {
-          const params = new URLSearchParams(window.location.search);
-          const view = params.get('page') || 'home';
-          const gameId = params.get('game');
-          
-          setCurrentView(view);
-          if (gameId && games.length > 0) {
-               const g = games.find(x => x.id.toString() === gameId);
-               if(g) setActiveGame(g);
-          } else {
-              setActiveGame(null);
-          }
-      };
-      window.addEventListener('popstate', onPopState);
-      return () => window.removeEventListener('popstate', onPopState);
+    const onPopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const view = params.get('page') || 'home';
+      const gameId = params.get('game');
+
+      setCurrentView(view);
+      if (gameId && games.length > 0) {
+        const g = games.find(x => x.id.toString() === gameId);
+        if (g) setActiveGame(g);
+      } else {
+        setActiveGame(null);
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
   }, [games]);
 
 
   // --- ROUTER LOGIC ---
+
   let content = null;
 
   if (currentView === 'tool-breath') {
-      content = <BreathTrainerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+    content = <BreathTrainerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
   } else if (currentView === 'tool-focus') {
-      content = <FocusTimerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+    content = <FocusTimerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
   } else if (currentView === 'tool-speed') {
-      content = <SpeedTestPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+    content = <SpeedTestPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
   } else if (currentView === 'tool-bmi') {
-      content = <BMICalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+    content = <BMICalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
   } else if (currentView === 'tool-age') {
-      content = <AgeCalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+    content = <AgeCalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
   } else if (currentView === 'tool-ruler') {
-      content = <ScreenRulerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+    content = <ScreenRulerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
   } else if (currentView === 'tool-password-gen') {
-      content = <PasswordGenPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+    content = <PasswordGenPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
   } else if (currentView === 'tool-ip') {
-      content = <IpFinderPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />; 
+    content = <IpFinderPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
   } else if (currentView === 'tool-emi') {
-      content = <EMICalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />; 
+    content = <EMICalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+  } else if (currentView === 'tool-ping') {
+    content = <PingCheckerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
+  } else if (currentView === 'tool-qr') {
+    content = <QRGeneratorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
   } else if (currentView.startsWith('tool-')) {
-      const toolId = currentView.replace('tool-', '');
-      let innerContent = <div className="text-center text-white">Tool under construction 🚧</div>;
-      let title = "Tool";
+    const toolId = currentView.replace('tool-', '');
+    let innerContent = <div className="text-center text-white">Tool under construction 🚧</div>;
+    let title = "Tool";
 
-      if (toolId === 'reaction') { title = "Reaction Test"; innerContent = <ReactionGame />; }
-      else if (toolId === 'cps') { title = "CPS Test"; innerContent = <CpsTest />; }
-      else if (toolId === 'sys-info') { title = "System Info"; innerContent = <SystemInfoTool />; }
-      
-      content = <GenericToolPage title={title} onBack={() => { setCurrentView('tools'); updateUrl('tools'); }}>{innerContent}</GenericToolPage>;
+    if (toolId === 'reaction') { title = "Reaction Test"; innerContent = <ReactionGame />; }
+    else if (toolId === 'cps') { title = "CPS Test"; innerContent = <CpsTest />; }
+    else if (toolId === 'sys-info') { title = "System Info"; innerContent = <SystemInfoTool />; }
+    else if (toolId === 'password-gen') { title = "Password Gen"; innerContent = <PasswordGenTool />; }
+
+    content = <GenericToolPage title={title} onBack={() => { setCurrentView('tools'); updateUrl('tools'); }}>{innerContent}</GenericToolPage>;
   } else if (currentView === 'game' && activeGame) {
-      const related = games.filter(g => g.category === activeGame.category && g.id !== activeGame.id);
-      const safeActiveGame = activeGame as unknown as any; 
-      const safeRelated = related as any;
+    const related = games.filter(g => g.category === activeGame.category && g.id !== activeGame.id);
+    const safeActiveGame = activeGame as unknown as any;
+    const safeRelated = related as any;
 
-      content = (
-        <>
-          <GamePlay 
-              game={safeActiveGame} 
-              relatedGames={safeRelated} 
-              onBack={handleHomeClick}
-              onPlayGame={handleGameClick}
-              isFavorite={favoriteGames.some(f => f.id === activeGame.id)}
-              onToggleFavorite={() => toggleGameFavorite(activeGame)}
-          />
-          <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
-          <button className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center position-fixed" style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }} onClick={() => setIsToolsOpen(true)} title="Game Tools"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></button>
-          <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={favoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
-        </>
-      );
+    content = (
+      <>
+        <GamePlay
+          game={safeActiveGame}
+          relatedGames={safeRelated}
+          onBack={handleHomeClick}
+          onPlayGame={handleGameClick}
+          isFavorite={favoriteGames.some(f => f.id === activeGame.id)}
+          onToggleFavorite={() => toggleGameFavorite(activeGame)}
+        />
+        <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
+        <button className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center position-fixed" style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }} onClick={() => setIsToolsOpen(true)} title="Game Tools"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></button>
+        <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={favoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
+      </>
+    );
   } else {
-      content = (
-        <div className="d-flex flex-column min-vh-100 w-100 position-relative overflow-x-hidden">
-          <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} favoritesCount={favoriteGames.length + favoriteTools.length} />
-          <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={favoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
-          
-          {currentView === 'home' && (
-            <div className="sticky-top" style={{ top: '0px', zIndex: 1020 }}>
-              <CategoryBar categories={categories} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
-            </div>
-          )}
+    // Default: Home Grid or Blog or Tools List
+    content = (
+      <div className="d-flex flex-column min-vh-100 w-100 position-relative overflow-x-hidden pt-4">
+        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} favoritesCount={favoriteGames.length + favoriteTools.length} />
+        <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={favoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
 
-          <main className="flex-grow-1 container-fluid px-4 py-4 d-flex flex-column">
-            {currentView === 'tools' ? (
-              <ToolsPage favoriteTools={favoriteTools} onToggleFavorite={toggleToolFavorite} onNavigateToTool={handleNavigateToTool} />
-            ) : currentView === 'blog' ? (
-              <BlogPage />
+        {currentView === 'home' && (
+          <div className="sticky-top" style={{ top: '0px', zIndex: 1020 }}>
+            <CategoryBar categories={categories} selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
+          </div>
+        )}
+
+        <main className="flex-grow-1 container-fluid px-4 py-4 d-flex flex-column">
+          {currentView === 'tools' ? (
+            <ToolsPage favoriteTools={favoriteTools} onToggleFavorite={toggleToolFavorite} onNavigateToTool={handleNavigateToTool} />
+          ) : currentView === 'blog' ? (
+            <BlogPage />
+          ) : (
+            // Home Grid
+            loading ? (
+              <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1" style={{ minHeight: '50vh' }}>
+                <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
+                <p className="fs-3 text-white animate-pulse">Loading Arcade...</p>
+              </div>
+            ) : error ? (
+              <div className="d-flex flex-column align-items-center justify-content-center text-center flex-grow-1" style={{ minHeight: '50vh' }}>
+                <div className="alert alert-danger d-inline-block" role="alert"><h4 className="alert-heading">Oops! Something went wrong.</h4><p>{error}</p></div>
+                <button className="btn btn-custom mt-3" onClick={() => window.location.reload()}>Retry</button>
+              </div>
             ) : (
-              loading ? (
-                <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1" style={{ minHeight: '50vh' }}>
-                  <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
-                  <p className="fs-3 text-white animate-pulse">Loading Arcade...</p>
+              <>
+                <div className="d-flex align-items-center justify-content-between mb-4">
+                  <h2 className="text-white border-start border-4 border-primary ps-3 mb-0 display-6">
+                    {selectedCategory || (searchTerm ? `Search: "${searchTerm}"` : "Featured Games")}
+                  </h2>
+                  <span className="text-white-50 fs-4">{filteredGames.length} Games</span>
                 </div>
-              ) : error ? (
-                 <div className="d-flex flex-column align-items-center justify-content-center text-center flex-grow-1" style={{ minHeight: '50vh' }}>
-                  <div className="alert alert-danger d-inline-block" role="alert"><h4 className="alert-heading">Oops! Something went wrong.</h4><p>{error}</p></div>
-                  <button className="btn btn-custom mt-3" onClick={() => window.location.reload()}>Retry</button>
+                <div className="row g-4">
+                  {filteredGames.map((game, index) => (
+                    <GameCard key={`${game.id}-${index}`} game={game} onClick={handleGameClick} isFavorite={favoriteGames.some(f => f.id === game.id)} onToggleFavorite={toggleGameFavorite} />
+                  ))}
                 </div>
-              ) : (
-                <>
-                  <div className="d-flex align-items-center justify-content-between mb-4">
-                    <h2 className="text-white border-start border-4 border-primary ps-3 mb-0 display-6">
-                      {selectedCategory || (searchTerm ? `Search: "${searchTerm}"` : "Featured Games")}
-                    </h2>
-                    <span className="text-white-50 fs-4">{filteredGames.length} Games</span>
+                {hasMore && filteredGames.length > 0 && !searchTerm && !selectedCategory && (
+                  <div className="text-center mt-5">
+                    <button className="btn btn-custom btn-lg px-5 rounded-pill fs-4" onClick={handleLoadMore} disabled={loadingMore}>
+                      {loadingMore ? (<><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...</>) : "Load More Games"}
+                    </button>
                   </div>
-                  <div className="row g-4">
-                      {filteredGames.map((game, index) => (
-                        <GameCard key={`${game.id}-${index}`} game={game} onClick={handleGameClick} isFavorite={favoriteGames.some(f => f.id === game.id)} onToggleFavorite={toggleGameFavorite} />
-                      ))}
-                  </div>
-                  {hasMore && filteredGames.length > 0 && !searchTerm && !selectedCategory && (
-                      <div className="text-center mt-5">
-                          <button className="btn btn-custom btn-lg px-5 rounded-pill fs-4" onClick={handleLoadMore} disabled={loadingMore}>
-                              {loadingMore ? (<><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...</>) : "Load More Games"}
-                          </button>
-                      </div>
-                  )}
-                </>
-              )
-            )}
-          </main>
-          <Footer />
-          <button className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center position-fixed" style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }} onClick={() => setIsToolsOpen(true)} title="Game Tools"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></button>
-          <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
-        </div>
-      );
+                )}
+              </>
+            )
+          )}
+        </main>
+        <Footer />
+        <button className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center position-fixed" style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }} onClick={() => setIsToolsOpen(true)} title="Game Tools"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></button>
+        <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
+      </div>
+    );
   }
-  
+
   return content;
 }
 
