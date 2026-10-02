@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import type { InfoView } from './InfoPage';
+import { SITE_NAME, setDocumentMeta } from '../config/site';
 import Header from './Header';
 import Footer from './Footer';
 import type { GamePixGame } from '../types';
@@ -15,6 +17,7 @@ interface GamePlayProps {
   onBlog?: () => void;
   onOpenFavorites?: () => void;
   onOpenTool?: (toolId: string) => void;
+  onOpenPage: (page: InfoView) => void;
   favoritesCount?: number;
 }
 
@@ -29,6 +32,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
   onBlog,
   onOpenFavorites,
   onOpenTool,
+  onOpenPage,
   favoritesCount = 0,
 }) => {
   const topRef = useRef<HTMLDivElement>(null);
@@ -38,11 +42,13 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: 'auto' });
-    document.title = `Play ${game.title} - Free Online ${game.category} Game | PlayHubGame`;
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) {
-        metaDesc.setAttribute('content', `Play ${game.title} for free! ${game.description?.substring(0, 150)}... No downloads required.`);
-    }
+    const categoryLabel = game.category ? ` Free Online ${game.category} Game` : '';
+    setDocumentMeta(
+      `Play ${game.title}${categoryLabel} | ${SITE_NAME}`,
+      game.description
+        ? `Play ${game.title} for free. ${game.description.slice(0, 140)}`
+        : `Play ${game.title} free in the browser on ${SITE_NAME}.`,
+    );
     loadedRef.current = false;
     setShowHelp(false);
     const helpTimer = window.setTimeout(() => {
@@ -144,7 +150,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
                         <div className="game-description">
                             <h2 className="h4 text-white mb-3">About this Game</h2>
                             <p className="lead text-white-50">
-                                {game.description || `Experience the thrill of ${game.title} on PlayHubGame.`}
+                                {game.description || `Play ${game.title} free in the browser on ${SITE_NAME}.`}
                             </p>
                         </div>
                     </section>
@@ -207,7 +213,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
       </main>
 
-      <Footer />
+      <Footer onOpenPage={onOpenPage} />
     </div>
   );
 };

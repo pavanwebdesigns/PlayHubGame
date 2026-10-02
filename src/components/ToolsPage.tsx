@@ -290,9 +290,10 @@ interface ToolsPageProps {
   favoriteTools?: { id: string }[];
   onToggleFavorite?: (tool: ToolDefinition & { isReady: boolean }) => void;
   onNavigateToTool: (toolId: string) => void;
+  onRequestTool: () => void;
 }
 
-const ToolsPage: React.FC<ToolsPageProps> = ({ tools, categories, notice, favoriteTools = [], onToggleFavorite = () => {}, onNavigateToTool }) => {
+const ToolsPage: React.FC<ToolsPageProps> = ({ tools, categories, notice, favoriteTools = [], onToggleFavorite = () => {}, onNavigateToTool, onRequestTool }) => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
 
@@ -383,7 +384,7 @@ const ToolsPage: React.FC<ToolsPageProps> = ({ tools, categories, notice, favori
       
       <div className="mt-5 text-center">
         <p className="text-white-50">
-            Don't see what you need? <a href="#" className="text-primary text-decoration-none border-bottom border-primary">Request a tool</a>.
+            Don't see what you need? <button type="button" className="btn btn-link text-primary text-decoration-none border-bottom border-primary p-0 align-baseline" style={{ minHeight: '44px' }} onClick={onRequestTool}>Request a tool</button>.
         </p>
       </div>
     </div>

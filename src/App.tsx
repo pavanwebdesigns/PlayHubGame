@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import InfoPage, { type InfoView } from './components/InfoPage';
 import CategoryBar from './components/CategoryBar';
 import GamePlay from './components/GamePlay';
 import ToolsModal from './components/ToolsModal';
@@ -9,6 +10,7 @@ import type { GamePixGame } from './types';
 import { COVER_PLACEHOLDER, coverSrc, gamepixSrcSet } from './lib/image';
 import { gameFromSlug } from './lib/gameLink';
 import { findTool, isToolReady, toolCategories, tools } from './tools/registry';
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, setDocumentMeta } from './config/site';
 import './App.css';
 
 function readStoredGames(raw: string): GamePixGame[] {
@@ -439,6 +441,15 @@ function App() {
     updateUrl('blog');
   };
 
+  const openPage = (page: InfoView) => {
+    cancelGameLookup();
+    setActiveGame(null);
+    setGameLookup('ready');
+    setCurrentView(page);
+    updateUrl(page);
+    setDocumentMeta(DEFAULT_TITLE, DEFAULT_DESCRIPTION);
+  };
+
   const handleNavigateToTool = (toolId: string) => {
     setCurrentView(`tool-${toolId}`);
     updateUrl(`tool-${toolId}`);
@@ -470,6 +481,7 @@ function App() {
       setCurrentView(view);
       setActiveGame(null);
       setGameLookup('ready');
+      setDocumentMeta(DEFAULT_TITLE, DEFAULT_DESCRIPTION);
       return;
     }
 
@@ -591,6 +603,7 @@ function App() {
           onBlog={handleBlogClick}
           onOpenFavorites={() => setIsSidebarOpen(true)}
           onOpenTool={handleNavigateToTool}
+          onOpenPage={openPage}
           favoritesCount={favoriteGames.length + visibleFavoriteTools.length}
         />
         <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={visibleFavoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
@@ -638,9 +651,12 @@ function App() {
               favoriteTools={visibleFavoriteTools}
               onToggleFavorite={toggleToolFavorite}
               onNavigateToTool={handleNavigateToTool}
+              onRequestTool={() => openPage('contact')}
             />
           ) : currentView === 'blog' ? (
             <BlogPage />
+          ) : currentView === 'about' || currentView === 'privacy' || currentView === 'terms' || currentView === 'contact' ? (
+            <InfoPage view={currentView} />
           ) : (
             // Home Grid
             loading ? (
@@ -677,7 +693,7 @@ function App() {
             )
           )}
         </main>
-        <Footer />
+        <Footer onOpenPage={openPage} />
         <button className="btn btn-primary rounded-circle shadow-lg d-none d-md-flex align-items-center justify-content-center position-fixed" style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }} onClick={() => setIsToolsOpen(true)} title="Game Tools"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></button>
         <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
       </div>
