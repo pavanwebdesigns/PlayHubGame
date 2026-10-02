@@ -1,0 +1,44 @@
+---
+description: PlayHubPlace project standards — applies to every task in this repo
+globs:
+alwaysApply: true
+---
+
+# PlayHubPlace — always-on rules
+
+You are the developer on playhubplace.com, a free browser-games site. Claude (the architect) wrote the specs in `docs/cursor/`. Read `docs/cursor/01-MASTER-BRIEF.md` before any non-trivial task. The phase file you're given is the scope; don't go beyond it.
+
+## How to work
+- Start every phase or large task with a short plan (files, approach, risks) and wait for approval.
+- One task per commit, conventional commit messages. Small PRs. Fill `docs/cursor/QA-CHECKLIST.md` in every PR.
+- If the spec is unclear, conflicts with the code, or a fact seems wrong — stop and ask. Don't guess.
+- Report back with evidence: what changed, files, screenshots (390 px + 1440 px), Lighthouse numbers, test output. Say plainly what you didn't do.
+
+## Never
+- Never invent content or facts: contact details, ratings, play counts, "players online", testimonials, game descriptions, developer names. Use `TODO(Pavan)` in `config/site.ts`.
+- Never publish a game write-up nobody played (`status: published` is set by Pavan).
+- Never paste the GamePix description as our body copy.
+- Never remove `sid=LC991` from embed URLs or edit the GamePix lines in `ads.txt`.
+- Never create the game iframe before the player taps Play.
+- Never put ads or clickable non-game elements within 150 px of a game frame.
+- Never load analytics/ads/backend calls before consent where consent is required.
+- Never commit secrets, `.env`, `out/`, `data/`, `.DS_Store`.
+- Never add a dependency without stating why and its gzip size.
+- Never use third-party brand names (Mario, Minecraft, Skibidi, etc.) in our headings, nav or category names.
+
+## Stack
+Phase 0 only: the existing Vite + React app in `src/` — fix what `phase-0-hotfix.md` lists, nothing more.
+From Phase 1: Next.js (App Router, `output: 'export'`, `trailingSlash: true`) · TypeScript strict + `noUncheckedIndexedAccess` · Tailwind CSS v4 with tokens · zod at every data boundary · lucide-react icons · Vitest + Playwright + axe · GitHub Actions → Hostinger.
+Server Components by default; `'use client'` only for interaction. Browser APIs only in effects/handlers. `localStorage` always in try/catch with versioned keys (`ph:<name>:v1`).
+
+## Design tokens (no raw values elsewhere)
+Colors: night `#140B33` (bg) · deck `#1D1347` · raised `#2A1E5E` · edge `#7E78E0` (borders ≥3:1) · line `#3A2D78` (decorative) · ink `#F3F0FF` · ink-muted `#B4AADB` · play `#1FB8FF` (primary, focus ring; text on it = night) · spark `#FF2E93` (favorites/new, sparingly; text on it = night) · ok `#3DDC97` · danger `#FF6B6B`. Logo gradient only on the Spotlight frame.
+Type: Anek Latin (text/UI), Jersey 15 (display ≥ 24 px only). Sentence case. No all-caps labels.
+Radii: tile 14 · input 12 · sheet 20 · button pill. 4 px spacing grid. Tap targets ≥ 44 px. Visible focus ring always.
+Motion: only in response to user actions, plus the one Spotlight sweep; honor `prefers-reduced-motion`.
+
+## Quality bar
+Lighthouse mobile: Performance ≥ 90, Accessibility 100, Best Practices 100 (≥ 95 once ads run), SEO 100. CLS ≤ 0.05. Home JS ≤ 120 KB gzip. axe 0 violations. Works at 360–1440 px and phone landscape, keyboard-only, iPhone Safari and Android Chrome.
+
+## Voice
+Plain, warm, specific. Buttons say what happens ("Play", "Save", "Copy link"). Errors say what happened and what to do. Empty states invite the next action.
