@@ -18,6 +18,7 @@ import EMICalculatorPage from './components/tools/EMICalculatorPage';
 import PingCheckerPage from './components/tools/PingCheckerPage';
 import QRGeneratorPage from './components/tools/QRGeneratorPage';
 import type { GamePixGame } from './types';
+import { COVER_PLACEHOLDER, coverSrc, gamepixSrcSet } from './lib/image';
 import './App.css';
 
 function readStoredGames(raw: string): GamePixGame[] {
@@ -57,21 +58,24 @@ export interface Tool {
 }
 
 // --- Game Card Component ---
+const TILE_SIZES = '(min-width: 1200px) 16vw, (min-width: 992px) 25vw, (min-width: 768px) 33vw, 50vw';
+
 const GameCard = ({
   game,
   onClick,
   isFavorite,
-  onToggleFavorite
+  onToggleFavorite,
+  imageIndex,
 }: {
   game: GamePixGame;
   onClick: (game: GamePixGame) => void;
   isFavorite: boolean;
   onToggleFavorite: (game: GamePixGame) => void;
+  imageIndex: number;
 }) => {
-  const timestamp = Date.now();
-  const getFreshUrl = (url: string) => url ? `${url}?t=${timestamp}` : '';
-
-  const imageSrc = game.banner_image ? getFreshUrl(game.banner_image) : getFreshUrl(game.image);
+  const rawCover = game.banner_image || game.image;
+  const imageSrc = coverSrc(rawCover, 320);
+  const imageSrcSet = rawCover && imageSrc !== COVER_PLACEHOLDER ? gamepixSrcSet(rawCover, [320, 480, 640]) : undefined;
 
   return (
     <div className="col-6 col-md-4 col-lg-3 col-xl-2 mb-4 position-relative group">
@@ -84,19 +88,28 @@ const GameCard = ({
           <div className="position-relative w-100 rounded-4 overflow-hidden shadow-sm border border-white border-opacity-10" style={{ aspectRatio: '16/9', backgroundColor: '#2a2a2a' }}>
             <img
               src={imageSrc}
+              srcSet={imageSrcSet}
+              sizes={imageSrcSet ? TILE_SIZES : undefined}
               alt={game.title}
+              width={320}
+              height={180}
               className="w-100 h-100 object-fit-cover transition-transform duration-500 group-hover:scale-110"
-              loading="lazy"
+              loading={imageIndex < 6 ? 'eager' : 'lazy'}
+              fetchPriority={imageIndex === 0 ? 'high' : 'auto'}
+              decoding="async"
               onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                if (!target.getAttribute('data-failed')) {
-                  target.setAttribute('data-failed', 'true');
-                  if (game.image && imageSrc !== getFreshUrl(game.image)) {
-                    target.src = getFreshUrl(game.image);
-                  } else {
-                    target.src = 'https://placehold.co/600x400/000E30/FFFFFF?text=Game';
-                  }
+                const target = e.currentTarget;
+                if (target.dataset.failed === 'placeholder') return;
+                const icon = game.image ? coverSrc(game.image, 320) : COVER_PLACEHOLDER;
+                if (target.dataset.failed !== 'icon' && icon !== COVER_PLACEHOLDER && target.src !== icon) {
+                  target.dataset.failed = 'icon';
+                  target.srcset = '';
+                  target.src = icon;
+                  return;
                 }
+                target.dataset.failed = 'placeholder';
+                target.srcset = '';
+                target.src = COVER_PLACEHOLDER;
               }}
             />
             <span className="position-absolute top-0 end-0 m-2 badge bg-black bg-opacity-75 text-uppercase rounded-pill border border-white border-opacity-10" style={{ fontSize: '0.6rem', letterSpacing: '0.5px', backdropFilter: 'blur(4px)' }}>
@@ -165,9 +178,6 @@ const FavoritesSidebar = ({
   onRemoveGameFavorite: (game: GamePixGame) => void;
   onRemoveToolFavorite: (tool: Tool) => void;
 }) => {
-  const timestamp = Date.now();
-  const getFreshUrl = (url: string) => url ? `${url}?t=${timestamp}` : '';
-
   return (
     <>
       {isOpen && <div className="position-fixed top-0 start-0 w-100 h-100 bg-black bg-opacity-50" style={{ zIndex: 1045 }} onClick={onClose} />}
@@ -181,26 +191,24 @@ const FavoritesSidebar = ({
           {favoriteGames.length === 0 ? <p className="text-white-50 small">No favorite games.</p> : (
             <div className="d-flex flex-column gap-3 mb-4">
               {favoriteGames.map((game) => {
-                const imageSrc = game.banner_image ? getFreshUrl(game.banner_image) : getFreshUrl(game.image);
+                const imageSrc = coverSrc(game.banner_image || game.image, 105);
 
                 return (
                   <div key={game.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
                     <img
                       src={imageSrc}
                       alt={game.title}
+                      width={50}
+                      height={50}
+                      decoding="async"
                       className="rounded-2"
                       style={{ width: '50px', height: '50px', objectFit: 'cover', cursor: 'pointer' }}
                       onClick={() => { onPlayGame(game); onClose(); }}
                       onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (!target.getAttribute('data-failed')) {
-                          target.setAttribute('data-failed', 'true');
-                          if (game.image && imageSrc !== getFreshUrl(game.image)) {
-                            target.src = getFreshUrl(game.image);
-                          } else {
-                            target.src = 'https://placehold.co/100x100/000E30/FFFFFF?text=Game';
-                          }
-                        }
+                        const target = e.currentTarget;
+                        if (target.dataset.failed === 'placeholder') return;
+                        target.dataset.failed = 'placeholder';
+                        target.src = COVER_PLACEHOLDER;
                       }}
                     />
                     <div className="flex-grow-1 overflow-hidden">
@@ -533,7 +541,7 @@ function App() {
                 </div>
                 <div className="row g-4">
                   {filteredGames.map((game, index) => (
-                    <GameCard key={`${game.id}-${index}`} game={game} onClick={handleGameClick} isFavorite={favoriteGames.some(f => f.id === game.id)} onToggleFavorite={toggleGameFavorite} />
+                    <GameCard key={`${game.id}-${index}`} game={game} imageIndex={index} onClick={handleGameClick} isFavorite={favoriteGames.some(f => f.id === game.id)} onToggleFavorite={toggleGameFavorite} />
                   ))}
                 </div>
                 {hasMore && filteredGames.length > 0 && !searchTerm && !selectedCategory && (

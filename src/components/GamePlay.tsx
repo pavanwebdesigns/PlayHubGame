@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import type { GamePixGame } from '../types';
+import { COVER_PLACEHOLDER, coverSrc, gamepixSrcSet } from '../lib/image';
 
 interface GamePlayProps {
   game: GamePixGame;
@@ -146,7 +147,9 @@ const GamePlay: React.FC<GamePlayProps> = ({
                 
                 <div className="row g-3 g-md-4">
                     {relatedGames.slice(0, 12).map((relatedGame, index) => {
-                         const imageSrc = relatedGame.banner_image || relatedGame.image;
+                         const rawCover = relatedGame.banner_image || relatedGame.image;
+                         const imageSrc = coverSrc(rawCover, 320);
+                         const imageSrcSet = rawCover && imageSrc !== COVER_PLACEHOLDER ? gamepixSrcSet(rawCover, [320, 480, 640]) : undefined;
                          
                          return (
                             <div key={`${relatedGame.id}-${index}`} className="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -158,20 +161,21 @@ const GamePlay: React.FC<GamePlayProps> = ({
                                 >
                                     <div className="position-relative w-100 rounded-4 overflow-hidden shadow-sm" style={{ aspectRatio: '16/9', backgroundColor: '#2a2a2a' }}>
                                         <img 
-                                            src={imageSrc} 
+                                            src={imageSrc}
+                                            srcSet={imageSrcSet}
+                                            sizes={imageSrcSet ? '(min-width: 1200px) 16vw, (min-width: 992px) 25vw, (min-width: 768px) 33vw, 50vw' : undefined}
                                             alt={relatedGame.title}
+                                            width={320}
+                                            height={180}
                                             className="w-100 h-100 object-fit-cover"
                                             loading="lazy"
+                                            decoding="async"
                                             onError={(e) => {
-                                                const target = e.target as HTMLImageElement;
-                                                if (!target.getAttribute('data-failed')) {
-                                                    target.setAttribute('data-failed', 'true');
-                                                    if (relatedGame.image && imageSrc !== relatedGame.image) {
-                                                         target.src = relatedGame.image;
-                                                    } else {
-                                                         target.src = 'https://placehold.co/600x400/000E30/FFFFFF?text=No+Image';
-                                                    }
-                                                }
+                                                const target = e.currentTarget;
+                                                if (target.dataset.failed === 'placeholder') return;
+                                                target.dataset.failed = 'placeholder';
+                                                target.srcset = '';
+                                                target.src = COVER_PLACEHOLDER;
                                             }}
                                         />
                                         <span className="position-absolute top-0 end-0 m-2 badge bg-black bg-opacity-75 text-uppercase rounded-pill" style={{ fontSize: '0.6rem', backdropFilter: 'blur(2px)' }}>
