@@ -1,0 +1,20 @@
+1:"$Sreact.fragment"
+2:I[97367,["/_next/static/chunks/3q-nhnwhtua9n.js"],"OutletBoundary"]
+3:"$Sreact.suspense"
+7:I[97367,["/_next/static/chunks/3q-nhnwhtua9n.js"],"ViewportBoundary"]
+8:I[97367,["/_next/static/chunks/3q-nhnwhtua9n.js"],"MetadataBoundary"]
+9:I[27201,["/_next/static/chunks/3q-nhnwhtua9n.js"],"IconMark"]
+b:I[39756,["/_next/static/chunks/3q-nhnwhtua9n.js"],"default"]
+c:I[37457,["/_next/static/chunks/3q-nhnwhtua9n.js"],"default"]
+6:X
+e:X
+e:C
+0:{"buildId":"1e6010597d0f","data":[{"rsc":["$","$1","c",{"children":[["$","main",null,{"className":"mx-auto max-w-3xl px-4 py-8","children":[["$","h1",null,{"className":"mb-3 text-3xl text-ink","children":"Privacy policy"}],["$","p",null,{"className":"text-ink","children":["PlayHubPlace"," does not ask you to create an account. Game favorites are stored in this browser with localStorage, under the key playhub_favorites. That data stays on your device. We do not run a server that collects it."]}],["$","p",null,{"className":"mt-3 text-ink","children":"When you open a game, the embed loads from GamePix. GamePix may use its own cookies or storage inside that frame. Their policy applies to that embed."}]]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"isPartial":"$@5","staleTime":"$6","varyParams":null},{"rsc":["$","$1","h",{"children":[null,["$","$L7",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L8",null,{"children":["$","$3",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Privacy policy | PlayHubPlace"}],["$","meta","1",{"name":"description","content":"How PlayHubPlace handles data stored in your browser."}],["$","meta","2",{"name":"robots","content":"index, follow"}],["$","link","3",{"rel":"canonical","href":"https://playhubplace.com/privacy/"}],["$","meta","4",{"property":"og:title","content":"Privacy policy"}],["$","meta","5",{"property":"og:description","content":"How PlayHubPlace handles data stored in your browser."}],["$","meta","6",{"property":"og:url","content":"https://playhubplace.com/privacy/"}],["$","meta","7",{"property":"og:site_name","content":"PlayHubPlace"}],["$","meta","8",{"property":"og:type","content":"website"}],["$","meta","9",{"name":"twitter:card","content":"summary"}],["$","meta","10",{"name":"twitter:title","content":"Privacy policy"}],["$","meta","11",{"name":"twitter:description","content":"How PlayHubPlace handles data stored in your browser."}],["$","link","12",{"rel":"icon","href":"/playlogo.svg"}],["$","$L9","13",{}]]}]}]}],["$","meta",null,{"name":"next-size-adjust","content":""}]]}],"isPartial":"$@a","staleTime":"$6","varyParams":null},{"rsc":["$","$1","c",{"children":[null,["$","$Lb",null,{"parallelRouterKey":"children","template":["$","$Lc",null,{}]}]]}],"isPartial":"$@d","staleTime":"$6","varyParams":"$e"}],"isUpgradeableISRFallback":false,"a":"$@f","rootVaryParams":null,"needsRuntimeRequest":"$@10"}
+4:null
+10:true
+6:300
+6:C
+f:0
+a:"$undefined"
+d:"$undefined"
+5:"$undefined"

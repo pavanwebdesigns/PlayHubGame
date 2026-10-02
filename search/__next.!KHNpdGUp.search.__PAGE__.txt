@@ -1,0 +1,33 @@
+1:"$Sreact.fragment"
+2:I[97261,["/_next/static/chunks/3q-nhnwhtua9n.js","/_next/static/chunks/3ovc17e70iant.js","/_next/static/chunks/31inqvip6amo3.js","/_next/static/chunks/3bv9d7mznndbp.js"],"SearchBox"]
+3:I[97367,["/_next/static/chunks/3q-nhnwhtua9n.js"],"OutletBoundary"]
+4:"$Sreact.suspense"
+8:I[97367,["/_next/static/chunks/3q-nhnwhtua9n.js"],"ViewportBoundary"]
+9:I[97367,["/_next/static/chunks/3q-nhnwhtua9n.js"],"MetadataBoundary"]
+7:X
+18:X
+18:C
+0:{"buildId":"1e6010597d0f","data":[{"rsc":["$","$1","c",{"children":[["$","main",null,{"className":"mx-auto max-w-3xl px-4 py-8","children":[["$","h1",null,{"className":"mb-4 text-display-sm text-ink","children":"Search"}],["$","$L2",null,{"hubs":[{"href":"/category/action/","label":"Action"},{"href":"/category/arcade/","label":"Arcade"},{"href":"/category/casual/","label":"Casual"}],"picks":[{"slug":"slope-racing-3d","title":"Slope Racing 3D","cover":"https://img.gamepix.com/games/slope-racing-3d/cover/slope-racing-3d.png","hub":"arcade","publishedAt":"2020-09-22T14:10:11.000Z","orientation":"landscape","aspect":1.3333333333333333},{"slug":"shoe-race-1","title":"Shoe Race","cover":"https://img.gamepix.com/games/shoe-race-1/cover/shoe-race-1.png","hub":"casual","publishedAt":"2024-05-31T10:19:34.000Z","orientation":"all","aspect":1.3333333333333333},{"slug":"dta-6","title":"DTA 6","cover":"https://img.gamepix.com/games/dta-6/cover/dta-6.png","hub":"action","publishedAt":"2024-01-25T13:13:01.000Z","orientation":"landscape","aspect":1.3333333333333333},{"slug":"robot-police-iron-panther","title":"Robot Police Iron Panther","cover":"https://img.gamepix.com/games/robot-police-iron-panther/cover/robot-police-iron-panther.png","hub":"action","publishedAt":"2020-12-21T08:39:03.000Z","orientation":"landscape","aspect":1.3333333333333333},{"slug":"case-opener-case-clicking-simulator","title":"Case Opener - Case Clicker Simulator","cover":"https://img.gamepix.com/games/case-opener-case-clicking-simulator/cover/case-opener-case-clicking-simulator.png","hub":"skill-hyper-casual","publishedAt":"2025-06-10T09:32:34.000Z","orientation":"landscape","aspect":1.3333333333333333},{"slug":"4-colors-multiplayer","title":"4 Colors Multiplayer","cover":"https://img.gamepix.com/games/4-colors-multiplayer/cover/4-colors-multiplayer.png","hub":"board-card","publishedAt":"2021-12-20T08:27:32.000Z","orientation":"all","aspect":1.3333333333333333},{"slug":"helix-blitz","title":"Spiral Blitz","cover":"https://img.gamepix.com/games/helix-blitz/cover/helix-blitz.png","hub":"skill-hyper-casual","publishedAt":"2020-01-23T09:51:23.000Z","orientation":"portrait","aspect":0.75},{"slug":"quarantine-zombies","title":"Quarantine Zombies","cover":"https://img.gamepix.com/games/quarantine-zombies/cover/quarantine-zombies.png","hub":"action","publishedAt":"2026-05-18T12:14:09.000Z","orientation":"all","aspect":1.3333333333333333},{"slug":"funny-rescue-pet","title":"Funny Rescue Pet","cover":"https://img.gamepix.com/games/funny-rescue-pet/cover/funny-rescue-pet.png","hub":"casual","publishedAt":"2021-03-22T11:48:31.000Z","orientation":"landscape","aspect":1.3333333333333333},{"slug":"lotl-spa","title":"Lotl Spa","cover":"https://img.gamepix.com/games/lotl-spa/cover/lotl-spa.png","hub":"skill-hyper-casual","publishedAt":"2026-07-28T11:42:17.000Z","orientation":"all","aspect":1.3333333333333333},{"slug":"kobadoo-flags","title":"Kobadoo Flags","cover":"https://img.gamepix.com/games/kobadoo-flags/cover/kobadoo-flags.png","hub":"math-word","publishedAt":"2022-02-02T07:19:47.000Z","orientation":"portrait","aspect":0.75},{"slug":"spider-evolution-runner-game","title":"Spider Evolution Runner Game","cover":"https://img.gamepix.com/games/spider-evolution-runner-game/cover/spider-evolution-runner-game.png","hub":"skill-hyper-casual","publishedAt":"2024-11-29T16:46:52.000Z","orientation":"landscape","aspect":1.3333333333333333}]}]]}],[["$","script","script-0",{"src":"/_next/static/chunks/31inqvip6amo3.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/3bv9d7mznndbp.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"isPartial":"$@6","staleTime":"$7","varyParams":null},{"rsc":["$","$1","h",{"children":[null,["$","$L8",null,{"children":[["$","meta","0",{"charSet":"utf-8"}],["$","meta","1",{"name":"viewport","content":"width=device-width, initial-scale=1"}]]}],["$","div",null,{"hidden":true,"children":["$","$L9",null,{"children":["$","$4",null,{"name":"Next.Metadata","children":[["$","title","0",{"children":"Search | PlayHubPlace"}],["$","meta","1",{"name":"description","content":"Search free browser games on PlayHubPlace."}],["$","meta","2",{"name":"robots","content":"noindex, follow"}],["$","link","3",{"rel":"canonical","href":"https://playhubplace.com/search/"}],"$La","$Lb","$Lc","$Ld","$Le","$Lf","$L10","$L11","$L12","$L13"]}]}]}],"$L14"]}],"isPartial":"$@15","staleTime":"$7","varyParams":null},{"rsc":"$L16","isPartial":"$@17","staleTime":"$7","varyParams":"$18"}],"isUpgradeableISRFallback":false,"a":"$@19","rootVaryParams":null,"needsRuntimeRequest":"$@1a"}
+1b:I[27201,["/_next/static/chunks/3q-nhnwhtua9n.js"],"IconMark"]
+1c:I[39756,["/_next/static/chunks/3q-nhnwhtua9n.js"],"default"]
+1d:I[37457,["/_next/static/chunks/3q-nhnwhtua9n.js"],"default"]
+5:null
+a:["$","meta","4",{"property":"og:title","content":"Search"}]
+b:["$","meta","5",{"property":"og:description","content":"Search free browser games on PlayHubPlace."}]
+c:["$","meta","6",{"property":"og:url","content":"https://playhubplace.com/search/"}]
+d:["$","meta","7",{"property":"og:site_name","content":"PlayHubPlace"}]
+e:["$","meta","8",{"property":"og:type","content":"website"}]
+f:["$","meta","9",{"name":"twitter:card","content":"summary"}]
+10:["$","meta","10",{"name":"twitter:title","content":"Search"}]
+11:["$","meta","11",{"name":"twitter:description","content":"Search free browser games on PlayHubPlace."}]
+12:["$","link","12",{"rel":"icon","href":"/playlogo.svg"}]
+13:["$","$L1b","13",{}]
+14:["$","meta",null,{"name":"next-size-adjust","content":""}]
+16:["$","$1","c",{"children":[null,["$","$L1c",null,{"parallelRouterKey":"children","template":["$","$L1d",null,{}]}]]}]
+1a:true
+7:300
+7:C
+19:0
+15:"$undefined"
+17:"$undefined"
+6:"$undefined"
