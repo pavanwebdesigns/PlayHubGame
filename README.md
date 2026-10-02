@@ -14,6 +14,12 @@ The previous Vite app is in `legacy/`. It is not part of the Next build. Delete 
 - `npm run lint` — ESLint
 - `npm run format` — Prettier
 
+## Catalog
+
+`npm run catalog` fetches the GamePix feed, checks each game, and writes `data/catalog.json`, `data/curated.json`, `data/search-index.json`, `data/meta.json`, and `public/data/legacy-ids.json`. Those files are gitignored. `npm run build` runs the catalog first.
+
+The build fails when valid games are below `MIN_VALID_GAMES` (10,000) or invalid games are above `MAX_INVALID_RATIO` (1%), both in `config/site.ts`. It then restores the last good `catalog.json` and `meta.json` from `CATALOG_CACHE_DIR` (Actions cache) or `CATALOG_SNAPSHOT_DIR` (the `catalog-snapshot` branch) and marks `meta.stale`. If neither exists, the build stops. A new raw category that is not in `config/taxonomy.ts` also stops the build, so a person maps it.
+
 ## Config
 
 Site name, canonical URL, GamePix partner id, catalog thresholds, and the contact address live in `config/site.ts`. `CONTACT_EMAIL` is `TODO(Pavan)` until a real address is published.
