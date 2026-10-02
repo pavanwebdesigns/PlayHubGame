@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "npm run check-todos && npm run catalog && next build",
     "catalog": "tsx scripts/build-catalog.ts",
-    "lint": "eslint . --max-warnings 0",
+    "lint": "eslint . --max-warnings 0 && node scripts/check-tokens.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",

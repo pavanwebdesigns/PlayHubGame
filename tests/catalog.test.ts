@@ -351,7 +351,7 @@ describe('home page data', () => {
         if (resolved) visit(resolved, isClient);
       }
     };
-    visit(`${process.cwd()}/app/page.tsx`, false);
+    visit(`${process.cwd()}/app/(site)/page.tsx`, false);
     visit(`${process.cwd()}/app/layout.tsx`, false);
   });
 });
