@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import type { ToolCategory, ToolDefinition } from '../tools/registry';
 
 // --- Tool Card Component ---
 interface ToolCardProps {
@@ -283,81 +284,21 @@ export const PasswordGenTool = () => {
 
 
 interface ToolsPageProps {
-  favoriteTools?: any[];
-  onToggleFavorite?: (tool: any) => void;
+  tools: ToolDefinition[];
+  categories: ToolCategory[];
+  notice?: string;
+  favoriteTools?: { id: string }[];
+  onToggleFavorite?: (tool: ToolDefinition & { isReady: boolean }) => void;
   onNavigateToTool: (toolId: string) => void;
 }
 
-// --- Main Page Component ---
-const ToolsPage: React.FC<ToolsPageProps> = ({ favoriteTools = [], onToggleFavorite = () => {}, onNavigateToTool }) => {
+const ToolsPage: React.FC<ToolsPageProps> = ({ tools, categories, notice, favoriteTools = [], onToggleFavorite = () => {}, onNavigateToTool }) => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
 
-  const categories = [
-    { id: 'health', name: 'Health', icon: '🧠' },
-    { id: 'prod', name: 'Productivity', icon: '⚙️' },
-    { id: 'web', name: 'Internet', icon: '📱' },
-    { id: 'calc', name: 'Math', icon: '🧮' },
-    { id: 'dev', name: 'Dev', icon: '🎨' },
-    { id: 'data', name: 'Data', icon: '📊' },
-    { id: 'fun', name: 'Personal', icon: '🧭' },
-    { id: 'sys', name: 'System', icon: '🌍' },
-  ];
+  const readyTools = tools.filter((tool) => tool.component != null);
 
-  const tools = [
-    // 1. Health
-    { id: 'breath', category: 'health', icon: '🫁', title: 'Breath Trainer', description: 'Guided 4-7-8 breathing for calmness.', isReady: true },
-    { id: 'heart', category: 'health', icon: '❤️', title: 'Heart Rate Monitor', description: 'Measure pulse via webcam (Coming Soon).', isReady: false }, 
-    { id: 'focus', category: 'health', icon: '🧘', title: 'Focus Timer', description: 'Pomodoro timer with ambient sounds.', isReady: true },
-    { id: 'sleep', category: 'health', icon: '🌙', title: 'Sleep Sounds', description: 'White noise generator.', isReady: true },
-    { id: 'mood', category: 'health', icon: '☀️', title: 'Mood Journal', description: 'Local daily mood tracker.', isReady: true },
-    { id: 'affirm', category: 'health', icon: '🧩', title: 'Affirmations', description: 'Daily positive quotes.', isReady: true },
-    
-    // 2. Productivity
-    { id: 'todo', category: 'prod', icon: '📆', title: 'Daily Planner', description: 'Local storage task manager.', isReady: true },
-    { id: 'timezone', category: 'prod', icon: '🕓', title: 'Time Converter', description: 'Compare global time zones.', isReady: true },
-    { id: 'unit', category: 'prod', icon: '🔁', title: 'Unit Converter', description: 'Length, weight, temp, currency.', isReady: true },
-    { id: 'stopwatch', category: 'prod', icon: '⏱️', title: 'Stopwatch', description: 'Precision timer with laps.', isReady: true },
-    { id: 'ruler', category: 'prod', icon: '📏', title: 'Screen Ruler', description: 'Measure pixels on screen.', isReady: true }, // ENABLED
-    { id: 'screenshot', category: 'prod', icon: '📸', title: 'Screenshot Editor', description: 'Capture & annotate.', isReady: false },
-    { id: 'age', category: 'prod', icon: '📅', title: 'Age Calculator', description: 'Calculate exact age & dates.', isReady: true },
-    { id: 'sys-info', category: 'prod', icon: '💻', title: 'System Info', description: 'Detailed device specs.', isReady: true },
-
-    // 3. Internet
-    { id: 'speed', category: 'web', icon: '🚀', title: 'Speed Test', description: 'Measure connection latency.', isReady: true },
-    { id: 'ip', category: 'web', icon: '🔒', title: 'IP Finder', description: 'Show public IP & ISP.', isReady: true }, // ENABLED
-    { id: 'uptime', category: 'web', icon: '🌐', title: 'Uptime Checker', description: 'Check if a site is down.', isReady: false },
-    { id: 'qr', category: 'web', icon: '🧩', title: 'QR Generator', description: 'Create & scan QR codes.', isReady: true },
-    { id: 'password-gen', category: 'web', icon: '🧱', title: 'Password Gen', description: 'Create strong secure passwords.', isReady: true },
-    
-    // 4. Calc
-    { id: 'emi', category: 'calc', icon: '🧾', title: 'EMI Calculator', description: 'Loan installment estimator.', isReady: true },
-    { id: 'bmi', category: 'calc', icon: '📈', title: 'BMI Calculator', description: 'Body Mass Index check.', isReady: true },
-    { id: 'gst', category: 'calc', icon: '🏠', title: 'GST Calculator', description: 'Quick tax calculations.', isReady: true },
-    { id: 'percent', category: 'calc', icon: '⚖️', title: 'Percentage Calc', description: 'Discounts & margins.', isReady: true },
-    
-    // 5. Dev
-    { id: 'palette', category: 'dev', icon: '🎨', title: 'Color Palette', description: 'Generate color schemes.', isReady: true },
-    { id: 'compress', category: 'dev', icon: '🧩', title: 'Image Compressor', description: 'Shrink JPG/PNG locally.', isReady: false },
-    { id: 'json', category: 'dev', icon: '🧱', title: 'JSON Formatter', description: 'Validate & beautify JSON.', isReady: true },
-    { id: 'regex', category: 'dev', icon: '💡', title: 'Regex Tester', description: 'Test regular expressions.', isReady: true },
-    
-    // 6. Data
-    { id: 'chat', category: 'data', icon: '🤖', title: 'AI Chat Bot', description: 'Personal AI assistant.', isReady: false },
-    { id: 'text-speech', category: 'data', icon: '🎧', title: 'Text-to-Speech', description: 'Read text aloud.', isReady: true },
-    { id: 'speech-text', category: 'data', icon: '🗣️', title: 'Speech-to-Text', description: 'Voice dictation.', isReady: true },
-    
-    // 7. Personal
-    { id: 'goal', category: 'fun', icon: '🎯', title: 'Goal Tracker', description: 'Visual goal progress.', isReady: true },
-    { id: 'water', category: 'fun', icon: '💧', title: 'Water Reminder', description: 'Daily hydration log.', isReady: true },
-    { id: 'weather', category: 'fun', icon: '☀️', title: 'Weather', description: 'Local forecast.', isReady: false },
-    
-    // 8. System
-    { id: 'ping', category: 'sys', icon: '🧭', title: 'Ping Checker', description: 'Test server latency.', isReady: true },
-    { id: 'pass-strength', category: 'sys', icon: '🔐', title: 'Pass Strength', description: 'Analyze password entropy.', isReady: true },
-  ];
-
-  const filteredTools = tools.filter(tool => {
+  const filteredTools = readyTools.filter(tool => {
     const matchesSearch = tool.title.toLowerCase().includes(search.toLowerCase()) || tool.description.toLowerCase().includes(search.toLowerCase());
     const matchesCategory = filter === 'All' || tool.category === filter;
     return matchesSearch && matchesCategory;
@@ -372,7 +313,7 @@ const ToolsPage: React.FC<ToolsPageProps> = ({ favoriteTools = [], onToggleFavor
             Ultimate <span className="text-primary">Tools</span> Suite
          </h1>
          <p className="text-white-50 mb-0 small">
-            A collection of {tools.length}+ utilities for developers, designers, and everyday users.
+            A collection of {readyTools.length} utilities you can use in the browser.
          </p>
       </div>
         
@@ -413,15 +354,18 @@ const ToolsPage: React.FC<ToolsPageProps> = ({ favoriteTools = [], onToggleFavor
             </div>
       </div>
 
-      {/* Tools Grid */}
+      {notice && (
+        <p className="alert alert-secondary" role="status">{notice}</p>
+      )}
       <div className="row g-3 g-md-4">
         {filteredTools.map((tool) => (
           <div key={tool.id} className="col-12 col-md-6 col-lg-4 col-xl-3">
             <ToolCard 
-                {...tool} 
+                {...tool}
+                isReady={tool.component != null}
                 onLaunch={() => onNavigateToTool(tool.id)}
                 isFavorite={favoriteTools?.some(f => f.id === tool.id)}
-                onToggleFavorite={() => onToggleFavorite(tool)}
+                onToggleFavorite={() => onToggleFavorite({ ...tool, isReady: tool.component != null })}
             />
           </div>
         ))}

@@ -4,21 +4,10 @@ import Footer from './components/Footer';
 import CategoryBar from './components/CategoryBar';
 import GamePlay from './components/GamePlay';
 import ToolsModal from './components/ToolsModal';
-import ToolsPage, { CpsTest, ReactionGame, SystemInfoTool, PasswordGenTool } from './components/ToolsPage';
-import BreathTrainerPage from './components/tools/BreathTrainerPage';
-import GenericToolPage from './components/tools/GenericToolPage';
-import FocusTimerPage from './components/tools/FocusTimerPage';
-import SpeedTestPage from './components/tools/SpeedTestPage';
-import BMICalculatorPage from './components/tools/BMICalculatorPage';
-import AgeCalculatorPage from './components/tools/AgeCalculatorPage';
-import ScreenRulerPage from './components/tools/ScreenRulerPage';
-import PasswordGenPage from './components/tools/PasswordGenPage';
-import IpFinderPage from './components/tools/IpFinderPage';
-import EMICalculatorPage from './components/tools/EMICalculatorPage';
-import PingCheckerPage from './components/tools/PingCheckerPage';
-import QRGeneratorPage from './components/tools/QRGeneratorPage';
+import ToolsPage from './components/ToolsPage';
 import type { GamePixGame } from './types';
 import { COVER_PLACEHOLDER, coverSrc, gamepixSrcSet } from './lib/image';
+import { findTool, isToolReady, toolCategories, tools } from './tools/registry';
 import './App.css';
 
 function readStoredGames(raw: string): GamePixGame[] {
@@ -377,20 +366,8 @@ function App() {
   };
 
   const handleNavigateToTool = (toolId: string) => {
-    let newView = `tool-${toolId}`;
-    if (toolId === 'breath') newView = 'tool-breath';
-    else if (toolId === 'focus') newView = 'tool-focus';
-    else if (toolId === 'speed') newView = 'tool-speed';
-    else if (toolId === 'bmi') newView = 'tool-bmi';
-    else if (toolId === 'age') newView = 'tool-age';
-    else if (toolId === 'ruler') newView = 'tool-ruler';
-    else if (toolId === 'password-gen') newView = 'tool-password-gen';
-    else if (toolId === 'ip') newView = 'tool-ip';
-    else if (toolId === 'emi') newView = 'tool-emi';
-    else if (toolId === 'ping') newView = 'tool-ping';
-
-    setCurrentView(newView);
-    updateUrl(newView);
+    setCurrentView(`tool-${toolId}`);
+    updateUrl(`tool-${toolId}`);
   };
 
   const categories = useMemo(() => {
@@ -448,41 +425,22 @@ function App() {
 
   // --- ROUTER LOGIC ---
 
+  const visibleFavoriteTools = favoriteTools.filter((tool) => {
+    const entry = findTool(tool.id);
+    return entry != null && isToolReady(entry);
+  });
+  const visibleCategories = toolCategories.filter((category) =>
+    tools.some((tool) => tool.category === category.id && isToolReady(tool)),
+  );
+  const requestedToolId = currentView.startsWith('tool-') ? currentView.slice('tool-'.length) : '';
+  const requestedTool = requestedToolId ? findTool(requestedToolId) : undefined;
+  const toolUnavailable = requestedToolId.length > 0 && !(requestedTool && isToolReady(requestedTool));
+
   let content = null;
 
-  if (currentView === 'tool-breath') {
-    content = <BreathTrainerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'tool-focus') {
-    content = <FocusTimerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'tool-speed') {
-    content = <SpeedTestPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'tool-bmi') {
-    content = <BMICalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'tool-age') {
-    content = <AgeCalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'tool-ruler') {
-    content = <ScreenRulerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'tool-password-gen') {
-    content = <PasswordGenPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'tool-ip') {
-    content = <IpFinderPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'tool-emi') {
-    content = <EMICalculatorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'tool-ping') {
-    content = <PingCheckerPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'tool-qr') {
-    content = <QRGeneratorPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView.startsWith('tool-')) {
-    const toolId = currentView.replace('tool-', '');
-    let innerContent = <div className="text-center text-white">Tool under construction 🚧</div>;
-    let title = "Tool";
-
-    if (toolId === 'reaction') { title = "Reaction Test"; innerContent = <ReactionGame />; }
-    else if (toolId === 'cps') { title = "CPS Test"; innerContent = <CpsTest />; }
-    else if (toolId === 'sys-info') { title = "System Info"; innerContent = <SystemInfoTool />; }
-    else if (toolId === 'password-gen') { title = "Password Gen"; innerContent = <PasswordGenTool />; }
-
-    content = <GenericToolPage title={title} onBack={() => { setCurrentView('tools'); updateUrl('tools'); }}>{innerContent}</GenericToolPage>;
+  if (requestedTool?.component) {
+    const ToolPage = requestedTool.component;
+    content = <ToolPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
   } else if (currentView === 'game' && activeGame) {
     const related = games.filter(g => g.category === activeGame.category && g.id !== activeGame.id);
 
@@ -498,19 +456,19 @@ function App() {
           onTools={handleToolsClick}
           onBlog={handleBlogClick}
           onOpenFavorites={() => setIsSidebarOpen(true)}
-          favoritesCount={favoriteGames.length + favoriteTools.length}
+          favoritesCount={favoriteGames.length + visibleFavoriteTools.length}
         />
         <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
         <button className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center position-fixed" style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }} onClick={() => setIsToolsOpen(true)} title="Game Tools"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></button>
-        <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={favoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
+        <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={visibleFavoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
       </>
     );
   } else {
     // Default: Home Grid or Blog or Tools List
     content = (
       <div className="d-flex flex-column min-vh-100 w-100 position-relative overflow-x-hidden pt-4">
-        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} favoritesCount={favoriteGames.length + favoriteTools.length} />
-        <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={favoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
+        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} favoritesCount={favoriteGames.length + visibleFavoriteTools.length} />
+        <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={visibleFavoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
 
         {currentView === 'home' && (
           <div className="sticky-top" style={{ top: '0px', zIndex: 1020 }}>
@@ -519,8 +477,15 @@ function App() {
         )}
 
         <main className="flex-grow-1 container-fluid px-4 py-4 d-flex flex-column">
-          {currentView === 'tools' ? (
-            <ToolsPage favoriteTools={favoriteTools} onToggleFavorite={toggleToolFavorite} onNavigateToTool={handleNavigateToTool} />
+          {currentView === 'tools' || toolUnavailable ? (
+            <ToolsPage
+              tools={tools}
+              categories={visibleCategories}
+              notice={toolUnavailable ? "That tool isn't available. Pick one from the list." : undefined}
+              favoriteTools={visibleFavoriteTools}
+              onToggleFavorite={toggleToolFavorite}
+              onNavigateToTool={handleNavigateToTool}
+            />
           ) : currentView === 'blog' ? (
             <BlogPage />
           ) : (
