@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // Icons
 const SearchIcon = () => (
@@ -27,6 +27,36 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOpenSidebar, favoritesCount = 0 }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  const closeMenu = () => setMenuOpen(false);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setMenuOpen(false);
+      menuButtonRef.current?.focus();
+    };
+    document.addEventListener('keydown', onKey);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 768px)');
+    const closeOnDesktop = () => {
+      if (desktop.matches) setMenuOpen(false);
+    };
+    desktop.addEventListener('change', closeOnDesktop);
+    return () => desktop.removeEventListener('change', closeOnDesktop);
+  }, []);
+
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (onHome) {
@@ -97,12 +127,40 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOp
                 </span>
               )}
             </button>
-            <button className="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mobileMenu">
+            <button
+              ref={menuButtonRef}
+              className="navbar-toggler border-0"
+              type="button"
+              aria-expanded={menuOpen}
+              aria-controls="mobileMenu"
+              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+              style={{ minWidth: '44px', minHeight: '44px' }}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
                 <span className="navbar-toggler-icon"></span>
             </button>
           </div>
         </div>
       </nav>
+      {menuOpen && (
+        <div id="mobileMenu" className="d-md-none border-top border-playhub px-3 py-2">
+          <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onHome?.(); }}>
+            <GamepadIcon />
+            <span className="fs-5">Games</span>
+          </button>
+          <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onTools?.(); }}>
+            <ToolsIcon />
+            <span className="fs-5">Tools</span>
+          </button>
+          <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onBlog?.(); }}>
+            <BlogIcon />
+            <span className="fs-5">Blog</span>
+          </button>
+          <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onOpenSidebar?.(); }}>
+            <span className="fs-5">Favorites{favoritesCount > 0 ? ` (${favoritesCount})` : ''}</span>
+          </button>
+        </div>
+      )}
     </header>
   );
 };

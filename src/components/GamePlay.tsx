@@ -11,6 +11,10 @@ interface GamePlayProps {
   onPlayGame: (game: GamePixGame) => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  onTools?: () => void;
+  onBlog?: () => void;
+  onOpenFavorites?: () => void;
+  favoritesCount?: number;
 }
 
 const GamePlay: React.FC<GamePlayProps> = ({ 
@@ -19,7 +23,11 @@ const GamePlay: React.FC<GamePlayProps> = ({
   onBack, 
   onPlayGame, 
   isFavorite, 
-  onToggleFavorite 
+  onToggleFavorite,
+  onTools,
+  onBlog,
+  onOpenFavorites,
+  favoritesCount = 0,
 }) => {
   const topRef = useRef<HTMLDivElement>(null);
   const gameContainerRef = useRef<HTMLDivElement>(null);
@@ -46,7 +54,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
   return (
     <div className="d-flex flex-column min-vh-100 w-100 bg-black" ref={topRef}>
-      <Header onSearch={() => {}} onHome={onBack} />
+      <Header onSearch={() => {}} onHome={onBack} onTools={onTools} onBlog={onBlog} onOpenSidebar={onOpenFavorites} favoritesCount={favoritesCount} />
 
       <main className="flex-grow-1 container-fluid px-0 px-md-4 py-4">
         <nav aria-label="breadcrumb" className="container mb-4">
