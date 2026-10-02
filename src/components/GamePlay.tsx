@@ -1,23 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import type { InfoView } from './InfoPage';
+import { SITE_NAME, setDocumentMeta } from '../config/site';
 import Header from './Header';
 import Footer from './Footer';
-
-// --- Interface Definition (Local) ---
-// This must match the structure of the game object passed from App.tsx
-interface GamePixGame {
-  id: number;
-  title: string;
-  description: string;
-  thumbnailUrl: string;
-  thumbnailUrl100: string;
-  banner_image?: string;
-  bannerUrl?: string;
-  url: string;
-  category: string;
-  width: number;
-  height: number;
-  color: string;
-}
+import type { GamePixGame } from '../types';
+import { COVER_PLACEHOLDER, coverSrc, gamepixSrcSet } from '../lib/image';
 
 interface GamePlayProps {
   game: GamePixGame;
@@ -26,6 +13,11 @@ interface GamePlayProps {
   onPlayGame: (game: GamePixGame) => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
+  onBlog?: () => void;
+  onOpenFavorites?: () => void;
+  onOpenQuickGame?: (page: 'reaction-test' | 'cps-test') => void;
+  onOpenPage: (page: InfoView) => void;
+  favoritesCount?: number;
 }
 
 const GamePlay: React.FC<GamePlayProps> = ({ 
@@ -34,18 +26,33 @@ const GamePlay: React.FC<GamePlayProps> = ({
   onBack, 
   onPlayGame, 
   isFavorite, 
-  onToggleFavorite 
+  onToggleFavorite,
+  onBlog,
+  onOpenFavorites,
+  onOpenQuickGame,
+  onOpenPage,
+  favoritesCount = 0,
 }) => {
   const topRef = useRef<HTMLDivElement>(null);
   const gameContainerRef = useRef<HTMLDivElement>(null);
+  const loadedRef = useRef(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
-    topRef.current?.scrollIntoView({ behavior: 'smooth' });
-    document.title = `Play ${game.title} - Free Online ${game.category} Game | PlayHubGame`;
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) {
-        metaDesc.setAttribute('content', `Play ${game.title} for free! ${game.description?.substring(0, 150)}... No downloads required.`);
-    }
+    topRef.current?.scrollIntoView({ behavior: 'auto' });
+    const categoryLabel = game.category ? ` Free Online ${game.category} Game` : '';
+    setDocumentMeta(
+      `Play ${game.title}${categoryLabel} | ${SITE_NAME}`,
+      game.description
+        ? `Play ${game.title} for free. ${game.description.slice(0, 140)}`
+        : `Play ${game.title} free in the browser on ${SITE_NAME}.`,
+    );
+    loadedRef.current = false;
+    setShowHelp(false);
+    const helpTimer = window.setTimeout(() => {
+      if (!loadedRef.current) setShowHelp(true);
+    }, 15000);
+    return () => window.clearTimeout(helpTimer);
   }, [game.id, game.title, game.category, game.description]);
 
   const toggleFullScreen = () => {
@@ -61,7 +68,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
   return (
     <div className="d-flex flex-column min-vh-100 w-100 bg-black" ref={topRef}>
-      <Header onSearch={() => {}} onHome={onBack} />
+      <Header onSearch={() => {}} onHome={onBack} onBlog={onBlog} onOpenSidebar={onOpenFavorites} onOpenQuickGame={onOpenQuickGame} favoritesCount={favoritesCount} />
 
       <main className="flex-grow-1 container-fluid px-0 px-md-4 py-4">
         <nav aria-label="breadcrumb" className="container mb-4">
@@ -71,9 +78,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
             </button>
         </nav>
 
-        <article className="container mb-5">
-            <div className="row g-4">
-                <div className="col-12 col-lg-9">
+        <article className="container mb-5" style={{ maxWidth: '1200px' }}>
                     <section 
                         ref={gameContainerRef}
                         className="ratio ratio-16x9 bg-dark rounded-4 overflow-hidden shadow-lg border border-secondary border-opacity-25 position-relative group" 
@@ -86,6 +91,10 @@ const GamePlay: React.FC<GamePlayProps> = ({
                             className="w-100 h-100"
                             loading="eager"
                             allow="autoplay; fullscreen; gyroscope; accelerometer; magnetometer; gamepad"
+                            onLoad={() => {
+                              loadedRef.current = true;
+                              setShowHelp(false);
+                            }}
                         ></iframe>
                          <button 
                             onClick={toggleFullScreen}
@@ -127,30 +136,22 @@ const GamePlay: React.FC<GamePlayProps> = ({
                             </button>
                         </header>
                         
+                        {showHelp && (
                         <div className="alert alert-dark d-flex align-items-center border border-secondary border-opacity-25 mb-4" role="alert">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warning me-3"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
                             <div>
                                 <strong>Having trouble playing?</strong> If the game doesn't load, try disabling your ad blocker.
                             </div>
                         </div>
+                        )}
                         
                         <div className="game-description">
                             <h2 className="h4 text-white mb-3">About this Game</h2>
                             <p className="lead text-white-50">
-                                {game.description || `Experience the thrill of ${game.title} on PlayHubGame.`}
+                                {game.description || `Play ${game.title} free in the browser on ${SITE_NAME}.`}
                             </p>
                         </div>
                     </section>
-                </div>
-                <aside className="col-12 col-lg-3">
-                    <div className="bg-dark bg-opacity-50 rounded-4 p-4 h-100 border border-secondary border-opacity-25 text-center d-flex flex-column align-items-center justify-content-start sticky-top" style={{ top: '100px', zIndex: 1 }}>
-                        <span className="text-white-50 text-uppercase small letter-spacing-2 mb-3">Sponsored</span>
-                        <div className="p-4 bg-black bg-opacity-50 rounded w-100 d-flex align-items-center justify-content-center" style={{ border: '2px dashed #444', minHeight: '250px' }}>
-                             <span className="text-white-50">Ad Space</span>
-                        </div>
-                    </div>
-                </aside>
-            </div>
         </article>
 
         {/* Related Games Section */}
@@ -162,7 +163,9 @@ const GamePlay: React.FC<GamePlayProps> = ({
                 
                 <div className="row g-3 g-md-4">
                     {relatedGames.slice(0, 12).map((relatedGame, index) => {
-                         const imageSrc = relatedGame.banner_image || relatedGame.bannerUrl || relatedGame.thumbnailUrl || relatedGame.thumbnailUrl100;
+                         const rawCover = relatedGame.banner_image || relatedGame.image;
+                         const imageSrc = coverSrc(rawCover, 320);
+                         const imageSrcSet = rawCover && imageSrc !== COVER_PLACEHOLDER ? gamepixSrcSet(rawCover, [320, 480, 640]) : undefined;
                          
                          return (
                             <div key={`${relatedGame.id}-${index}`} className="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -174,20 +177,21 @@ const GamePlay: React.FC<GamePlayProps> = ({
                                 >
                                     <div className="position-relative w-100 rounded-4 overflow-hidden shadow-sm" style={{ aspectRatio: '16/9', backgroundColor: '#2a2a2a' }}>
                                         <img 
-                                            src={imageSrc} 
+                                            src={imageSrc}
+                                            srcSet={imageSrcSet}
+                                            sizes={imageSrcSet ? '(min-width: 1200px) 16vw, (min-width: 992px) 25vw, (min-width: 768px) 33vw, 50vw' : undefined}
                                             alt={relatedGame.title}
+                                            width={320}
+                                            height={180}
                                             className="w-100 h-100 object-fit-cover"
                                             loading="lazy"
+                                            decoding="async"
                                             onError={(e) => {
-                                                const target = e.target as HTMLImageElement;
-                                                if (!target.getAttribute('data-failed')) {
-                                                    target.setAttribute('data-failed', 'true');
-                                                    if (imageSrc !== relatedGame.thumbnailUrl && relatedGame.thumbnailUrl) {
-                                                         target.src = relatedGame.thumbnailUrl;
-                                                    } else {
-                                                         target.src = 'https://placehold.co/600x400/000E30/FFFFFF?text=No+Image';
-                                                    }
-                                                }
+                                                const target = e.currentTarget;
+                                                if (target.dataset.failed === 'placeholder') return;
+                                                target.dataset.failed = 'placeholder';
+                                                target.srcset = '';
+                                                target.src = COVER_PLACEHOLDER;
                                             }}
                                         />
                                         <span className="position-absolute top-0 end-0 m-2 badge bg-black bg-opacity-75 text-uppercase rounded-pill" style={{ fontSize: '0.6rem', backdropFilter: 'blur(2px)' }}>
@@ -207,7 +211,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
       </main>
 
-      <Footer />
+      <Footer onOpenPage={onOpenPage} />
     </div>
   );
 };

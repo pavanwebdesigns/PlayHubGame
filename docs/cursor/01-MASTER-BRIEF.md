@@ -102,7 +102,7 @@ The site is a Vite + React 19 single-page app that pulls the GamePix feed in the
 | A8 | **Client state:** favorites and recently played in `localStorage` (versioned keys, wrapped in try/catch, must work when storage throws). No accounts until Phase 7 + legal review. | Zero personal data collected. |
 | A9 | **Search:** client-side over a compact index of curated games (title, slug, category, tags) with a small library such as MiniSearch (≤ 10 KB gzip). | Instant, offline-capable, no backend. |
 | A10 | **Backend later (Phase 7): Supabase** for anonymous play counts and likes, behind row-level security and rate limits. | Real numbers for "Trending" and ratings — never invented ones. |
-| A11 | **Tools leave PlayHub.** General tools (BMI, EMI, QR, password, IP, speed test…) belong on workutilities.com; redirect each old tool URL there. **Reaction Test and CPS Test stay** as PlayHub Originals (they are games and popular searches). | One topic per site; no duplicate maintenance. Pavan can override this. |
+| A11 | **Tools leave PlayHub.** The live Vite app has no tools section. `?page=tools` and `?page=tool-<id>` redirect to `https://workutilities.com/`. Reaction Time Test and CPS Test stay, at `?page=reaction-test` and `?page=cps-test`. Phase 1 serves those two at `/originals/reaction-time-test/` and `/originals/cps-test/`. | One topic per site; no duplicate maintenance. |
 | A12 | **CI/CD: GitHub Actions** — PR checks (typecheck, lint, unit, build, Lighthouse CI); deploy `out/` to Hostinger over SFTP/FTP from `main`; nightly scheduled rebuild. Credentials only in GitHub Secrets. | Repeatable, live always matches `main`. |
 
 ---
@@ -118,7 +118,7 @@ The site is a Vite + React 19 single-page app that pulls the GamePix feed in the
 | `/new/` | Newest games | yes |
 | `/search/` | Search results (client-side) | no |
 | `/my-games/` | Favorites + recently played | no |
-| `/originals/{slug}/` | Our own games (CPS test, reaction test) | yes |
+| `/originals/{slug}/` | Our own games. Phase 1 routes: `/originals/reaction-time-test/` and `/originals/cps-test/`. Until that rebuild, the Vite app uses `?page=reaction-test` and `?page=cps-test`. | yes |
 | `/about/`, `/contact/`, `/privacy/`, `/cookies/`, `/terms/` | Trust pages | yes |
 | `/404.html` | Not found, real 404 status | no |
 

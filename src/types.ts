@@ -1,14 +1,16 @@
 export interface GamePixGame {
-  id: number;
+  id: string;
   title: string;
+  namespace: string;
   description: string;
-  thumbnailUrl: string;
-  thumbnailUrl100: string;
-  banner_image?: string;
-  bannerUrl?: string;
-  url: string;
   category: string;
+  orientation: 'landscape' | 'portrait' | 'all';
+  quality_score: number;
   width: number;
   height: number;
-  color: string;
+  date_published: string;
+  date_modified: string;
+  banner_image: string;
+  image: string;
+  url: string;
 }
