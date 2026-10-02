@@ -147,16 +147,25 @@ jobs:
             exit 1
           fi
 
-          if git -C /tmp/site-publish diff --cached --quiet; then
+          git -C /tmp/site-publish diff --cached --name-only > /tmp/deploy-paths.txt
+          scope=$(npx tsx "${GITHUB_WORKSPACE}/scripts/classify-deploy-diff.ts" /tmp/deploy-paths.txt)
+          count=$(grep -c . /tmp/deploy-paths.txt || true)
+          echo "scope=$scope"
+          echo "files=$count"
+          echo "scope=$scope" >> "$GITHUB_OUTPUT"
+          if [ "$scope" = "skip" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Built files match the deploy branch. No commit."
             exit 0
+          fi
+          if [ "$scope" = "home" ]; then
+            echo "Only the home page changed. Committing those files."
           fi
 
           git -C /tmp/site-publish \
             -c user.name='github-actions[bot]' \
             -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m "Publish ${SOURCE_SHA}"
+            commit -m "Publish ${SOURCE_SHA} (${scope})"
           git -C /tmp/site-publish "${git_auth[@]}" push "$remote" HEAD:deploy
           echo "changed=true" >> "$GITHUB_OUTPUT"
 

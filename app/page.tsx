@@ -2,11 +2,12 @@ import { GameLinks } from '@/components/game/GameLinks';
 import { HUB_NAMES, type HubSlug } from '@/config/taxonomy';
 import { visibleCollections } from '@/config/collections';
 import { DEFAULT_DESCRIPTION, SITE_NAME } from '@/config/site';
+import { buildToday } from '@/lib/build-clock';
 import { loadCurated } from '@/lib/catalog/load';
 
 export default function HomePage() {
   const games = loadCurated();
-  const now = new Date();
+  const now = buildToday();
   const collections = visibleCollections(games, now);
   const hubs = (Object.entries(HUB_NAMES) as [HubSlug, string][]).filter(
     ([slug]) => games.some((game) => game.hub === slug),

@@ -30,7 +30,7 @@ Site name, canonical URL, GamePix partner id, catalog thresholds, and the contac
 
 Hostinger's Git deployment tracks the branch `deploy`, never `main`. `main` is the source. The Publish workflow builds it and pushes only the built files onto `deploy`.
 
-`publish.yml` runs on `main`, on a nightly schedule at 21:00 UTC, and when someone starts it by hand. GitHub only runs the schedule from the default branch, so the nightly build stays dormant until this file is on `main`. The job builds the catalog, then the Next export, commits `out/` onto `deploy` with a normal push, and replaces `catalog-snapshot` with one gzipped catalog commit. Do not run Publish from `rebuild/next`. That would update the live site.
+`publish.yml` runs on `main`, on a nightly schedule at 21:00 UTC, and when someone starts it by hand. GitHub only runs the schedule from the default branch, so the nightly build stays dormant until this file is on `main`. The job builds the catalog, then the Next export. The build id is a hash of the git commit and `data/curated.json`, so an unchanged catalog produces the same files. Publish compares `out/` with `deploy`: no difference means no commit, a home-page-only difference commits just those files, and anything else commits the full diff. The push to `deploy` is not a force-push. The job also replaces `catalog-snapshot` with one gzipped catalog commit. Do not run Publish from `rebuild/next`. That would update the live site.
 
 Merging into `main` runs Publish, and that updates the live site. Hostinger pulls `deploy` from its webhook. To roll back, open Actions → Publish → Run workflow and set `ref` to the last good commit on `main`. Do not point Hostinger at `main`, and do not force-push `deploy`.
 

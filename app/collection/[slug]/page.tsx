@@ -2,13 +2,14 @@ import { notFound } from 'next/navigation';
 import { GameLinks } from '@/components/game/GameLinks';
 import { COLLECTIONS, visibleCollections } from '@/config/collections';
 import { loadCurated } from '@/lib/catalog/load';
+import { buildToday } from '@/lib/build-clock';
 import { hasContent } from '@/lib/content-gate';
 import { pageMetadata } from '@/lib/seo';
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  const now = new Date();
+  const now = buildToday();
   return visibleCollections(loadCurated(), now).map((collection) => ({
     slug: collection.slug,
   }));
@@ -36,7 +37,7 @@ export default async function CollectionPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const now = new Date();
+  const now = buildToday();
   const collection = visibleCollections(loadCurated(), now).find(
     (item) => item.slug === slug,
   );
