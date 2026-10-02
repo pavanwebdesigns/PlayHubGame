@@ -2,20 +2,16 @@
 
 import Link from 'next/link';
 import { useSyncExternalStore } from 'react';
-import { FAVORITES_KEY, readFavorites } from '@/lib/favorites';
-
-function readRaw(): string | null {
-  try {
-    return localStorage.getItem(FAVORITES_KEY);
-  } catch {
-    return null;
-  }
-}
+import {
+  readFavorites,
+  readFavoritesSnapshot,
+  subscribeFavorites,
+} from '@/lib/favorites';
 
 export function FavoritesList() {
   const raw = useSyncExternalStore(
-    () => () => {},
-    readRaw,
+    subscribeFavorites,
+    readFavoritesSnapshot,
     () => null,
   );
   const idMap = useSyncExternalStore(subscribeIds, getIds, () => null);
