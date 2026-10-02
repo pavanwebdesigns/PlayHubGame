@@ -13,10 +13,9 @@ interface GamePlayProps {
   onPlayGame: (game: GamePixGame) => void;
   isFavorite: boolean;
   onToggleFavorite: () => void;
-  onTools?: () => void;
   onBlog?: () => void;
   onOpenFavorites?: () => void;
-  onOpenTool?: (toolId: string) => void;
+  onOpenQuickGame?: (page: 'reaction-test' | 'cps-test') => void;
   onOpenPage: (page: InfoView) => void;
   favoritesCount?: number;
 }
@@ -28,10 +27,9 @@ const GamePlay: React.FC<GamePlayProps> = ({
   onPlayGame, 
   isFavorite, 
   onToggleFavorite,
-  onTools,
   onBlog,
   onOpenFavorites,
-  onOpenTool,
+  onOpenQuickGame,
   onOpenPage,
   favoritesCount = 0,
 }) => {
@@ -70,7 +68,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
 
   return (
     <div className="d-flex flex-column min-vh-100 w-100 bg-black" ref={topRef}>
-      <Header onSearch={() => {}} onHome={onBack} onTools={onTools} onBlog={onBlog} onOpenSidebar={onOpenFavorites} onOpenTool={onOpenTool} favoritesCount={favoritesCount} />
+      <Header onSearch={() => {}} onHome={onBack} onBlog={onBlog} onOpenSidebar={onOpenFavorites} onOpenQuickGame={onOpenQuickGame} favoritesCount={favoritesCount} />
 
       <main className="flex-grow-1 container-fluid px-0 px-md-4 py-4">
         <nav aria-label="breadcrumb" className="container mb-4">

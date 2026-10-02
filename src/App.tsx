@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import InfoPage, { type InfoView } from './components/InfoPage';
 import CategoryBar from './components/CategoryBar';
 import GamePlay from './components/GamePlay';
-import ToolsModal from './components/ToolsModal';
-import ToolsPage from './components/ToolsPage';
+import ReactionTest from './components/quick-games/ReactionTest';
+import CpsTest from './components/quick-games/CpsTest';
 import type { GamePixGame } from './types';
 import { COVER_PLACEHOLDER, coverSrc, gamepixSrcSet } from './lib/image';
 import { gameFromSlug } from './lib/gameLink';
-import { findTool, isToolReady, toolCategories, tools } from './tools/registry';
-import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, setDocumentMeta } from './config/site';
+import { applyLegacyToolRedirect, pageFromLocation, type QuickGamePage } from './lib/legacyTools';
+import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_NAME, setDocumentMeta } from './config/site';
 import './App.css';
 
 function readStoredGames(raw: string): GamePixGame[] {
@@ -66,6 +66,17 @@ function mergeGames(current: GamePixGame[], incoming: GamePixGame[], replace: bo
   return unique;
 }
 
+function metaForView(view: string): void {
+  if (view === 'reaction-test') {
+    setDocumentMeta(`Reaction Time Test | ${SITE_NAME}`, `Test your reaction time in the browser on ${SITE_NAME}.`);
+    return;
+  }
+  if (view === 'cps-test') {
+    setDocumentMeta(`CPS Test | ${SITE_NAME}`, `Count your clicks per second in the browser on ${SITE_NAME}.`);
+    return;
+  }
+  if (view !== 'game') setDocumentMeta(DEFAULT_TITLE, DEFAULT_DESCRIPTION);
+}
 const FEED_PAGE = 'https://feeds.gamepix.com/v2/json?sid=LC991&pagination=96&page=';
 const MAX_GAME_LOOKUP_PAGES = 20;
 
@@ -80,15 +91,6 @@ function findListedGame(gameList: GamePixGame[], gameId: string | null, slug: st
     (gameId != null && gameId.length > 0 && game.id === gameId) ||
     (slug != null && slug.length > 0 && game.namespace === slug),
   );
-}
-
-export interface Tool {
-  id: string;
-  icon: string;
-  title: string;
-  description: string;
-  category: string;
-  isReady: boolean;
 }
 
 // --- Game Card Component ---
@@ -151,9 +153,9 @@ const GameCard = ({
             </span>
           </div>
           <div className="mt-2 text-center">
-            <h5 className="text-white text-truncate mb-0 fw-bold px-1 group-hover:text-primary transition-colors" style={{ fontSize: '1rem', letterSpacing: '0.3px' }}>
+            <p className="text-white text-truncate mb-0 fw-bold px-1 group-hover:text-primary transition-colors" style={{ fontSize: '1rem', letterSpacing: '0.3px' }}>
               {game.title}
-            </h5>
+            </p>
           </div>
         </div>
       </div>
@@ -197,28 +199,22 @@ const FavoritesSidebar = ({
   isOpen,
   onClose,
   favoriteGames,
-  favoriteTools,
   onPlayGame,
-  onLaunchTool,
   onRemoveGameFavorite,
-  onRemoveToolFavorite,
 }: {
   isOpen: boolean;
   onClose: () => void;
   favoriteGames: GamePixGame[];
-  favoriteTools: Tool[];
   onPlayGame: (game: GamePixGame) => void;
-  onLaunchTool: (toolId: string) => void;
   onRemoveGameFavorite: (game: GamePixGame) => void;
-  onRemoveToolFavorite: (tool: Tool) => void;
 }) => {
   return (
     <>
       {isOpen && <div className="position-fixed top-0 start-0 w-100 h-100 bg-black bg-opacity-50" style={{ zIndex: 1045 }} onClick={onClose} />}
-      <div className={`position-fixed top-0 end-0 h-100 bg-dark border-start border-secondary border-opacity-25 shadow-lg transition-transform duration-300 ease-in-out d-flex flex-column`} style={{ width: '320px', zIndex: 1050, transform: isOpen ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.3s ease-in-out' }}>
+      <div className={`position-fixed top-0 end-0 h-100 bg-dark border-start border-secondary border-opacity-25 shadow-lg transition-transform duration-300 ease-in-out d-flex flex-column`} style={{ width: '320px', zIndex: 1050, transform: isOpen ? 'translateX(0)' : 'translateX(100%)', transition: 'transform 0.3s ease-in-out' }} aria-hidden={!isOpen} inert={!isOpen ? true : undefined}>
         <div className="d-flex align-items-center justify-content-between p-3 border-bottom border-secondary border-opacity-25">
           <h5 className="text-white mb-0 d-flex align-items-center gap-2">Favorites</h5>
-          <button className="btn btn-sm btn-outline-secondary border-0 text-white" onClick={onClose}>X</button>
+          <button className="btn btn-sm btn-outline-secondary border-0 text-white" style={{ minWidth: '44px', minHeight: '44px' }} aria-label="Close favorites" onClick={onClose}>X</button>
         </div>
         <div className="p-3 overflow-auto flex-grow-1">
           <h6 className="text-white-50 text-uppercase small mb-3 fw-bold">Games ({favoriteGames.length})</h6>
@@ -254,21 +250,6 @@ const FavoritesSidebar = ({
               })}
             </div>
           )}
-          <hr className="border-secondary border-opacity-25 my-4" />
-          <h6 className="text-white-50 text-uppercase small mb-3 fw-bold">Tools ({favoriteTools.length})</h6>
-          {favoriteTools.length === 0 ? <p className="text-white-50 small">No favorite tools.</p> : (
-            <div className="d-flex flex-column gap-3">
-              {favoriteTools.map((tool) => (
-                <div key={tool.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
-                  <div className="rounded-2 bg-dark d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px', fontSize: '1.5rem' }}>{tool.icon}</div>
-                  <div className="flex-grow-1 overflow-hidden">
-                    <h6 className="text-white mb-0 text-truncate cursor-pointer small" onClick={() => { if (tool.isReady) { onLaunchTool(tool.id); onClose(); } }}>{tool.title}</h6>
-                  </div>
-                  <button className="btn btn-sm btn-link text-white-50 hover-text-danger p-1" onClick={(e) => { e.stopPropagation(); onRemoveToolFavorite(tool); }}>X</button>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </>
@@ -286,7 +267,6 @@ const BlogPage = () => (
 function App() {
   const [games, setGames] = useState<GamePixGame[]>([]);
   const [favoriteGames, setFavoriteGames] = useState<GamePixGame[]>([]);
-  const [favoriteTools, setFavoriteTools] = useState<Tool[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -297,17 +277,13 @@ function App() {
   const [hasMore, setHasMore] = useState(true);
 
   // Initial state from URL
-  const [currentView, setCurrentView] = useState<string>(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('page') || 'home';
-  });
+  const [currentView, setCurrentView] = useState<string>(() => pageFromLocation());
 
   const [activeGame, setActiveGame] = useState<GamePixGame | null>(null);
   const [gameLookup, setGameLookup] = useState<'ready' | 'loading' | 'missing'>(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('page') === 'game' ? 'loading' : 'ready';
   });
-  const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const gamesRef = useRef(games);
   gamesRef.current = games;
@@ -319,8 +295,6 @@ function App() {
     try {
       const storedGameFavs = localStorage.getItem('playhub_favorites');
       if (storedGameFavs) setFavoriteGames(readStoredGames(storedGameFavs));
-      const storedToolFavs = localStorage.getItem('playhub_tool_favorites');
-      if (storedToolFavs) setFavoriteTools(JSON.parse(storedToolFavs));
     } catch (e) { console.error(e); }
   }, []);
 
@@ -329,15 +303,6 @@ function App() {
       const exists = prev.find(f => f.id === game.id);
       const newFavs = exists ? prev.filter(f => f.id !== game.id) : [...prev, game];
       localStorage.setItem('playhub_favorites', JSON.stringify(newFavs));
-      return newFavs;
-    });
-  };
-
-  const toggleToolFavorite = (tool: Tool) => {
-    setFavoriteTools(prev => {
-      const exists = prev.find(f => f.id === tool.id);
-      const newFavs = exists ? prev.filter(f => f.id !== tool.id) : [...prev, tool];
-      localStorage.setItem('playhub_tool_favorites', JSON.stringify(newFavs));
       return newFavs;
     });
   };
@@ -423,14 +388,16 @@ function App() {
     setGameLookup('ready');
     setCurrentView('home');
     updateUrl('home');
+    metaForView('home');
   };
 
-  const handleToolsClick = () => {
+  const openQuickGame = (page: QuickGamePage) => {
     cancelGameLookup();
     setActiveGame(null);
     setGameLookup('ready');
-    setCurrentView('tools');
-    updateUrl('tools');
+    setCurrentView(page);
+    updateUrl(page);
+    metaForView(page);
   };
 
   const handleBlogClick = () => {
@@ -439,6 +406,7 @@ function App() {
     setGameLookup('ready');
     setCurrentView('blog');
     updateUrl('blog');
+    metaForView('blog');
   };
 
   const openPage = (page: InfoView) => {
@@ -448,11 +416,6 @@ function App() {
     setCurrentView(page);
     updateUrl(page);
     setDocumentMeta(DEFAULT_TITLE, DEFAULT_DESCRIPTION);
-  };
-
-  const handleNavigateToTool = (toolId: string) => {
-    setCurrentView(`tool-${toolId}`);
-    updateUrl(`tool-${toolId}`);
   };
 
   const categories = useMemo(() => {
@@ -469,11 +432,26 @@ function App() {
     });
   }, [games, searchTerm, selectedCategory]);
 
+  useLayoutEffect(() => {
+    applyLegacyToolRedirect();
+  }, []);
+
   const resolveGameFromUrl = (gameList: GamePixGame[]) => {
+    if (applyLegacyToolRedirect() === 'external') return;
     const params = new URLSearchParams(window.location.search);
     const view = params.get('page') || 'home';
     const gameId = params.get('game');
     const slug = params.get('slug');
+
+    if (view === 'reaction-test' || view === 'cps-test') {
+      lookupToken.current += 1;
+      idLookupFor.current = null;
+      setCurrentView(view);
+      setActiveGame(null);
+      setGameLookup('ready');
+      metaForView(view);
+      return;
+    }
 
     if (view !== 'game') {
       lookupToken.current += 1;
@@ -569,23 +547,9 @@ function App() {
 
   // --- ROUTER LOGIC ---
 
-  const visibleFavoriteTools = favoriteTools.filter((tool) => {
-    const entry = findTool(tool.id);
-    return entry != null && isToolReady(entry);
-  });
-  const visibleCategories = toolCategories.filter((category) =>
-    tools.some((tool) => tool.category === category.id && isToolReady(tool)),
-  );
-  const requestedToolId = currentView.startsWith('tool-') ? currentView.slice('tool-'.length) : '';
-  const requestedTool = requestedToolId ? findTool(requestedToolId) : undefined;
-  const toolUnavailable = requestedToolId.length > 0 && !(requestedTool && isToolReady(requestedTool));
-
   let content = null;
 
-  if (requestedTool?.component) {
-    const ToolPage = requestedTool.component;
-    content = <ToolPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'game' && activeGame && gameLookup === 'ready') {
+  if (currentView === 'game' && activeGame && gameLookup === 'ready') {
     const related = activeGame.category
       ? games.filter(g => g.category === activeGame.category && g.id !== activeGame.id)
       : [];
@@ -599,20 +563,20 @@ function App() {
           onPlayGame={handleGameClick}
           isFavorite={favoriteGames.some(f => f.id === activeGame.id)}
           onToggleFavorite={() => toggleGameFavorite(activeGame)}
-          onTools={handleToolsClick}
           onBlog={handleBlogClick}
           onOpenFavorites={() => setIsSidebarOpen(true)}
-          onOpenTool={handleNavigateToTool}
+          onOpenQuickGame={openQuickGame}
           onOpenPage={openPage}
-          favoritesCount={favoriteGames.length + visibleFavoriteTools.length}
+          favoritesCount={favoriteGames.length}
         />
-        <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={visibleFavoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
+        <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} onPlayGame={handleGameClick} onRemoveGameFavorite={toggleGameFavorite} />
       </>
     );
   } else if (currentView === 'game') {
     content = (
       <div className="d-flex flex-column min-vh-100 w-100 bg-black">
-        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} onOpenTool={handleNavigateToTool} favoritesCount={favoriteGames.length + visibleFavoriteTools.length} />
+        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} onOpenQuickGame={openQuickGame} favoritesCount={favoriteGames.length} />
+        <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} onPlayGame={handleGameClick} onRemoveGameFavorite={toggleGameFavorite} />
         <main className="container py-5 text-white">
           {gameLookup === 'missing' ? (
             <>
@@ -630,11 +594,10 @@ function App() {
       </div>
     );
   } else {
-    // Default: Home Grid or Blog or Tools List
     content = (
       <div className="d-flex flex-column min-vh-100 w-100 position-relative overflow-x-hidden pt-4">
-        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} onOpenTool={handleNavigateToTool} favoritesCount={favoriteGames.length + visibleFavoriteTools.length} />
-        <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={visibleFavoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
+        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} onOpenQuickGame={openQuickGame} favoritesCount={favoriteGames.length} />
+        <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} onPlayGame={handleGameClick} onRemoveGameFavorite={toggleGameFavorite} />
 
         {currentView === 'home' && (
           <div className="sticky-top" style={{ top: '0px', zIndex: 1020 }}>
@@ -643,59 +606,59 @@ function App() {
         )}
 
         <main className="flex-grow-1 container-fluid px-4 py-4 d-flex flex-column">
-          {currentView === 'tools' || toolUnavailable ? (
-            <ToolsPage
-              tools={tools}
-              categories={visibleCategories}
-              notice={toolUnavailable ? "That tool isn't available. Pick one from the list." : undefined}
-              favoriteTools={visibleFavoriteTools}
-              onToggleFavorite={toggleToolFavorite}
-              onNavigateToTool={handleNavigateToTool}
-              onRequestTool={() => openPage('contact')}
-            />
+          {currentView === 'reaction-test' ? (
+            <ReactionTest onBack={handleHomeClick} />
+          ) : currentView === 'cps-test' ? (
+            <CpsTest onBack={handleHomeClick} />
           ) : currentView === 'blog' ? (
             <BlogPage />
           ) : currentView === 'about' || currentView === 'privacy' || currentView === 'terms' || currentView === 'contact' ? (
             <InfoPage view={currentView} />
           ) : (
-            // Home Grid
-            loading ? (
-              <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1" style={{ minHeight: '50vh' }}>
-                <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
-                <p className="fs-3 text-white animate-pulse">Loading Arcade...</p>
-              </div>
-            ) : error ? (
-              <div className="d-flex flex-column align-items-center justify-content-center text-center flex-grow-1" style={{ minHeight: '50vh' }}>
-                <div className="alert alert-danger d-inline-block" role="alert"><h4 className="alert-heading">Oops! Something went wrong.</h4><p>{error}</p></div>
-                <button className="btn btn-custom mt-3" onClick={() => window.location.reload()}>Retry</button>
-              </div>
-            ) : (
-              <>
-                <div className="d-flex align-items-center justify-content-between mb-4">
-                  <h2 className="text-white border-start border-4 border-primary ps-3 mb-0 display-6">
-                    {selectedCategory || (searchTerm ? `Search: "${searchTerm}"` : "Featured Games")}
-                  </h2>
-                  <span className="text-white-50 fs-4">{filteredGames.length} Games</span>
+            <>
+              <div className="mb-4">
+                <p className="text-white-50 mb-2">Quick games</p>
+                <div className="d-flex flex-wrap gap-2">
+                  <button type="button" className="btn btn-outline-light" style={{ minHeight: '44px' }} onClick={() => openQuickGame('reaction-test')}>Reaction Time Test</button>
+                  <button type="button" className="btn btn-outline-light" style={{ minHeight: '44px' }} onClick={() => openQuickGame('cps-test')}>CPS Test</button>
                 </div>
-                <div className="row g-4">
-                  {filteredGames.map((game, index) => (
-                    <GameCard key={`${game.id}-${index}`} game={game} imageIndex={index} onClick={handleGameClick} isFavorite={favoriteGames.some(f => f.id === game.id)} onToggleFavorite={toggleGameFavorite} />
-                  ))}
+              </div>
+              <div className="d-flex align-items-center justify-content-between mb-4">
+                <h1 className="text-white border-start border-4 border-primary ps-3 mb-0 display-6">
+                  {selectedCategory || (searchTerm ? `Search: "${searchTerm}"` : "Featured Games")}
+                </h1>
+                {!loading && !error && <span className="text-white-50 fs-4">{filteredGames.length} Games</span>}
+              </div>
+              {loading ? (
+                <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1" style={{ minHeight: '50vh' }}>
+                  <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
+                  <p className="fs-3 text-white animate-pulse">Loading Arcade...</p>
                 </div>
-                {hasMore && filteredGames.length > 0 && !searchTerm && !selectedCategory && (
-                  <div className="text-center mt-5">
-                    <button className="btn btn-custom btn-lg px-5 rounded-pill fs-4" onClick={handleLoadMore} disabled={loadingMore}>
-                      {loadingMore ? (<><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...</>) : "Load More Games"}
-                    </button>
+              ) : error ? (
+                <div className="d-flex flex-column align-items-center justify-content-center text-center flex-grow-1" style={{ minHeight: '50vh' }}>
+                  <div className="alert alert-danger d-inline-block" role="alert"><p className="alert-heading fw-bold mb-1">Oops! Something went wrong.</p><p className="mb-0">{error}</p></div>
+                  <button className="btn btn-custom mt-3" onClick={() => window.location.reload()}>Retry</button>
+                </div>
+              ) : (
+                <>
+                  <div className="row g-4">
+                    {filteredGames.map((game, index) => (
+                      <GameCard key={`${game.id}-${index}`} game={game} imageIndex={index} onClick={handleGameClick} isFavorite={favoriteGames.some(f => f.id === game.id)} onToggleFavorite={toggleGameFavorite} />
+                    ))}
                   </div>
-                )}
-              </>
-            )
+                  {hasMore && filteredGames.length > 0 && !searchTerm && !selectedCategory && (
+                    <div className="text-center mt-5">
+                      <button className="btn btn-custom btn-lg px-5 rounded-pill fs-4" onClick={handleLoadMore} disabled={loadingMore}>
+                        {loadingMore ? (<><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...</>) : "Load More Games"}
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
           )}
         </main>
         <Footer onOpenPage={openPage} />
-        <button className="btn btn-primary rounded-circle shadow-lg d-none d-md-flex align-items-center justify-content-center position-fixed" style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }} onClick={() => setIsToolsOpen(true)} title="Game Tools"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></button>
-        <ToolsModal isOpen={isToolsOpen} onClose={() => setIsToolsOpen(false)} />
       </div>
     );
   }

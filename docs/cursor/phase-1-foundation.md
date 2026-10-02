@@ -33,7 +33,7 @@ Reply with: the folder tree you will create, the exact Next.js / Tailwind / zod 
 - Collections from brief §6 as typed predicate functions in `config/collections.ts`.
 
 ### 1.4 Routes (plain markup for now, real data, correct metadata)
-- `app/page.tsx` (home), `app/game/[slug]/page.tsx` with `generateStaticParams` over curated games and `dynamicParams = false`, `app/category/[hub]/page.tsx`, `app/collection/[slug]/page.tsx`, `app/new/page.tsx`, `app/search/page.tsx`, `app/my-games/page.tsx`, `app/originals/[slug]/page.tsx` (CPS test + reaction test ported from `ToolsModal.tsx`/`ToolsPage.tsx`), trust pages, `app/not-found.tsx`.
+- `app/page.tsx` (home), `app/game/[slug]/page.tsx` with `generateStaticParams` over curated games and `dynamicParams = false`, `app/category/[hub]/page.tsx`, `app/collection/[slug]/page.tsx`, `app/new/page.tsx`, `app/search/page.tsx`, `app/my-games/page.tsx`, `app/originals/[slug]/page.tsx` (CPS test + reaction test ported from `src/components/quick-games/`), trust pages, `app/not-found.tsx`.
 - Every page sets `generateMetadata` (title, description, canonical with trailing slash, robots per index gate in brief §5 A5). Shared helpers in `lib/seo.ts`.
 - `app/sitemap.ts` and `app/robots.ts` marked `dynamic = 'force-static'`; sitemap contains only indexable URLs.
 
@@ -42,7 +42,7 @@ Reply with: the folder tree you will create, the exact Next.js / Tailwind / zod 
 - `ErrorDocument 404 /404.html`.
 - Cache: `/_next/static/*` → `public, max-age=31536000, immutable`; HTML → `no-cache`.
 - Security headers: `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (allow `fullscreen`, `autoplay`, `gamepad`, `accelerometer`, `gyroscope` for the GamePix frame origin only), `Content-Security-Policy` in **report-only** first, with `frame-src https://play.gamepix.com` plus ad/consent domains added in Phase 6.
-- Tools redirects (brief A11): `?page=tool-<id>` and `?page=tools` → workutilities.com. Put the id→URL map in `config/legacy-tools.ts`; Pavan supplies the final workutilities URLs (leave `TODO(Pavan)` entries). `reaction` and `cps` → `/originals/reaction-time-test/` and `/originals/cps-test/`.
+- Tools redirects (brief A11): `?page=tools` and `?page=tool-<id>` → `https://workutilities.com/` (the home page, not a per-tool URL). `?page=tool-reaction`, `?page=reaction-test` → `/originals/reaction-time-test/`. `?page=tool-cps`, `?page=cps-test` → `/originals/cps-test/`.
 
 ### 1.6 Old game links keep working
 Old URLs `/?page=game&game=<id>` arrive at the home page. A tiny inline script in the root layout `<head>` (runs before React, `next/script` `beforeInteractive` or a plain inline script; it exits immediately unless the path is `/` and `page=game` is in the query) fetches `/data/legacy-ids.json`, finds the slug and `location.replace('/game/<slug>/')`. Unknown or non-curated id → `/search/?q=<title-if-known>`. No cost for normal visitors (script exits immediately without the param).

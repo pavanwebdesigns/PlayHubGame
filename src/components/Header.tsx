@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import type { QuickGamePage } from '../lib/legacyTools';
 
 // Icons
 const SearchIcon = () => (
@@ -9,10 +10,6 @@ const GamepadIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="6" x2="10" y1="12" y2="12"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="15" x2="15.01" y1="13" y2="13"/><line x1="18" x2="18.01" y1="11" y2="11"/><rect width="20" height="12" x="2" y="6" rx="2"/></svg>
 );
 
-const ToolsIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-);
-
 const BlogIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
 );
@@ -20,18 +17,26 @@ const BlogIcon = () => (
 interface HeaderProps {
   onSearch: (term: string) => void;
   onHome?: () => void;
-  onTools?: () => void;
   onBlog?: () => void;
   onOpenSidebar?: () => void;
-  onOpenTool?: (toolId: string) => void;
+  onOpenQuickGame?: (page: QuickGamePage) => void;
   favoritesCount?: number;
 }
 
-const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOpenSidebar, onOpenTool, favoritesCount = 0 }) => {
+const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onBlog, onOpenSidebar, onOpenQuickGame, favoritesCount = 0 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [quickOpen, setQuickOpen] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const quickButtonRef = useRef<HTMLButtonElement>(null);
+  const quickMenuRef = useRef<HTMLDivElement>(null);
 
   const closeMenu = () => setMenuOpen(false);
+
+  const openQuick = (page: QuickGamePage) => {
+    setQuickOpen(false);
+    closeMenu();
+    onOpenQuickGame?.(page);
+  };
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -57,6 +62,25 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOp
     desktop.addEventListener('change', closeOnDesktop);
     return () => desktop.removeEventListener('change', closeOnDesktop);
   }, []);
+
+  useEffect(() => {
+    if (!quickOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setQuickOpen(false);
+      quickButtonRef.current?.focus();
+    };
+    const onPointer = (event: PointerEvent) => {
+      if (quickMenuRef.current?.contains(event.target as Node)) return;
+      setQuickOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onPointer);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('pointerdown', onPointer);
+    };
+  }, [quickOpen]);
 
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -92,10 +116,29 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOp
               <GamepadIcon />
               <span className="fs-5">Games</span>
             </button>
-            <button className="nav-link-custom border-0 bg-transparent" onClick={onTools}>
-              <ToolsIcon />
-              <span className="fs-5">Tools</span>
-            </button>
+            <div className="position-relative" ref={quickMenuRef}>
+              <button
+                ref={quickButtonRef}
+                type="button"
+                className="nav-link-custom border-0 bg-transparent"
+                style={{ minHeight: '44px' }}
+                aria-expanded={quickOpen}
+                aria-controls="quickGamesMenu"
+                onClick={() => setQuickOpen((open) => !open)}
+              >
+                <span className="fs-5">Quick games</span>
+              </button>
+              {quickOpen && (
+                <div id="quickGamesMenu" className="position-absolute bg-dark border border-secondary border-opacity-25 rounded-3 shadow p-2" style={{ top: '100%', left: 0, minWidth: '220px', zIndex: 1060 }}>
+                  <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => openQuick('reaction-test')}>
+                    Reaction Time Test
+                  </button>
+                  <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => openQuick('cps-test')}>
+                    CPS Test
+                  </button>
+                </div>
+              )}
+            </div>
             <button className="nav-link-custom border-0 bg-transparent" onClick={onBlog}>
               <BlogIcon />
               <span className="fs-5">Blog</span>
@@ -118,8 +161,10 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOp
 
           <div className="d-md-none d-flex gap-2">
              {/* Mobile favorite button */}
-            <button 
+            <button
               className="btn btn-link text-white p-1 position-relative"
+              style={{ minWidth: '44px', minHeight: '44px' }}
+              aria-label={favoritesCount > 0 ? `Favorites, ${favoritesCount} saved` : 'Favorites'}
               onClick={onOpenSidebar}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill={favoritesCount > 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={favoritesCount > 0 ? "text-danger" : ""}><path d="m12 21.35-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
@@ -150,9 +195,12 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOp
             <GamepadIcon />
             <span className="fs-5">Games</span>
           </button>
-          <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onTools?.(); }}>
-            <ToolsIcon />
-            <span className="fs-5">Tools</span>
+          <p className="text-white-50 small mb-1 mt-2 px-2">Quick games</p>
+          <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => openQuick('reaction-test')}>
+            <span className="fs-5">Reaction Time Test</span>
+          </button>
+          <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => openQuick('cps-test')}>
+            <span className="fs-5">CPS Test</span>
           </button>
           <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onBlog?.(); }}>
             <BlogIcon />
@@ -160,13 +208,6 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOp
           </button>
           <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onOpenSidebar?.(); }}>
             <span className="fs-5">Favorites{favoritesCount > 0 ? ` (${favoritesCount})` : ''}</span>
-          </button>
-          <p className="text-white-50 small mb-1 mt-2 px-2">Quick tests</p>
-          <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onOpenTool?.('reaction'); }}>
-            <span className="fs-5">Reaction test</span>
-          </button>
-          <button type="button" className="nav-link-custom border-0 bg-transparent w-100 justify-content-start" style={{ minHeight: '44px' }} onClick={() => { closeMenu(); onOpenTool?.('cps'); }}>
-            <span className="fs-5">CPS test</span>
           </button>
         </div>
       )}

@@ -35,16 +35,13 @@ const Privacy = () => (
   <>
     <h1 className="mb-3">Privacy policy</h1>
     <p>
-      {SITE_NAME} does not ask you to create an account. Game favorites and tool favorites are stored
-      in this browser with localStorage, under the keys playhub_favorites and playhub_tool_favorites.
+      {SITE_NAME} does not ask you to create an account. Game favorites are stored
+      in this browser with localStorage, under the key playhub_favorites.
       That data stays on your device. We do not run a server that collects it.
     </p>
     <p>
       When you open a game, the embed loads from GamePix. GamePix may use its own cookies or storage
       inside that frame. Their policy applies to that embed.
-    </p>
-    <p>
-      The tools in the tools list run in your browser. Do not put secrets into them if you are on a shared computer.
     </p>
   </>
 );
@@ -55,11 +52,11 @@ const Terms = () => (
     <h1 className="mb-3">Terms of use</h1>
     <p>
       {SITE_NAME} is free to use. Games are provided by their creators through GamePix embeds.
-      We can add, remove, or change games and tools without notice.
+      We can add, remove, or change games without notice.
     </p>
     <p>
       Do not use the site to break the law or to attack someone else's computer. The site is offered as it is,
-      without a promise that every game or tool will always work.
+      without a promise that every game will always work.
     </p>
   </>
 );

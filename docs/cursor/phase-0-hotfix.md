@@ -8,7 +8,7 @@ Stop the live site from losing visitors while the rebuild happens: working mobil
 
 ## Before you start
 1. `setup-auto-deploy.md` must be done first (it makes `main` the production branch and commits the pending work). Show me `git status`, confirm you're on an up-to-date `main`, then create the branch.
-2. Read `src/App.tsx`, `src/components/Header.tsx`, `GamePlay.tsx`, `Footer.tsx`, `ToolsPage.tsx`, `src/types.ts` fully before editing.
+2. Read `src/App.tsx`, `src/components/Header.tsx`, `GamePlay.tsx`, `Footer.tsx`, `src/components/quick-games/`, `src/types.ts` fully before editing.
 3. Reply with a short plan (files you will touch per task) and wait for my OK.
 
 ## Tasks
@@ -25,15 +25,15 @@ Stop the live site from losing visitors while the rebuild happens: working mobil
 - **Accept:** on the home page the first 96 covers transfer < 4 MB total (estimated ~20 MB before, from one measured cover at 218 KB); measure before and after in DevTools → Network → Img; no URL contains two `?`.
 
 ### 0.3 Mobile navigation that works
-- Replace the Bootstrap collapse (`data-bs-target="#mobileMenu"`, element doesn't exist) with a React-state menu panel: Games, Tools, Blog, Favorites.
+- Replace the Bootstrap collapse (`data-bs-target="#mobileMenu"`, element doesn't exist) with a React-state menu panel: Games, Quick games (Reaction Time Test, CPS Test), Blog, Favorites. There is no Tools item.
 - Button has `aria-expanded`, `aria-controls`, accessible name "Open menu"/"Close menu". `Esc` closes; focus returns to the button; tapping a link closes it; body scroll locks while open.
 - Remove `bootstrap.bundle.min.js` from `index.html` if nothing else needs it (check modals/collapses first and list what you checked).
 - **Accept:** at 375 px, every page reachable from the menu with touch only.
 
-### 0.4 No dead tools
-- Create a single registry `src/tools/registry.ts`: `{ id, title, icon, category, description, component }`. `isReady` is **derived** (has a component), never hand-set — so the list can't drift again.
-- The 17 tools without a page (sleep, mood, affirm, todo, timezone, unit, stopwatch, gst, percent, palette, json, regex, text-speech, speech-text, goal, water, pass-strength) disappear from the grid. Do not build them.
-- `?page=tool-<unknown>` shows the Tools list with a short notice, not "under construction".
+### 0.4 No tools section
+- The tools grid, tool favorites, and `?page=tool-*` pages are gone. Do not build the 17 tools that had no page.
+- Reaction Time Test and CPS Test stay in `src/components/quick-games/`, at `?page=reaction-test` and `?page=cps-test`, linked from Quick games in the header and a row on the home page.
+- Client-side `history.replace`: `?page=tools` and any other `?page=tool-*` go to `https://workutilities.com/`. `tool-reaction` becomes `?page=reaction-test`. `tool-cps` becomes `?page=cps-test`.
 
 ### 0.5 Game links always open
 - New share URL format: `/?page=game&game=<id>&slug=<namespace>`.
@@ -43,7 +43,7 @@ Stop the live site from losing visitors while the rebuild happens: working mobil
 ### 0.6 Honest game page
 - Remove the dashed "Ad Space" box and the "Sponsored" sidebar. The game column becomes full width (max 1200 px).
 - Show the "trouble playing / ad blocker" help only if the iframe hasn't fired `load` within 15 s.
-- Remove the floating wrench button on screens < 768 px (it covers tiles and game controls) and add its contents (Reaction test, CPS test) to the mobile menu as "Quick tests" so nothing becomes unreachable. On desktop, remove it from game pages (it sits too close to the game frame) and keep it elsewhere.
+- Remove the floating wrench button at every width. Quick games (Reaction Time Test, CPS Test) are in the header menu and in a row on the home page.
 
 ### 0.7 Footer, trust pages, brand
 - Add views for About, Privacy Policy, Terms of Use, Contact (simple, plain-language, honest about GamePix embeds, local storage for favorites, no accounts). Contact uses `CONTACT_EMAIL` from `src/config/site.ts` — leave it as `TODO(Pavan)`; never invent an address. Mark both legal texts "Draft — pending review" in a code comment.
