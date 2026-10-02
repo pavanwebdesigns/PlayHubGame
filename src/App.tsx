@@ -17,22 +17,34 @@ import IpFinderPage from './components/tools/IpFinderPage';
 import EMICalculatorPage from './components/tools/EMICalculatorPage';
 import PingCheckerPage from './components/tools/PingCheckerPage';
 import QRGeneratorPage from './components/tools/QRGeneratorPage';
+import type { GamePixGame } from './types';
 import './App.css';
 
-// --- Types ---
-export interface GamePixGame {
-  id: number;
-  title: string;
-  description: string;
-  thumbnailUrl: string;
-  thumbnailUrl100: string;
-  banner_image?: string;
-  bannerUrl?: string;
-  url: string;
-  category: string;
-  width: number;
-  height: number;
-  color: string;
+function readStoredGames(raw: string): GamePixGame[] {
+  const parsed: unknown = JSON.parse(raw);
+  if (!Array.isArray(parsed)) return [];
+  return parsed.flatMap((item) => {
+    if (!item || typeof item !== 'object') return [];
+    const game = item as Record<string, unknown>;
+    if (game.id == null || typeof game.title !== 'string' || game.title.length === 0) return [];
+    const orientation = game.orientation;
+    return [{
+      id: String(game.id),
+      title: game.title,
+      namespace: typeof game.namespace === 'string' ? game.namespace : '',
+      description: typeof game.description === 'string' ? game.description : '',
+      category: typeof game.category === 'string' ? game.category : '',
+      orientation: orientation === 'landscape' || orientation === 'portrait' || orientation === 'all' ? orientation : 'all',
+      quality_score: typeof game.quality_score === 'number' ? game.quality_score : 0,
+      width: typeof game.width === 'number' ? game.width : 0,
+      height: typeof game.height === 'number' ? game.height : 0,
+      date_published: typeof game.date_published === 'string' ? game.date_published : '',
+      date_modified: typeof game.date_modified === 'string' ? game.date_modified : '',
+      banner_image: typeof game.banner_image === 'string' ? game.banner_image : '',
+      image: typeof game.image === 'string' ? game.image : '',
+      url: typeof game.url === 'string' ? game.url : '',
+    }];
+  });
 }
 
 export interface Tool {
@@ -59,10 +71,7 @@ const GameCard = ({
   const timestamp = Date.now();
   const getFreshUrl = (url: string) => url ? `${url}?t=${timestamp}` : '';
 
-  const imageSrc = game.banner_image ? getFreshUrl(game.banner_image) :
-    game.bannerUrl ? getFreshUrl(game.bannerUrl) :
-      game.thumbnailUrl ? getFreshUrl(game.thumbnailUrl) :
-        getFreshUrl(game.thumbnailUrl100);
+  const imageSrc = game.banner_image ? getFreshUrl(game.banner_image) : getFreshUrl(game.image);
 
   return (
     <div className="col-6 col-md-4 col-lg-3 col-xl-2 mb-4 position-relative group">
@@ -82,8 +91,8 @@ const GameCard = ({
                 const target = e.target as HTMLImageElement;
                 if (!target.getAttribute('data-failed')) {
                   target.setAttribute('data-failed', 'true');
-                  if (game.thumbnailUrl && imageSrc !== getFreshUrl(game.thumbnailUrl)) {
-                    target.src = getFreshUrl(game.thumbnailUrl);
+                  if (game.image && imageSrc !== getFreshUrl(game.image)) {
+                    target.src = getFreshUrl(game.image);
                   } else {
                     target.src = 'https://placehold.co/600x400/000E30/FFFFFF?text=Game';
                   }
@@ -137,7 +146,25 @@ const GameCard = ({
 };
 
 // Sidebar
-const FavoritesSidebar = ({ isOpen, onClose, favoriteGames, favoriteTools, onPlayGame, onLaunchTool, onRemoveGameFavorite, onRemoveToolFavorite }: any) => {
+const FavoritesSidebar = ({
+  isOpen,
+  onClose,
+  favoriteGames,
+  favoriteTools,
+  onPlayGame,
+  onLaunchTool,
+  onRemoveGameFavorite,
+  onRemoveToolFavorite,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  favoriteGames: GamePixGame[];
+  favoriteTools: Tool[];
+  onPlayGame: (game: GamePixGame) => void;
+  onLaunchTool: (toolId: string) => void;
+  onRemoveGameFavorite: (game: GamePixGame) => void;
+  onRemoveToolFavorite: (tool: Tool) => void;
+}) => {
   const timestamp = Date.now();
   const getFreshUrl = (url: string) => url ? `${url}?t=${timestamp}` : '';
 
@@ -153,11 +180,8 @@ const FavoritesSidebar = ({ isOpen, onClose, favoriteGames, favoriteTools, onPla
           <h6 className="text-white-50 text-uppercase small mb-3 fw-bold">Games ({favoriteGames.length})</h6>
           {favoriteGames.length === 0 ? <p className="text-white-50 small">No favorite games.</p> : (
             <div className="d-flex flex-column gap-3 mb-4">
-              {favoriteGames.map((game: any) => {
-                const imageSrc = game.banner_image ? getFreshUrl(game.banner_image) :
-                  game.bannerUrl ? getFreshUrl(game.bannerUrl) :
-                    game.thumbnailUrl ? getFreshUrl(game.thumbnailUrl) :
-                      getFreshUrl(game.thumbnailUrl100);
+              {favoriteGames.map((game) => {
+                const imageSrc = game.banner_image ? getFreshUrl(game.banner_image) : getFreshUrl(game.image);
 
                 return (
                   <div key={game.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
@@ -171,8 +195,8 @@ const FavoritesSidebar = ({ isOpen, onClose, favoriteGames, favoriteTools, onPla
                         const target = e.target as HTMLImageElement;
                         if (!target.getAttribute('data-failed')) {
                           target.setAttribute('data-failed', 'true');
-                          if (game.thumbnailUrl) {
-                            target.src = getFreshUrl(game.thumbnailUrl);
+                          if (game.image && imageSrc !== getFreshUrl(game.image)) {
+                            target.src = getFreshUrl(game.image);
                           } else {
                             target.src = 'https://placehold.co/100x100/000E30/FFFFFF?text=Game';
                           }
@@ -192,7 +216,7 @@ const FavoritesSidebar = ({ isOpen, onClose, favoriteGames, favoriteTools, onPla
           <h6 className="text-white-50 text-uppercase small mb-3 fw-bold">Tools ({favoriteTools.length})</h6>
           {favoriteTools.length === 0 ? <p className="text-white-50 small">No favorite tools.</p> : (
             <div className="d-flex flex-column gap-3">
-              {favoriteTools.map((tool: any) => (
+              {favoriteTools.map((tool) => (
                 <div key={tool.id} className="d-flex align-items-center gap-3 bg-black bg-opacity-25 p-2 rounded-3 border border-secondary border-opacity-10 group">
                   <div className="rounded-2 bg-dark d-flex align-items-center justify-content-center" style={{ width: '50px', height: '50px', fontSize: '1.5rem' }}>{tool.icon}</div>
                   <div className="flex-grow-1 overflow-hidden">
@@ -244,7 +268,7 @@ function App() {
   useEffect(() => {
     try {
       const storedGameFavs = localStorage.getItem('playhub_favorites');
-      if (storedGameFavs) setFavoriteGames(JSON.parse(storedGameFavs));
+      if (storedGameFavs) setFavoriteGames(readStoredGames(storedGameFavs));
       const storedToolFavs = localStorage.getItem('playhub_tool_favorites');
       if (storedToolFavs) setFavoriteTools(JSON.parse(storedToolFavs));
     } catch (e) { console.error(e); }
@@ -296,7 +320,7 @@ function App() {
         setHasMore(false);
         if (isFirstLoad) throw new Error("No games found.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Fetch Error:", err);
       if (isFirstLoad) setError("Failed to load games. Please check connection.");
     } finally { setLoading(false); setLoadingMore(false); }
@@ -453,14 +477,12 @@ function App() {
     content = <GenericToolPage title={title} onBack={() => { setCurrentView('tools'); updateUrl('tools'); }}>{innerContent}</GenericToolPage>;
   } else if (currentView === 'game' && activeGame) {
     const related = games.filter(g => g.category === activeGame.category && g.id !== activeGame.id);
-    const safeActiveGame = activeGame as unknown as any;
-    const safeRelated = related as any;
 
     content = (
       <>
         <GamePlay
-          game={safeActiveGame}
-          relatedGames={safeRelated}
+          game={activeGame}
+          relatedGames={related}
           onBack={handleHomeClick}
           onPlayGame={handleGameClick}
           isFavorite={favoriteGames.some(f => f.id === activeGame.id)}

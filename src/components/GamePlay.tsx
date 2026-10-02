@@ -1,23 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import Header from './Header';
 import Footer from './Footer';
-
-// --- Interface Definition (Local) ---
-// This must match the structure of the game object passed from App.tsx
-interface GamePixGame {
-  id: number;
-  title: string;
-  description: string;
-  thumbnailUrl: string;
-  thumbnailUrl100: string;
-  banner_image?: string;
-  bannerUrl?: string;
-  url: string;
-  category: string;
-  width: number;
-  height: number;
-  color: string;
-}
+import type { GamePixGame } from '../types';
 
 interface GamePlayProps {
   game: GamePixGame;
@@ -162,7 +146,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
                 
                 <div className="row g-3 g-md-4">
                     {relatedGames.slice(0, 12).map((relatedGame, index) => {
-                         const imageSrc = relatedGame.banner_image || relatedGame.bannerUrl || relatedGame.thumbnailUrl || relatedGame.thumbnailUrl100;
+                         const imageSrc = relatedGame.banner_image || relatedGame.image;
                          
                          return (
                             <div key={`${relatedGame.id}-${index}`} className="col-6 col-md-4 col-lg-3 col-xl-2">
@@ -182,8 +166,8 @@ const GamePlay: React.FC<GamePlayProps> = ({
                                                 const target = e.target as HTMLImageElement;
                                                 if (!target.getAttribute('data-failed')) {
                                                     target.setAttribute('data-failed', 'true');
-                                                    if (imageSrc !== relatedGame.thumbnailUrl && relatedGame.thumbnailUrl) {
-                                                         target.src = relatedGame.thumbnailUrl;
+                                                    if (relatedGame.image && imageSrc !== relatedGame.image) {
+                                                         target.src = relatedGame.image;
                                                     } else {
                                                          target.src = 'https://placehold.co/600x400/000E30/FFFFFF?text=No+Image';
                                                     }
