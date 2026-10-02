@@ -218,8 +218,17 @@ export const CpsTest = () => {
     );
 };
 
+interface SystemDetails {
+    width: number;
+    height: number;
+    ua: string;
+    os: string;
+    language: string;
+    cores: number;
+}
+
 export const SystemInfoTool = () => {
-    const [info, setInfo] = useState<any>({ width: 0, height: 0, ua: '' });
+    const [info, setInfo] = useState<SystemDetails>({ width: 0, height: 0, ua: '', os: '', language: '', cores: 0 });
 
     useEffect(() => {
         setInfo({

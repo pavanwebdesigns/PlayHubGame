@@ -4,17 +4,55 @@ interface IpFinderPageProps {
   onBack: () => void;
 }
 
+interface IpLookup {
+  success: boolean;
+  message?: string;
+  latitude: number;
+  longitude: number;
+  city?: string;
+  region?: string;
+  country?: string;
+  flag?: { img?: string };
+  ip?: string;
+  type?: string;
+  timezone?: { id?: string };
+  connection?: { asn?: number; org?: string; isp?: string };
+  currency?: { name?: string; symbol?: string };
+}
+
+interface LeafletLayer {
+  addTo: (map: LeafletMap) => LeafletLayer;
+}
+
+interface LeafletMap {
+  setView: (center: [number, number], zoom: number) => LeafletMap;
+  invalidateSize: () => void;
+  removeLayer: (layer: LeafletLayer) => void;
+}
+
+interface LeafletLib {
+  map: (el: HTMLElement, options: { zoomControl: boolean; attributionControl: boolean }) => LeafletMap;
+  tileLayer: (url: string, options: { maxZoom: number }) => LeafletLayer;
+  control: { zoom: (options: { position: string }) => LeafletLayer };
+  divIcon: (options: { className: string; html: string; iconSize: [number, number]; iconAnchor: [number, number] }) => unknown;
+  marker: (coords: [number, number], options: { icon: unknown }) => LeafletLayer;
+}
+
+function leafletOn(target: Window): LeafletLib | undefined {
+  return (target as Window & { L?: LeafletLib }).L;
+}
+
 const IpFinderPage: React.FC<IpFinderPageProps> = ({ onBack }) => {
   // --- State ---
   const [ipInput, setIpInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<IpLookup | null>(null);
   
   // Refs
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
+  const mapInstanceRef = useRef<LeafletMap | null>(null);
+  const markerRef = useRef<LeafletLayer | null>(null);
 
   // --- Load Leaflet Dynamically ---
   useEffect(() => {
@@ -25,7 +63,7 @@ const IpFinderPage: React.FC<IpFinderPageProps> = ({ onBack }) => {
         document.head.appendChild(link);
     }
 
-    if (!(window as any).L) {
+    if (!leafletOn(window)) {
         const script = document.createElement('script');
         script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
         script.async = true;
@@ -36,6 +74,8 @@ const IpFinderPage: React.FC<IpFinderPageProps> = ({ onBack }) => {
     } else {
         fetchIPData(''); 
     }
+    // fetchIPData is recreated every render; listing it would refetch on every paint.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // --- Fetch Logic ---
@@ -45,7 +85,7 @@ const IpFinderPage: React.FC<IpFinderPageProps> = ({ onBack }) => {
     
     try {
         const response = await fetch(`https://ipwho.is/${ipAddress}`);
-        const result = await response.json();
+        const result = await response.json() as IpLookup;
 
         if (!result.success) {
             throw new Error(result.message || 'Invalid IP');
@@ -53,9 +93,9 @@ const IpFinderPage: React.FC<IpFinderPageProps> = ({ onBack }) => {
 
         setData(result);
         setTimeout(() => updateMap(result.latitude, result.longitude), 100);
-    } catch (err: any) {
+    } catch (err: unknown) {
         console.error(err);
-        setError(err.message || 'Failed to fetch IP data');
+        setError(err instanceof Error ? err.message : 'Failed to fetch IP data');
     } finally {
         setLoading(false);
     }
@@ -63,8 +103,8 @@ const IpFinderPage: React.FC<IpFinderPageProps> = ({ onBack }) => {
 
   // --- Map Logic ---
   const updateMap = (lat: number, lon: number) => {
-      if (!(window as any).L || !mapContainerRef.current) return;
-      const L = (window as any).L;
+      const L = leafletOn(window);
+      if (!L || !mapContainerRef.current) return;
 
       if (!mapInstanceRef.current) {
           mapInstanceRef.current = L.map(mapContainerRef.current, {
@@ -207,7 +247,7 @@ const IpFinderPage: React.FC<IpFinderPageProps> = ({ onBack }) => {
                         <p className="text-uppercase fw-bold mb-1" style={{ color: colors.textMuted, fontSize: '0.65rem', letterSpacing: '1px' }}>Target IP Address</p>
                         <div className="d-flex align-items-center gap-3 mb-2">
                             <h2 className="fw-bold text-white font-monospace m-0 tracking-tight" style={{ fontSize: '1.6rem' }}>{data?.ip || '--'}</h2> {/* Reduced from 1.8rem */}
-                            <button onClick={() => copyToClipboard(data?.ip)} className="btn btn-link p-0 text-white-50 hover-text-white"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
+                            <button onClick={() => copyToClipboard(data?.ip ?? '')} className="btn btn-link p-0 text-white-50 hover-text-white"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg></button>
                         </div>
                         <div className="d-flex gap-2">
                             <span className="badge bg-secondary bg-opacity-25 text-white-50 border border-secondary border-opacity-25 font-monospace" style={{ fontSize: '0.6rem', padding: '4px 8px' }}>{data?.type || 'IPv4'}</span>

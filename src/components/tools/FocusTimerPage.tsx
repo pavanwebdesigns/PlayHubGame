@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createAudioContext } from '../../lib/audio';
 
 interface FocusTimerPageProps {
   onBack: () => void;
@@ -90,6 +91,8 @@ const FocusTimerPage: React.FC<FocusTimerPageProps> = ({ onBack }) => {
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
+    // handleTimerComplete is recreated every render; listing it would reset the timer.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive]);
 
   const handleTimerComplete = () => {
@@ -108,7 +111,7 @@ const FocusTimerPage: React.FC<FocusTimerPageProps> = ({ onBack }) => {
   const playAlarm = () => {
     try {
         if (!audioCtxRef.current) {
-            audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+            audioCtxRef.current = createAudioContext();
         }
         const ctx = audioCtxRef.current;
         if(ctx.state === 'suspended') ctx.resume();
@@ -211,10 +214,10 @@ const FocusTimerPage: React.FC<FocusTimerPageProps> = ({ onBack }) => {
 
         {/* Mode Switcher Pills */}
         <div className="bg-white bg-opacity-10 p-1 rounded-pill d-inline-flex mb-5 border border-white border-opacity-10">
-            {['Focus', 'Short Break', 'Long Break'].map((m) => (
+            {(['Focus', 'Short Break', 'Long Break'] as const).map((m) => (
                 <button
                     key={m}
-                    onClick={() => setMode(m as any)}
+                    onClick={() => setMode(m)}
                     className={`btn rounded-pill px-4 py-2 text-sm fw-bold transition-all ${mode === m ? 'bg-white text-dark shadow' : 'text-white-50 hover-text-white'}`}
                     style={{ border: 'none' }}
                 >

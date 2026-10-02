@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import QRCodeStyling from 'qr-code-styling';
+import QRCodeStyling, { type CornerDotType, type CornerSquareType, type DotType } from 'qr-code-styling';
 import {
     FaLink, FaAlignLeft, FaWifi, FaAddressCard, FaEnvelope,
     FaPhone, FaWhatsapp, FaDownload, FaVectorSquare, FaComment,
@@ -64,9 +64,9 @@ const QRGeneratorPage = ({ onBack }: { onBack: () => void }) => {
     const [frameColor, setFrameColor] = useState('#000000');
     const [ballColor, setBallColor] = useState('#000000');
     const [bgColor, setBgColor] = useState('#ffffff');
-    const [dotsType, setDotsType] = useState<any>('rounded');
-    const [frameType, setFrameType] = useState<any>('extra-rounded');
-    const [ballType, setBallType] = useState<any>('dot');
+    const [dotsType, setDotsType] = useState<DotType>('rounded');
+    const [frameType, setFrameType] = useState<CornerSquareType>('extra-rounded');
+    const [ballType, setBallType] = useState<CornerDotType>('dot');
     const [logo, setLogo] = useState<string | undefined>(undefined);
 
     useEffect(() => {
@@ -78,6 +78,8 @@ const QRGeneratorPage = ({ onBack }: { onBack: () => void }) => {
 
     useEffect(() => {
         generateQR();
+        // generateQR is recreated every render; the inputs below already cover when it should run.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         currentType, url, text, ssid, wifiPass, encryption, phone, message,
         email, subject, body, firstName, lastName, org, vPhone, vEmail, vUrl,
@@ -115,16 +117,18 @@ const QRGeneratorPage = ({ onBack }: { onBack: () => void }) => {
             case 'email':
                 data = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                 break;
-            case 'vcard':
+            case 'vcard': {
                 const n = `${lastName};${firstName}`;
                 const fn = `${firstName} ${lastName}`;
                 data = `BEGIN:VCARD\nVERSION:3.0\nN:${n}\nFN:${fn}\nORG:${org}\nTEL:${vPhone}\nEMAIL:${vEmail}\nURL:${vUrl}\nEND:VCARD`;
                 break;
-            case 'event':
+            }
+            case 'event': {
                 const start = eventStart.replace(/[-:]/g, "");
                 const end = eventEnd.replace(/[-:]/g, "");
                 data = `BEGIN:VEVENT\nSUMMARY:${eventTitle}\nDTSTART:${start}\nDTEND:${end}\nLOCATION:${eventLoc}\nEND:VEVENT`;
                 break;
+            }
             case 'geo':
                 data = `geo:${geoLat},${geoLon}`;
                 break;
@@ -367,7 +371,7 @@ const QRGeneratorPage = ({ onBack }: { onBack: () => void }) => {
                                 <div className="col-md-6">
                                     <label className="text-white-50 small mb-1">Pattern</label>
                                     <div className="d-flex gap-2">
-                                        <select className="form-select form-select-sm bg-black text-white border-secondary border-opacity-25 rounded-3" value={dotsType} onChange={(e) => setDotsType(e.target.value)}>
+                                        <select className="form-select form-select-sm bg-black text-white border-secondary border-opacity-25 rounded-3" value={dotsType} onChange={(e) => setDotsType(e.target.value as DotType)}>
                                             <option value="square">Square</option>
                                             <option value="dots">Dots</option>
                                             <option value="rounded">Rounded</option>
@@ -382,7 +386,7 @@ const QRGeneratorPage = ({ onBack }: { onBack: () => void }) => {
                                 <div className="col-md-6">
                                     <label className="text-white-50 small mb-1">Eye Frame</label>
                                     <div className="d-flex gap-2">
-                                        <select className="form-select form-select-sm bg-black text-white border-secondary border-opacity-25 rounded-3" value={frameType} onChange={(e) => setFrameType(e.target.value)}>
+                                        <select className="form-select form-select-sm bg-black text-white border-secondary border-opacity-25 rounded-3" value={frameType} onChange={(e) => setFrameType(e.target.value as CornerSquareType)}>
                                             <option value="square">Square</option>
                                             <option value="dot">Dot</option>
                                             <option value="extra-rounded">Extra Rounded</option>
@@ -394,7 +398,7 @@ const QRGeneratorPage = ({ onBack }: { onBack: () => void }) => {
                                 <div className="col-md-6">
                                     <label className="text-white-50 small mb-1">Eye Ball</label>
                                     <div className="d-flex gap-2">
-                                        <select className="form-select form-select-sm bg-black text-white border-secondary border-opacity-25 rounded-3" value={ballType} onChange={(e) => setBallType(e.target.value)}>
+                                        <select className="form-select form-select-sm bg-black text-white border-secondary border-opacity-25 rounded-3" value={ballType} onChange={(e) => setBallType(e.target.value as CornerDotType)}>
                                             <option value="square">Square</option>
                                             <option value="dot">Dot</option>
                                         </select>

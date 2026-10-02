@@ -4,6 +4,13 @@ interface EMICalculatorPageProps {
   onBack: () => void;
 }
 
+interface ScheduleYear {
+  year: number;
+  principal: number;
+  interest: number;
+  balance: number;
+}
+
 const EMICalculatorPage: React.FC<EMICalculatorPageProps> = ({ onBack }) => {
   // --- State ---
   const [currency, setCurrency] = useState('$');
@@ -20,12 +27,14 @@ const EMICalculatorPage: React.FC<EMICalculatorPageProps> = ({ onBack }) => {
   const [emi, setEmi] = useState(0);
   const [totalInterest, setTotalInterest] = useState(0);
   const [totalPayment, setTotalPayment] = useState(0);
-  const [schedule, setSchedule] = useState<any[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleYear[]>([]);
   const [savings, setSavings] = useState(0);
 
   // --- Calculation Logic ---
   useEffect(() => {
     calculateEMI();
+    // calculateEMI is recreated every render; listing it would recalculate on every paint.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [amount, rate, tenure, extraEMI, method]);
 
   const calculateEMI = () => {
@@ -38,7 +47,7 @@ const EMICalculatorPage: React.FC<EMICalculatorPageProps> = ({ onBack }) => {
     let calculatedEmi = 0;
     // let calcTotalInterest = 0;
     // let calcTotalPaid = 0;
-    let scheduleData: any[] = [];
+    const scheduleData: ScheduleYear[] = [];
 
     if (method === 'reducing') {
         const R = R_annual / 12 / 100;
@@ -58,7 +67,7 @@ const EMICalculatorPage: React.FC<EMICalculatorPageProps> = ({ onBack }) => {
         for (let i = 1; i <= N * 2; i++) {
             if (balance <= 1) break;
 
-            let interest = balance * R;
+            const interest = balance * R;
             let monthlyPrincipal = (calculatedEmi + extraEMI) - interest;
             
             if (balance < (calculatedEmi + extraEMI)) {
@@ -106,8 +115,8 @@ const EMICalculatorPage: React.FC<EMICalculatorPageProps> = ({ onBack }) => {
         setTotalPayment(Math.round(totalPd));
         setSavings(0);
 
-        let yearlyPrincipal = P / N_years;
-        let yearlyInterest = totalInt / N_years;
+        const yearlyPrincipal = P / N_years;
+        const yearlyInterest = totalInt / N_years;
         let balance = P;
 
         for(let i=1; i<=N_years; i++) {
@@ -375,7 +384,7 @@ const EMICalculatorPage: React.FC<EMICalculatorPageProps> = ({ onBack }) => {
                                 </tr>
                             </thead>
                             <tbody className="border-top border-secondary border-opacity-25">
-                                {schedule.slice(0, 10).map((row: any) => (
+                                {schedule.slice(0, 10).map((row) => (
                                     <tr key={row.year}>
                                         <td className="text-white-50 py-2">Year {row.year}</td>
                                         <td className="font-monospace text-white-50 py-2">{currency}{fmt(row.principal)}</td>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createAudioContext } from '../../lib/audio';
 
 interface BreathTrainerPageProps {
   onBack: () => void;
@@ -33,7 +34,7 @@ const BreathTrainerPage: React.FC<BreathTrainerPageProps> = ({ onBack }) => {
   const playChime = () => {
     try {
         if (!audioContextRef.current) {
-            audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+            audioContextRef.current = createAudioContext();
         }
         if (audioContextRef.current.state === 'suspended') {
             audioContextRef.current.resume();
@@ -141,6 +142,8 @@ const BreathTrainerPage: React.FC<BreathTrainerPageProps> = ({ onBack }) => {
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
     };
+    // getDurations is recreated every render; listing it would restart the animation loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive, isPaused, preset, customInhale, customHold1, customExhale, customHold2, phase, cycleCount, loop]);
 
   const updateRing = (progress: number, currentPhase: string) => {

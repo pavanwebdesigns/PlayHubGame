@@ -107,7 +107,7 @@ const AgeCalculatorPage: React.FC<AgeCalculatorPageProps> = ({ onBack }) => {
     // 3. Next Birthday
     if (!isCompareMode) {
         const today = new Date();
-        let nextBday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+        const nextBday = new Date(today.getFullYear(), birthDate.getMonth(), birthDate.getDate());
         if (today > nextBday) {
             nextBday.setFullYear(today.getFullYear() + 1);
         }

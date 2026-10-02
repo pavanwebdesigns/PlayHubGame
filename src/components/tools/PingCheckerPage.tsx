@@ -4,6 +4,15 @@ interface PingCheckerPageProps {
   onBack: () => void;
 }
 
+interface PingService {
+  id: string;
+  name: string;
+  desc: string;
+  url: string;
+  status: string;
+  color: string;
+}
+
 const PingCheckerPage: React.FC<PingCheckerPageProps> = ({ onBack }) => {
   // --- State ---
   const [targetUrl, setTargetUrl] = useState('www.google.com');
@@ -11,7 +20,7 @@ const PingCheckerPage: React.FC<PingCheckerPageProps> = ({ onBack }) => {
   const [currentPing, setCurrentPing] = useState<number | null>(null);
   const [stats, setStats] = useState({ min: '--', max: '--', avg: '--', jitter: '--' });
   const [grade, setGrade] = useState({ letter: '--', color: '#9ca3af' }); 
-  const [services, setServices] = useState([
+  const [services, setServices] = useState<PingService[]>([
     { id: 'google', name: 'Google', desc: 'US Backbone', url: 'https://www.google.com', status: '-- ms', color: '#6b7280' },
     { id: 'cloudflare', name: 'Cloudflare', desc: 'Global CDN', url: 'https://www.cloudflare.com', status: '-- ms', color: '#6b7280' },
     { id: 'opendns', name: 'OpenDNS', desc: 'DNS Resolver', url: 'https://www.opendns.com', status: '-- ms', color: '#6b7280' },
@@ -34,6 +43,8 @@ const PingCheckerPage: React.FC<PingCheckerPageProps> = ({ onBack }) => {
           window.removeEventListener('resize', drawGraph);
           stopPing();
       };
+      // testAllServices is recreated every render; listing it would ping again on every paint.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const togglePing = () => {
@@ -94,7 +105,7 @@ const PingCheckerPage: React.FC<PingCheckerPageProps> = ({ onBack }) => {
       let latency: number | null = null;
       try {
           latency = await pingUrl(targetUrl);
-      } catch (e) {
+      } catch {
           latency = null;
       }
 
@@ -245,7 +256,7 @@ const PingCheckerPage: React.FC<PingCheckerPageProps> = ({ onBack }) => {
       services.forEach(svc => checkService(svc));
   };
 
-  const checkService = async (svc: any) => {
+  const checkService = async (svc: PingService) => {
       try {
           const latency = await pingUrl(svc.url);
           
@@ -254,7 +265,7 @@ const PingCheckerPage: React.FC<PingCheckerPageProps> = ({ onBack }) => {
           else if (latency < 150) color = '#facc15'; 
           
           updateServiceStatus(svc.id, `${latency} ms`, color);
-      } catch (e) {
+      } catch {
           updateServiceStatus(svc.id, 'Offline', '#9ca3af');
       }
   };

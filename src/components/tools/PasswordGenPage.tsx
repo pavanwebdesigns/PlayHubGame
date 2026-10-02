@@ -62,11 +62,11 @@ const PasswordGenPage: React.FC<PasswordGenPageProps> = ({ onBack }) => {
       let finalLength = length;
       if (mustInclude.length > length) finalLength = mustInclude.length;
       
-      let remainingLength = finalLength - mustInclude.length;
+      const remainingLength = finalLength - mustInclude.length;
       let newPassword = '';
       
       if (noDuplicates && remainingLength > 0) {
-          let poolArray = pool.split('');
+          const poolArray = pool.split('');
           if (poolArray.length < remainingLength) {
                // Not enough unique chars, allow duplicates fallback
                for (let i = 0; i < remainingLength; i++) {
@@ -142,6 +142,8 @@ const PasswordGenPage: React.FC<PasswordGenPageProps> = ({ onBack }) => {
   // Initial generate
   useEffect(() => {
       generate();
+      // generate is recreated every render; listing it would regenerate on every paint.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); 
 
   // --- Styles ---

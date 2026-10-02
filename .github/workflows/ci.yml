@@ -25,8 +25,7 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Lint (non-blocking until Phase 0)
-        continue-on-error: true
+      - name: Lint
         run: npm run lint
 
       - name: Build
