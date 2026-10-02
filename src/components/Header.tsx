@@ -78,6 +78,7 @@ const Header: React.FC<HeaderProps> = ({ onSearch, onHome, onTools, onBlog, onOp
               type="text" 
               className="form-control form-control-dark py-2 ps-5 pe-3 fs-5"
               placeholder="Search games..."
+              id="site-search"
               onChange={(e) => onSearch(e.target.value)}
             />
             <div className="position-absolute top-50 start-0 translate-middle-y ms-3 text-white-50">

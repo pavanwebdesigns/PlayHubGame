@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import CategoryBar from './components/CategoryBar';
@@ -7,6 +7,7 @@ import ToolsModal from './components/ToolsModal';
 import ToolsPage from './components/ToolsPage';
 import type { GamePixGame } from './types';
 import { COVER_PLACEHOLDER, coverSrc, gamepixSrcSet } from './lib/image';
+import { gameFromSlug } from './lib/gameLink';
 import { findTool, isToolReady, toolCategories, tools } from './tools/registry';
 import './App.css';
 
@@ -35,6 +36,48 @@ function readStoredGames(raw: string): GamePixGame[] {
       url: typeof game.url === 'string' ? game.url : '',
     }];
   });
+}
+
+function readFeedGames(json: unknown): GamePixGame[] {
+  let list: unknown = [];
+  if (Array.isArray(json)) list = json;
+  else if (json && typeof json === 'object') {
+    const record = json as Record<string, unknown>;
+    if (Array.isArray(record.data)) list = record.data;
+    else if (Array.isArray(record.items)) list = record.items;
+    else if (Array.isArray(record.games)) list = record.games;
+    else if (record.id != null && typeof record.title === 'string') list = [record];
+  }
+  if (!Array.isArray(list)) return [];
+  return list.flatMap((item) => readStoredGames(JSON.stringify([item])));
+}
+
+function mergeGames(current: GamePixGame[], incoming: GamePixGame[], replace: boolean): GamePixGame[] {
+  const combined = replace ? incoming : [...current, ...incoming];
+  const seen = new Set<string>();
+  const unique: GamePixGame[] = [];
+  for (const game of combined) {
+    if (seen.has(game.id)) continue;
+    seen.add(game.id);
+    unique.push(game);
+  }
+  return unique;
+}
+
+const FEED_PAGE = 'https://feeds.gamepix.com/v2/json?sid=LC991&pagination=96&page=';
+const MAX_GAME_LOOKUP_PAGES = 20;
+
+async function loadFeedPage(pageNumber: number): Promise<GamePixGame[]> {
+  const response = await fetch(`${FEED_PAGE}${pageNumber}`);
+  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+  return readFeedGames(await response.json());
+}
+
+function findListedGame(gameList: GamePixGame[], gameId: string | null, slug: string | null): GamePixGame | undefined {
+  return gameList.find((game) =>
+    (gameId != null && gameId.length > 0 && game.id === gameId) ||
+    (slug != null && slug.length > 0 && game.namespace === slug),
+  );
 }
 
 export interface Tool {
@@ -258,8 +301,16 @@ function App() {
   });
 
   const [activeGame, setActiveGame] = useState<GamePixGame | null>(null);
+  const [gameLookup, setGameLookup] = useState<'ready' | 'loading' | 'missing'>(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('page') === 'game' ? 'loading' : 'ready';
+  });
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const gamesRef = useRef(games);
+  gamesRef.current = games;
+  const idLookupFor = useRef<string | null>(null);
+  const lookupToken = useRef(0);
 
   // Load favorites
   useEffect(() => {
@@ -292,27 +343,11 @@ function App() {
   const fetchGames = async (pageNumber: number) => {
     const isFirstLoad = pageNumber === 1;
     if (isFirstLoad) { setLoading(true); setError(null); } else { setLoadingMore(true); }
-    const apiUrl = `https://feeds.gamepix.com/v2/json?sid=LC991&pagination=96&page=${pageNumber}`;
     try {
-      const response = await fetch(apiUrl);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const json = await response.json();
-      let newGames: GamePixGame[] = [];
-      if (Array.isArray(json)) newGames = json;
-      else if (json.data && Array.isArray(json.data)) newGames = json.data;
-      else if (json.items && Array.isArray(json.items)) newGames = json.items;
-      else if (json.games && Array.isArray(json.games)) newGames = json.games;
-      else if (json.id && json.title) newGames = [json];
-
-      newGames = newGames.filter(g => g && g.id && g.title);
-
+      const newGames = await loadFeedPage(pageNumber);
       if (newGames.length > 0) {
-        setGames(prev => {
-          const combined = isFirstLoad ? newGames : [...prev, ...newGames];
-          const unique = Array.from(new Set(combined.map(a => a.id)))
-            .map(id => combined.find(a => a.id === id)!);
-          return unique;
-        });
+        setGames(prev => mergeGames(prev, newGames, false));
+        setPage(current => Math.max(current, pageNumber));
       } else {
         setHasMore(false);
         if (isFirstLoad) throw new Error("No games found.");
@@ -327,40 +362,79 @@ function App() {
   const handleLoadMore = () => { const nextPage = page + 1; setPage(nextPage); fetchGames(nextPage); };
 
   // --- UPDATED NAVIGATION HANDLERS ---
-  const updateUrl = (view: string, gameId?: string) => {
+  const updateUrl = (view: string, game?: Pick<GamePixGame, 'id' | 'namespace'>) => {
     const params = new URLSearchParams(window.location.search);
     if (view === 'home') {
       params.delete('page');
       params.delete('game');
+      params.delete('slug');
     } else {
       params.set('page', view);
-      if (gameId) params.set('game', gameId);
-      else params.delete('game');
+      if (game) {
+        params.set('game', game.id);
+        if (game.namespace) params.set('slug', game.namespace);
+        else params.delete('slug');
+      } else {
+        params.delete('game');
+        params.delete('slug');
+      }
     }
-    const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.pushState({}, '', newUrl);
+    const qs = params.toString();
+    const next = `${window.location.pathname}${qs ? `?${qs}` : ''}`;
+    window.history.pushState(view === 'game' ? { fromGrid: true } : {}, '', next);
   };
 
   const handleGameClick = (game: GamePixGame) => {
+    if (currentView !== 'game') {
+      const previous = window.history.state && typeof window.history.state === 'object' ? window.history.state : {};
+      window.history.replaceState({ ...previous, scrollY: window.scrollY }, '', window.location.href);
+    }
+    idLookupFor.current = null;
     setActiveGame(game);
+    setGameLookup('ready');
     setCurrentView('game');
-    updateUrl('game', game.id.toString());
+    updateUrl('game', game);
+  };
+
+  const handleGameBack = () => {
+    const state = window.history.state as { fromGrid?: boolean } | null;
+    if (state?.fromGrid) {
+      window.history.back();
+      return;
+    }
+    handleHomeClick();
+  };
+
+  const searchInstead = () => {
+    handleHomeClick();
+    window.setTimeout(() => document.getElementById('site-search')?.focus(), 0);
+  };
+
+  const cancelGameLookup = () => {
+    lookupToken.current += 1;
+    idLookupFor.current = null;
   };
 
   const handleHomeClick = () => {
+    cancelGameLookup();
     setActiveGame(null);
+    setGameLookup('ready');
     setCurrentView('home');
     updateUrl('home');
   };
 
   const handleToolsClick = () => {
+    cancelGameLookup();
     setActiveGame(null);
+    setGameLookup('ready');
     setCurrentView('tools');
     updateUrl('tools');
   };
 
   const handleBlogClick = () => {
+    cancelGameLookup();
     setActiveGame(null);
+    setGameLookup('ready');
     setCurrentView('blog');
     updateUrl('blog');
   };
@@ -384,43 +458,101 @@ function App() {
     });
   }, [games, searchTerm, selectedCategory]);
 
-  // --- URL RECOVERY LOGIC (Runs only when games change) ---
-  useEffect(() => {
+  const resolveGameFromUrl = (gameList: GamePixGame[]) => {
     const params = new URLSearchParams(window.location.search);
-    const viewParam = params.get('page');
-    const gameIdParam = params.get('game');
+    const view = params.get('page') || 'home';
+    const gameId = params.get('game');
+    const slug = params.get('slug');
 
-    if (viewParam && viewParam !== 'home') {
-      setCurrentView(viewParam);
+    if (view !== 'game') {
+      lookupToken.current += 1;
+      idLookupFor.current = null;
+      setCurrentView(view);
+      setActiveGame(null);
+      setGameLookup('ready');
+      return;
     }
 
-    if (gameIdParam && games.length > 0 && (!activeGame || activeGame.id.toString() !== gameIdParam)) {
-      const foundGame = games.find(g => g.id.toString() === gameIdParam);
-      if (foundGame) {
-        setActiveGame(foundGame);
-        if (currentView !== 'game') setCurrentView('game');
+    setCurrentView('game');
+    const found = findListedGame(gameList, gameId, slug);
+    if (found) {
+      setActiveGame(found);
+      setGameLookup('ready');
+      return;
+    }
+    if (slug) {
+      setActiveGame((current) => current?.namespace === slug ? current : gameFromSlug(gameId && gameId.length > 0 ? gameId : slug, slug));
+      setGameLookup('ready');
+      return;
+    }
+    if (!gameId) {
+      setActiveGame(null);
+      setGameLookup('missing');
+      return;
+    }
+    if (idLookupFor.current === gameId) return;
+
+    idLookupFor.current = gameId;
+    const token = lookupToken.current + 1;
+    lookupToken.current = token;
+    setActiveGame(null);
+    setGameLookup('loading');
+    void (async () => {
+      for (let pageNumber = 1; pageNumber <= MAX_GAME_LOOKUP_PAGES; pageNumber += 1) {
+        let pageGames: GamePixGame[] = [];
+        try {
+          pageGames = await loadFeedPage(pageNumber);
+        } catch {
+          break;
+        }
+        if (lookupToken.current !== token) return;
+        if (pageGames.length === 0) break;
+        setGames((prev) => mergeGames(prev, pageGames, false));
+        setPage((current) => Math.max(current, pageNumber));
+        const hit = pageGames.find((game) => game.id === gameId);
+        if (hit) {
+          setActiveGame(hit);
+          setGameLookup('ready');
+          return;
+        }
       }
-    }
+      if (lookupToken.current !== token) return;
+      setActiveGame(null);
+      setGameLookup('missing');
+    })();
+  };
+
+  const pendingScroll = useRef<number | null>(null);
+
+  const resolveRef = useRef(resolveGameFromUrl);
+  resolveRef.current = resolveGameFromUrl;
+
+  useEffect(() => {
+    resolveGameFromUrl(games);
   }, [games]);
 
-  // Browser Back Button Handling
+  useEffect(() => {
+    if (currentView === 'game') return;
+    const y = pendingScroll.current;
+    if (typeof y !== 'number') return;
+    pendingScroll.current = null;
+    const restore = () => window.scrollTo(0, y);
+    restore();
+    requestAnimationFrame(restore);
+    window.setTimeout(restore, 50);
+    window.setTimeout(restore, 300);
+  }, [currentView, games]);
+
   useEffect(() => {
     const onPopState = () => {
-      const params = new URLSearchParams(window.location.search);
-      const view = params.get('page') || 'home';
-      const gameId = params.get('game');
-
-      setCurrentView(view);
-      if (gameId && games.length > 0) {
-        const g = games.find(x => x.id.toString() === gameId);
-        if (g) setActiveGame(g);
-      } else {
-        setActiveGame(null);
-      }
+      const state = window.history.state as { scrollY?: number } | null;
+      const view = new URLSearchParams(window.location.search).get('page') || 'home';
+      if (view !== 'game' && typeof state?.scrollY === 'number') pendingScroll.current = state.scrollY;
+      resolveRef.current(gamesRef.current);
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, [games]);
+  }, []);
 
 
   // --- ROUTER LOGIC ---
@@ -441,15 +573,17 @@ function App() {
   if (requestedTool?.component) {
     const ToolPage = requestedTool.component;
     content = <ToolPage onBack={() => { setCurrentView('tools'); updateUrl('tools'); }} />;
-  } else if (currentView === 'game' && activeGame) {
-    const related = games.filter(g => g.category === activeGame.category && g.id !== activeGame.id);
+  } else if (currentView === 'game' && activeGame && gameLookup === 'ready') {
+    const related = activeGame.category
+      ? games.filter(g => g.category === activeGame.category && g.id !== activeGame.id)
+      : [];
 
     content = (
       <>
         <GamePlay
           game={activeGame}
           relatedGames={related}
-          onBack={handleHomeClick}
+          onBack={handleGameBack}
           onPlayGame={handleGameClick}
           isFavorite={favoriteGames.some(f => f.id === activeGame.id)}
           onToggleFavorite={() => toggleGameFavorite(activeGame)}
@@ -462,6 +596,26 @@ function App() {
         <button className="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center position-fixed" style={{ bottom: '30px', right: '30px', width: '60px', height: '60px', zIndex: 1050 }} onClick={() => setIsToolsOpen(true)} title="Game Tools"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg></button>
         <FavoritesSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} favoriteGames={favoriteGames} favoriteTools={visibleFavoriteTools} onPlayGame={handleGameClick} onLaunchTool={(toolId: string) => handleNavigateToTool(toolId)} onRemoveGameFavorite={toggleGameFavorite} onRemoveToolFavorite={toggleToolFavorite} />
       </>
+    );
+  } else if (currentView === 'game') {
+    content = (
+      <div className="d-flex flex-column min-vh-100 w-100 bg-black">
+        <Header onSearch={setSearchTerm} onHome={handleHomeClick} onTools={handleToolsClick} onBlog={handleBlogClick} onOpenSidebar={() => setIsSidebarOpen(true)} favoritesCount={favoriteGames.length + visibleFavoriteTools.length} />
+        <main className="container py-5 text-white">
+          {gameLookup === 'missing' ? (
+            <>
+              <h1 className="h2">Game not found — search instead</h1>
+              <p className="text-white-50">That link doesn't match a game we can open.</p>
+              <button type="button" className="btn btn-custom" onClick={searchInstead}>Search instead</button>
+            </>
+          ) : (
+            <div className="d-flex align-items-center gap-3" role="status">
+              <div className="spinner-border text-primary" aria-hidden="true"></div>
+              <p className="mb-0">Looking for this game...</p>
+            </div>
+          )}
+        </main>
+      </div>
     );
   } else {
     // Default: Home Grid or Blog or Tools List

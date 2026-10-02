@@ -33,7 +33,7 @@ const GamePlay: React.FC<GamePlayProps> = ({
   const gameContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    topRef.current?.scrollIntoView({ behavior: 'smooth' });
+    topRef.current?.scrollIntoView({ behavior: 'auto' });
     document.title = `Play ${game.title} - Free Online ${game.category} Game | PlayHubGame`;
     const metaDesc = document.querySelector('meta[name="description"]');
     if (metaDesc) {
