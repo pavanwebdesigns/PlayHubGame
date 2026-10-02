@@ -51,6 +51,7 @@ Stop the live site from losing visitors while the rebuild happens: working mobil
 
 ### 0.8 Crawl basics and the broken `.htaccess`
 - `public/.htaccess` (moved there during the auto-deploy setup) — keep the SPA fallback; add HTTPS redirect, `ErrorDocument 404`, long cache for `/assets/*` (`max-age=31536000, immutable`), no-cache for `index.html`.
+- Block public access to `.ftp-deploy-sync-state.json`. The FTP deploy action uploads that state file into `public_html`, and it must not be downloadable.
 - Add `public/robots.txt` (allow all, sitemap line) and a minimal `public/sitemap.xml` (home only for now).
 - Add `<link rel="canonical" href="https://playhubplace.com/">` and basic Open Graph tags to `index.html`.
 - **Accept:** after deploy, `/robots.txt`, `/sitemap.xml`, `/ads.txt` each return 200 with the right content type.
