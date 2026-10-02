@@ -1,5 +1,7 @@
 # Setup — Automatic deploy to Hostinger (do this before Phase 0's deploy step)
 
+> **Superseded for deploy.** Do not use FTP, and do not point Hostinger at `main`. The live site tracks the `deploy` branch. `.github/workflows/publish.yml` builds `dist/` and pushes those files as a normal commit. The tasks below are the history of the first attempt.
+
 **Attach:** `@docs/cursor/01-MASTER-BRIEF.md` `@docs/cursor/setup-auto-deploy.md`
 **Size:** half a day · **Rule:** set up deployment only. Don't change app code except the `.htaccess` move in task D3.
 
@@ -11,7 +13,7 @@ Every push to `main` builds the site on GitHub and uploads it to Hostinger's `pu
 - Local git: current branch is **`Sub`** and it holds the real code (last commit `7b69917 added new 6 tools`). `origin/main` points to an old commit (`1a801c9 ads file`, 18 Nov 2025). Uncommitted changes exist (`package.json`, `package-lock.json`, `src/App.tsx`, untracked `PingCheckerPage.tsx`, `QRGeneratorPage.tsx`, `docs/`, `.cursor/`). These local refs may be stale — fetch first.
 - Hosting: Hostinger (`platform: hostinger`, CDN `hcdn`). The live HTML may be cached by Hostinger's CDN.
 - The repo file `. htaccess` has a space in its name, so it never reaches `dist/`.
-- Local Node is v22.
+- Local Node is v24.11.1. CI and deploy use Node 24.
 
 ## Tasks
 
@@ -25,7 +27,7 @@ Every push to `main` builds the site on GitHub and uploads it to Hostinger's `pu
 
 ### D2 — CI on pull requests (`.github/workflows/ci.yml`)
 - Triggers: `pull_request` to `main`, `workflow_dispatch`.
-- Ubuntu latest, `actions/setup-node` with Node 22 and npm cache, `npm ci`, `npm run build`.
+- Ubuntu latest, `actions/setup-node` with Node 24 and npm cache, `npm ci`, `npm run build`.
 - `npm run lint` runs but doesn't fail the job yet (`continue-on-error: true`) — Phase 0 will make lint clean and then we switch it to blocking. Say in the PR how many lint errors exist today.
 - If `npm ci` fails because the lockfile is out of sync, stop and tell Pavan; don't silently switch to `npm install`.
 
@@ -39,7 +41,7 @@ Every push to `main` builds the site on GitHub and uploads it to Hostinger's `pu
 - `permissions: contents: read` only.
 - Steps:
   1. Checkout `ref`.
-  2. Node 22 + `npm ci` + `npm run build`.
+  2. Node 24 + `npm ci` + `npm run build`.
   3. **Guard checks** (fail before uploading anything): `dist/index.html` exists; `dist/ads.txt` exists and contains the line `#gpx-property-LC991`; `dist/.htaccess` exists; `dist/` has no `.map` files, `.env`, or `.DS_Store`.
   4. Upload `dist/` with `SamKirkland/FTP-Deploy-Action` **pinned to the full commit SHA of release v4.4.0** (comment the version next to it):
      - `server`, `username`, `password` from secrets `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`.

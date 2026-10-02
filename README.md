@@ -71,3 +71,13 @@ export default defineConfig([
   },
 ])
 ```
+
+## Deploying
+
+Hostinger's Git deployment must track the branch `deploy`, never `main`. `main` is the source code. The Publish workflow builds it and pushes only the built files onto `deploy`.
+
+Merging into `main` runs Publish. Hostinger pulls `deploy` from its webhook, and the live site should update within a few minutes. Each publish adds a normal commit when the built files changed, and that commit removes old hashed files so the pull deletes them on the server. If the build matches `deploy` already, Publish skips the commit.
+
+To roll back, open Actions → Publish → Run workflow and set `ref` to the last good commit on `main`. That rebuilds the commit and pushes it to `deploy`.
+
+If the smoke test still sees the old page after 5 minutes, confirm hPanel is set to branch `deploy`, flush the CDN cache, then re-run Publish.
