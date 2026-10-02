@@ -71,3 +71,15 @@ export default defineConfig([
   },
 ])
 ```
+
+## Deploying
+
+Merging a pull request into `main` builds the site on GitHub and uploads `dist/` to Hostinger. The live site updates within a few minutes.
+
+Secrets and the protocol variable live in GitHub → Settings → Secrets and variables → Actions. The secret names are `FTP_SERVER`, `FTP_USERNAME`, `FTP_PASSWORD`, and `FTP_SERVER_DIR`. The variable is `FTP_PROTOCOL` (`ftps` unless plain FTP is required). Never put those values in the repo or in chat.
+
+To see what a deploy would change without uploading, open Actions → Deploy → Run workflow. Set `ref` to the commit you want to build and check `dry_run`. The first run should be a dry run.
+
+To roll back, open Actions → Deploy → Run workflow and set `ref` to the last good commit SHA. Leave `dry_run` unchecked.
+
+If the smoke test says the homepage is still serving the old JavaScript file, flush the CDN cache in hPanel, then re-run the workflow.
