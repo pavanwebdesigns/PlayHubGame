@@ -14,6 +14,8 @@ The previous Vite app is in `legacy/`. It is not part of the Next build. Delete 
 - `npm run lint` — ESLint
 - `npm run format` — Prettier
 
+Search uses [MiniSearch](https://lucaong.github.io/minisearch/) 7.2.0, about 5.8 KB gzip. The search page loads it only after a query, so the home page does not include it.
+
 ## Catalog
 
 `npm run catalog` fetches the GamePix feed, checks each game, and writes `data/catalog.json`, `data/curated.json`, `data/search-index.json`, `data/meta.json`, and `public/data/legacy-ids.json`. Those files are gitignored. `npm run build` runs the catalog first.
