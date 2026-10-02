@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { feedStartUrl } from '@/config/site';
+import { writePublicTiles } from './write-tiles';
 import { measureCoverSample } from '@/lib/catalog/covers';
 import { fetchFeed } from '@/lib/catalog/fetch-feed';
 import { buildCatalog } from '@/lib/catalog/run';
@@ -35,6 +36,7 @@ writeFileSync(
   'public/data/search-index.json',
   `${JSON.stringify(outputs.searchIndex)}\n`,
 );
+writePublicTiles(outputs.curated);
 
 const hubs = Object.entries(outputs.meta.hubCounts)
   .sort((a, b) => b[1] - a[1])

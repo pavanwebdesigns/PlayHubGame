@@ -1,19 +1,30 @@
 'use client';
 
-import Image from 'next/image';
+// next/image's client runtime does not fit the home JS budget.
+/* eslint-disable @next/next/no-img-element */
+
 import { useState } from 'react';
 import { SITE_NAME } from '@/config/site';
+import gamepixLoader from '@/lib/gamepix-loader';
+
+const WIDTHS = [160, 320, 480, 640];
+
+function coverSrc(src: string, width: number): string {
+  return gamepixLoader({ src, width });
+}
 
 export function CoverImage({
   src,
   alt,
   title,
   sizes,
+  priority = false,
 }: {
   src: string;
   alt: string;
   title: string;
   sizes: string;
+  priority?: boolean;
 }) {
   const [failed, setFailed] = useState(src.length === 0);
 
@@ -35,12 +46,15 @@ export function CoverImage({
           </span>
         </span>
       ) : (
-        <Image
-          src={src}
-          alt={alt}
-          fill
+        <img
+          src={coverSrc(src, 480)}
+          srcSet={WIDTHS.map((width) => `${coverSrc(src, width)} ${width}w`).join(', ')}
           sizes={sizes}
-          className="object-cover"
+          alt={alt}
+          fetchPriority={priority ? 'high' : 'auto'}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover"
           onError={() => setFailed(true)}
         />
       )}

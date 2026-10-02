@@ -1,7 +1,7 @@
 'use client';
 
 import { House, LayoutGrid, Search, Heart } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { Sheet } from '@/components/ui/Sheet';
 
 type NavLink = { href: string; label: string };
@@ -11,6 +11,15 @@ const items = [
   { id: 'search', href: '/search/', label: 'Search', icon: Search },
   { id: 'my-games', href: '/my-games/', label: 'My games', icon: Heart },
 ] as const;
+
+function subscribePath(listener: () => void): () => void {
+  window.addEventListener('popstate', listener);
+  return () => window.removeEventListener('popstate', listener);
+}
+
+function currentPath(): string {
+  return window.location.pathname;
+}
 
 export function BottomNav({
   active,
@@ -24,6 +33,16 @@ export function BottomNav({
   preview?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const path = useSyncExternalStore(subscribePath, currentPath, () => '');
+  const current =
+    active ??
+    (path === '/'
+      ? 'home'
+      : path.startsWith('/search')
+        ? 'search'
+        : path.startsWith('/my-games')
+          ? 'my-games'
+          : undefined);
 
   return (
     <>
@@ -34,15 +53,15 @@ export function BottomNav({
       >
         <a
           href="/"
-          aria-current={active === 'home' ? 'page' : undefined}
+          aria-current={current === 'home' ? 'page' : undefined}
           className="flex min-h-tap flex-1 flex-col items-center justify-center gap-1 text-ui text-ink"
         >
           <House
             aria-hidden="true"
             size={20}
-            className={active === 'home' ? 'fill-ink' : undefined}
+            className={current === 'home' ? 'fill-ink' : undefined}
           />
-          <span className={active === 'home' ? 'font-semibold' : 'font-normal'}>
+          <span className={current === 'home' ? 'font-semibold' : 'font-normal'}>
             Home
           </span>
         </a>
@@ -59,16 +78,16 @@ export function BottomNav({
           <a
             key={item.id}
             href={item.href}
-            aria-current={active === item.id ? 'page' : undefined}
+            aria-current={current === item.id ? 'page' : undefined}
             className="flex min-h-tap flex-1 flex-col items-center justify-center gap-1 text-ui text-ink"
           >
             <item.icon
               aria-hidden="true"
               size={20}
-              className={active === item.id ? 'fill-ink' : undefined}
+              className={current === item.id ? 'fill-ink' : undefined}
             />
             <span
-              className={active === item.id ? 'font-semibold' : 'font-normal'}
+              className={current === item.id ? 'font-semibold' : 'font-normal'}
             >
               {item.label}
             </span>

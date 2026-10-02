@@ -1,12 +1,22 @@
 'use client';
 
-import Link from 'next/link';
 import { useRef, useState } from 'react';
+import { buttonClass } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
+import { keepBest, readBest, writeBest } from '@/lib/best';
+import { shareOrCopy } from '@/lib/share';
+
+const BEST_KEY = 'ph:cps-best:v1';
+const CHOICES = [5, 10] as const;
 
 export function CpsTest() {
+  const { showToast } = useToast();
+  const [seconds, setSeconds] = useState<(typeof CHOICES)[number]>(5);
   const [clicks, setClicks] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(5);
+  const [left, setLeft] = useState(5);
+  const [running, setRunning] = useState(false);
   const [result, setResult] = useState<number | null>(null);
+  const [best, setBest] = useState<number | null>(null);
   const clicksRef = useRef(0);
   const timerRef = useRef<number | null>(null);
 
@@ -19,13 +29,20 @@ export function CpsTest() {
     stop();
     clicksRef.current = 0;
     setClicks(0);
-    setTimeLeft(5);
+    setLeft(seconds);
     setResult(null);
+    setRunning(true);
+    setBest(readBest(BEST_KEY));
     timerRef.current = window.setInterval(() => {
-      setTimeLeft((prev) => {
+      setLeft((prev) => {
         if (prev <= 1) {
           stop();
-          setResult(clicksRef.current / 5);
+          setRunning(false);
+          const cps = clicksRef.current / seconds;
+          setResult(cps);
+          const next = keepBest(readBest(BEST_KEY), cps, 'high');
+          writeBest(BEST_KEY, next);
+          setBest(next);
           return 0;
         }
         return prev - 1;
@@ -33,57 +50,85 @@ export function CpsTest() {
     }, 1000);
   }
 
-  function handleClick() {
-    if (timeLeft === 0) {
-      start();
-      return;
-    }
-    if (timerRef.current == null) start();
+  function tap() {
+    if (!running) return;
     clicksRef.current += 1;
     setClicks(clicksRef.current);
   }
 
+  async function share() {
+    if (result == null) return;
+    const text = `I scored ${result.toFixed(1)} clicks per second on the PlayHubPlace CPS test.`;
+    const outcome = await shareOrCopy({
+      title: 'CPS test',
+      text,
+      url: window.location.href,
+    });
+    if (outcome === 'copied') showToast('Link copied');
+  }
+
   return (
     <div className="mx-auto max-w-3xl text-center">
-      <div className="text-left">
-        <Link
-          href="/"
-          className="mb-4 inline-flex min-h-11 items-center text-play"
-        >
-          Back to games
-        </Link>
+      <div className="mb-4 flex justify-center gap-2" role="group" aria-label="Time">
+        {CHOICES.map((choice) => (
+          <button
+            key={choice}
+            type="button"
+            className={buttonClass(seconds === choice ? 'play' : 'secondary')}
+            aria-pressed={seconds === choice}
+            disabled={running}
+            onClick={() => setSeconds(choice)}
+          >
+            {choice} seconds
+          </button>
+        ))}
       </div>
-      <h1 className="mb-4 text-3xl text-ink">CPS Test</h1>
-      <p className="text-ink-muted">
-        Click as many times as you can in 5 seconds.
-      </p>
-      <button
-        type="button"
-        className="mx-auto my-4 flex h-52 w-52 items-center justify-center rounded-full border border-edge text-3xl text-ink"
-        onMouseDown={handleClick}
-        onKeyDown={(event) => {
-          if (event.key !== 'Enter' && event.key !== ' ') return;
+      {result == null ? (
+        <button
+          type="button"
+          className="mx-auto my-4 flex h-52 w-52 items-center justify-center rounded-full border border-edge text-3xl text-ink"
+          onPointerDown={(event) => {
           event.preventDefault();
-          handleClick();
+          if (running) tap();
+          else start();
         }}
-      >
-        {timeLeft === 0 ? 'Retry' : 'Click'}
-      </button>
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            if (running) tap();
+            else start();
+          }}
+        >
+          {running ? 'Tap' : 'Start'}
+        </button>
+      ) : (
+        <div className="my-6">
+          <p className="text-display text-ink" role="status">
+            {result.toFixed(1)} clicks per second
+          </p>
+          {best != null ? (
+            <p className="mt-2 text-ink-muted">Your best: {best.toFixed(1)}</p>
+          ) : null}
+          <div className="mt-4 flex justify-center gap-2">
+            <button type="button" className={buttonClass('play')} onClick={start}>
+              Try again
+            </button>
+            <button type="button" className={buttonClass('secondary')} onClick={() => void share()}>
+              Share
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex justify-center gap-10 text-ink">
         <div>
-          <div className="text-4xl">{clicks}</div>
+          <div className="text-display-sm">{clicks}</div>
           <div className="text-ink-muted">Clicks</div>
         </div>
         <div>
-          <div className="text-4xl">{timeLeft}s</div>
+          <div className="text-display-sm">{left}s</div>
           <div className="text-ink-muted">Time left</div>
         </div>
       </div>
-      {result != null ? (
-        <p className="mt-4 text-xl text-ink" role="status">
-          Your speed: <strong>{result} CPS</strong>
-        </p>
-      ) : null}
     </div>
   );
 }

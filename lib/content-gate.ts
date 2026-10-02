@@ -1,11 +1,37 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+
+/**
+ * Category copy lives in content/categories/. A file counts for the sitemap
+ * only when its frontmatter says status: published. Draft stays noindex.
+ */
+export type ContentKind =
+  | 'games'
+  | 'categories'
+  | 'collections'
+  | 'originals'
+  | 'pages';
 
 const SLUG = /^[a-z0-9-]+$/;
 
-export function hasContent(
-  kind: 'games' | 'hubs' | 'collections',
-  slug: string,
-): boolean {
+export function contentPath(kind: ContentKind, slug: string): string {
+  return `content/${kind}/${slug}.mdx`;
+}
+
+export function hasContent(kind: ContentKind, slug: string): boolean {
   if (!SLUG.test(slug)) return false;
-  return existsSync(`content/${kind}/${slug}.mdx`);
+  return existsSync(contentPath(kind, slug));
+}
+
+export function contentStatus(
+  kind: ContentKind,
+  slug: string,
+): 'missing' | 'draft' | 'published' {
+  if (!hasContent(kind, slug)) return 'missing';
+  const source = readFileSync(contentPath(kind, slug), 'utf8');
+  const match = source.match(/^status:\s*(draft|published)\s*$/m);
+  return match?.[1] === 'published' ? 'published' : 'draft';
+}
+
+export function isIndexable(kind: ContentKind, slug: string): boolean {
+  return contentStatus(kind, slug) === 'published';
 }

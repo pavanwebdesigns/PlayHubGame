@@ -1,11 +1,17 @@
 import { notFound } from 'next/navigation';
-import { GameFrame } from '@/components/game/GameFrame';
-import { GameLinks } from '@/components/game/GameLinks';
+import { GameCopy } from '@/components/game/GameCopy';
+import { GamePlay } from '@/components/game/GamePlay';
+import { GameTile } from '@/components/game/GameTile';
+import { UpNext } from '@/components/game/UpNext';
+import { JsonLd } from '@/components/seo/JsonLd';
 import { HUB_NAMES } from '@/config/taxonomy';
-import { hasContent } from '@/lib/content-gate';
+import { favoriteFromGame } from '@/lib/favorites';
+import { isIndexable } from '@/lib/content-gate';
 import { loadCurated, loadGame } from '@/lib/catalog/load';
 import { coverAtWidth } from '@/lib/catalog/urls';
-import { gameTitle, pageMetadata } from '@/lib/seo';
+import { similarGames } from '@/lib/similar';
+import { absoluteUrl, gameTitle, pageMetadata } from '@/lib/seo';
+import { toTileGame } from '@/lib/tile-game';
 
 export const dynamicParams = false;
 
@@ -25,7 +31,7 @@ export async function generateMetadata({
     title: gameTitle(game.title),
     description: `Play ${game.title} free in your browser on PlayHubPlace. No download.`,
     path: `/game/${game.slug}/`,
-    index: hasContent('games', game.slug),
+    index: isIndexable('games', game.slug),
     absoluteTitle: true,
     image: coverAtWidth(game.cover, 640),
   });
@@ -39,38 +45,86 @@ export default async function GamePage({
   const { slug } = await params;
   const game = loadGame(slug);
   if (!game) notFound();
+  const ranked = similarGames(loadCurated(), game.slug, game.hub, 12);
+  const tiles = ranked.map((item) => toTileGame(item));
+  const upNext = tiles[0];
   const hubName = HUB_NAMES[game.hub];
-  const similar = loadCurated()
-    .filter((item) => item.hub === game.hub && item.slug !== game.slug)
-    .slice(0, 8);
-
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
+    <main className="px-4 py-6">
+      <link rel="preconnect" href="https://play.gamepix.com" />
       <nav aria-label="Breadcrumb" className="mb-4 text-ink-muted">
-        <a href="/" className="inline-flex min-h-11 items-center">
+        <a href="/" className="inline-flex min-h-tap items-center">
           Home
         </a>
-        <span aria-hidden="true"> / </span>
+        <span aria-hidden="true"> › </span>
         <a
           href={`/category/${game.hub}/`}
-          className="inline-flex min-h-11 items-center"
+          className="inline-flex min-h-tap items-center"
         >
           {hubName}
         </a>
-        <span aria-hidden="true"> / </span>
+        <span aria-hidden="true"> › </span>
         <span className="text-ink">{game.title}</span>
       </nav>
-      <h1 className="mb-4 text-3xl text-ink">{game.title}</h1>
-      <GameFrame game={game} />
-      <div className="h-40" aria-hidden="true" />
-      <p className="max-w-prose text-ink-muted">
-        Play {game.title} in your browser. No download and no account.
-      </p>
-      <p className="mt-2 text-ink-muted">Category: {hubName}</p>
-      <section className="mt-8">
-        <h2 className="mb-3 text-2xl text-ink">Similar games</h2>
-        <GameLinks games={similar} />
-      </section>
+      <GamePlay
+        game={{
+          slug: game.slug,
+          title: game.title,
+          cover: game.cover,
+          embedUrl: game.embedUrl,
+          orientation: game.orientation,
+          aspect: game.aspect,
+        }}
+        favorite={favoriteFromGame(game)}
+        upNextHref={upNext ? `/game/${upNext.slug}/` : '/'}
+        rail={tiles.map((item) => (
+          <GameTile key={item.slug} game={item} size="row" />
+        ))}
+      >
+        <GameCopy
+          game={game}
+          similar={tiles}
+          upNext={<UpNext candidates={tiles.slice(0, 8)} />}
+        />
+      </GamePlay>
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@graph': [
+            {
+              '@type': ['VideoGame', 'SoftwareApplication'],
+              name: game.title,
+              url: absoluteUrl(`/game/${game.slug}/`),
+              applicationCategory: 'Game',
+              operatingSystem: 'Web',
+              image: coverAtWidth(game.cover, 640),
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+              },
+            },
+            {
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: absoluteUrl('/') },
+                {
+                  '@type': 'ListItem',
+                  position: 2,
+                  name: hubName,
+                  item: absoluteUrl(`/category/${game.hub}/`),
+                },
+                {
+                  '@type': 'ListItem',
+                  position: 3,
+                  name: game.title,
+                  item: absoluteUrl(`/game/${game.slug}/`),
+                },
+              ],
+            },
+          ],
+        }}
+      />
     </main>
   );
 }

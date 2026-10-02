@@ -14,6 +14,7 @@ export function Spotlight({ game }: { game: TileGame }) {
           alt=""
           title={game.title}
           sizes="(max-width: 768px) 100vw, 40vw"
+          priority
         />
         <h2 className="mt-3 font-display text-display text-ink">
           {game.title}

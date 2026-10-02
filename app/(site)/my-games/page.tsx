@@ -1,4 +1,4 @@
-import { FavoritesList } from '@/components/my-games/FavoritesList';
+import { MyGames } from '@/components/my-games/MyGames';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
@@ -11,8 +11,8 @@ export const metadata = pageMetadata({
 export default function MyGamesPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="mb-4 text-3xl text-ink">My games</h1>
-      <FavoritesList />
+      <h1 className="mb-4 text-display-sm text-ink">My games</h1>
+      <MyGames />
     </main>
   );
 }

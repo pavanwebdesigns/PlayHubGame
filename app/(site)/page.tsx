@@ -1,58 +1,120 @@
-import { GameLinks } from '@/components/game/GameLinks';
-import { HUB_NAMES, type HubSlug } from '@/config/taxonomy';
-import { visibleCollections } from '@/config/collections';
-import { DEFAULT_DESCRIPTION, SITE_NAME } from '@/config/site';
-import { buildToday } from '@/lib/build-clock';
+import { AboutHome } from '@/components/home/AboutHome';
+import { CategorySection } from '@/components/home/CategorySection';
+import { ContinuePlaying } from '@/components/home/ContinuePlaying';
+import { OriginalsRow } from '@/components/home/OriginalsRow';
+import { Row } from '@/components/game/Row';
+import { Spotlight } from '@/components/game/Spotlight';
+import { TileGrid } from '@/components/game/TileGrid';
+import { visibleCollections, type CollectionSlug } from '@/config/collections';
+import { activeSeasonal } from '@/config/seasonal';
+import { dayOfYear, spotlightChoice } from '@/config/spotlight';
+import { HUB_SLUGS } from '@/config/taxonomy';
+import { SITE_NAME, DEFAULT_TITLE } from '@/config/site';
 import { loadCurated } from '@/lib/catalog/load';
+import { buildToday } from '@/lib/build-clock';
+import { loadContent } from '@/lib/content';
+import { rankByQuality, todaysPicks } from '@/lib/picks';
+import { pageMetadata } from '@/lib/seo';
+import { toTileGame, type TileGame } from '@/lib/tile-game';
+import type { GameRecord } from '@/lib/catalog/types';
+
+const ROW_ORDER: readonly CollectionSlug[] = [
+  'one-thumb',
+  'train-your-brain',
+  'five-minute',
+  'two-players',
+  'just-relax',
+  'new-this-week',
+];
+
+function featured(games: readonly GameRecord[]) {
+  return games.map((game, index) => ({
+    game: toTileGame(game),
+    size: (index === 0 ? 'xl' : 'md') as 'xl' | 'md',
+  }));
+}
+
+function rowOf(
+  games: readonly GameRecord[],
+  take: (game: GameRecord) => boolean,
+): TileGame[] {
+  return rankByQuality(games.filter(take))
+    .slice(0, 16)
+    .map((game) => toTileGame(game));
+}
+
+const homeDoc = loadContent('pages', 'home');
+
+export const metadata = pageMetadata({
+  title: DEFAULT_TITLE,
+  description: homeDoc?.summary ?? DEFAULT_TITLE,
+  path: '/',
+  index: true,
+  absoluteTitle: true,
+});
 
 export default function HomePage() {
   const games = loadCurated();
   const now = buildToday();
-  const collections = visibleCollections(games, now);
-  const hubs = (Object.entries(HUB_NAMES) as [HubSlug, string][]).filter(
-    ([slug]) => games.some((game) => game.hub === slug),
-  );
+  const available = new Set(games.map((game) => game.slug));
+  const choice = spotlightChoice(available, dayOfYear(now));
+  if (choice.skipped.length > 0) {
+    console.warn(`Spotlight skipped: ${choice.skipped.join(', ')}`);
+  }
+  const spotlight =
+    games.find((game) => game.slug === choice.slug) ?? rankByQuality(games)[0];
+  const visible = visibleCollections(games, now);
+  const hubs = HUB_SLUGS.flatMap((slug) => {
+    const count = games.filter((game) => game.hub === slug).length;
+    return count > 0 ? [{ slug, count }] : [];
+  });
 
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="font-display text-4xl text-ink">{SITE_NAME}</h1>
-      <p className="mt-3 max-w-prose text-ink-muted">{DEFAULT_DESCRIPTION}</p>
-      <section className="mt-8">
-        <h2 className="mb-3 text-2xl text-ink">Top games</h2>
-        <GameLinks games={games.slice(0, 24)} />
+    <main className="mx-auto grid max-w-6xl gap-8 px-4 py-6">
+      <h1 className="font-display text-display text-ink">{SITE_NAME}</h1>
+      <ContinuePlaying />
+      {spotlight ? <Spotlight game={toTileGame(spotlight)} /> : null}
+      <section>
+        <h2 className="mb-3 text-title text-ink">Today’s picks</h2>
+        <div className="picks-wide">
+          <TileGrid tiles={featured(todaysPicks(games, now, false))} />
+        </div>
+        <div className="picks-thumb">
+          <TileGrid tiles={featured(todaysPicks(games, now, true))} />
+        </div>
       </section>
-      {collections.length > 0 ? (
-        <section className="mt-8">
-          <h2 className="mb-3 text-2xl text-ink">Collections</h2>
-          <ul className="flex flex-wrap gap-2">
-            {collections.map((collection) => (
-              <li key={collection.slug}>
-                <a
-                  href={`/collection/${collection.slug}/`}
-                  className="inline-flex min-h-11 items-center rounded-full bg-deck px-4 text-ink"
-                >
-                  {collection.name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-      <section className="mt-8">
-        <h2 className="mb-3 text-2xl text-ink">Categories</h2>
-        <ul className="flex flex-wrap gap-2">
-          {hubs.map(([slug, name]) => (
-            <li key={slug}>
-              <a
-                href={`/category/${slug}/`}
-                className="inline-flex min-h-11 items-center rounded-full bg-deck px-4 text-ink"
-              >
-                {name}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="home-rows">
+        {ROW_ORDER.flatMap((slug) => {
+          const collection = visible.find((item) => item.slug === slug);
+          if (!collection) return [];
+          const row = rowOf(games, (game) => collection.matches(game, now));
+          if (row.length === 0) return [];
+          return [
+            <div
+              key={slug}
+              className={slug === 'new-this-week' ? 'home-row home-row-new' : 'home-row'}
+            >
+              <Row
+                title={collection.name}
+                href={`/collection/${collection.slug}/`}
+                games={row}
+              />
+            </div>,
+          ];
+        })}
+        {activeSeasonal(now).flatMap((season) => {
+          const row = rowOf(games, (game) => game.rawCategory === season.rawCategory);
+          if (row.length === 0) return [];
+          return [
+            <div key={season.id} className="home-row">
+              <Row title={season.name} href="/category/seasonal/" games={row} />
+            </div>,
+          ];
+        })}
+      </div>
+      <OriginalsRow />
+      <CategorySection hubs={hubs} />
+      {homeDoc ? <AboutHome doc={homeDoc} /> : null}
     </main>
   );
 }

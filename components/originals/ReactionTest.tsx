@@ -1,14 +1,19 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { buttonClass } from '@/components/ui/Button';
+import { useToast } from '@/components/ui/Toast';
+import { keepBest, readBest, writeBest } from '@/lib/best';
+import { shareOrCopy } from '@/lib/share';
+
+const BEST_KEY = 'ph:reaction-best:v1';
 
 export function ReactionTest() {
-  const [gameState, setGameState] = useState<
-    'idle' | 'waiting' | 'ready' | 'finished'
-  >('idle');
-  const [message, setMessage] = useState('Click to start');
+  const { showToast } = useToast();
+  const [phase, setPhase] = useState<'idle' | 'waiting' | 'ready' | 'result'>('idle');
+  const [message, setMessage] = useState('Press Start, then wait for the colour change.');
   const [score, setScore] = useState<number | null>(null);
+  const [best, setBest] = useState<number | null>(null);
   const startTime = useRef(0);
   const timeoutRef = useRef<number | null>(null);
 
@@ -19,72 +24,92 @@ export function ReactionTest() {
     [],
   );
 
+  function wait() {
+    if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
+    setPhase('waiting');
+    setMessage('Wait for the colour change.');
+    setScore(null);
+    const delay = Math.floor(Math.random() * 2000) + 1000;
+    timeoutRef.current = window.setTimeout(() => {
+      setPhase('ready');
+      setMessage('Tap');
+      startTime.current = Date.now();
+    }, delay);
+  }
+
   function handleClick() {
-    if (gameState === 'idle' || gameState === 'finished') {
-      setGameState('waiting');
-      setMessage('Wait for green...');
-      setScore(null);
-      const delay = Math.floor(Math.random() * 2000) + 1000;
-      timeoutRef.current = window.setTimeout(() => {
-        setGameState('ready');
-        setMessage('Click now');
-        startTime.current = Date.now();
-      }, delay);
+    if (phase === 'idle' || phase === 'result') {
+      setBest(readBest(BEST_KEY));
+      wait();
       return;
     }
-    if (gameState === 'waiting') {
-      if (timeoutRef.current) window.clearTimeout(timeoutRef.current);
-      setGameState('finished');
-      setMessage('Too early');
+    if (phase === 'waiting') {
+      wait();
+      setMessage('Too early. Wait for the colour change.');
       return;
     }
-    const reactionTime = Date.now() - startTime.current;
-    setScore(reactionTime);
-    setGameState('finished');
-    setMessage(`${reactionTime} ms`);
+    const reaction = Date.now() - startTime.current;
+    const next = keepBest(readBest(BEST_KEY), reaction, 'low');
+    writeBest(BEST_KEY, next);
+    setBest(next);
+    setScore(reaction);
+    setPhase('result');
+    setMessage(`${reaction} ms`);
+  }
+
+  async function share() {
+    if (score == null) return;
+    const outcome = await shareOrCopy({
+      title: 'Reaction time test',
+      text: `My reaction time is ${score} ms on PlayHubPlace.`,
+      url: window.location.href,
+    });
+    if (outcome === 'copied') showToast('Link copied');
   }
 
   const tone =
-    gameState === 'waiting'
+    phase === 'waiting'
       ? 'bg-danger text-night'
-      : gameState === 'ready'
+      : phase === 'ready'
         ? 'bg-ok text-night'
-        : gameState === 'finished'
+        : phase === 'result'
           ? 'bg-play text-night'
           : 'bg-raised text-ink';
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link
-        href="/"
-        className="mb-4 inline-flex min-h-11 items-center text-play"
-      >
-        Back to games
-      </Link>
-      <h1 className="mb-4 text-3xl text-ink">Reaction Time Test</h1>
       <button
         type="button"
         className={`w-full rounded-sheet p-8 text-center ${tone}`}
         style={{ minHeight: '320px' }}
-        onMouseDown={handleClick}
+        onPointerDown={(event) => {
+          event.preventDefault();
+          handleClick();
+        }}
         onKeyDown={(event) => {
           if (event.key !== 'Enter' && event.key !== ' ') return;
           event.preventDefault();
           handleClick();
         }}
       >
-        <span className="block text-4xl" aria-live="polite">
+        <span className="block text-display-sm" aria-live="polite">
           {message}
         </span>
-        {gameState === 'finished' && score != null ? (
-          <span className="mt-3 block text-xl">
-            Your reaction time: {score} ms
-          </span>
-        ) : null}
-        {gameState === 'idle' ? (
-          <span className="mt-3 block text-lg">Click this box to begin</span>
+        {phase === 'result' && score != null ? (
+          <span className="mt-3 block text-lead">Your reaction time: {score} ms</span>
         ) : null}
       </button>
+      {phase === 'result' ? (
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          {best != null ? <p className="w-full text-center text-ink-muted">Your best: {best} ms</p> : null}
+          <button type="button" className={buttonClass('play')} onClick={handleClick}>
+            Try again
+          </button>
+          <button type="button" className={buttonClass('secondary')} onClick={() => void share()}>
+            Share
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

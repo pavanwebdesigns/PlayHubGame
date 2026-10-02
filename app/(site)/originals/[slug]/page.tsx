@@ -1,27 +1,22 @@
 import { notFound } from 'next/navigation';
+import { ContentBlocks } from '@/components/content/ContentBlocks';
 import { CpsTest } from '@/components/originals/CpsTest';
 import { ReactionTest } from '@/components/originals/ReactionTest';
+import { loadContent } from '@/lib/content';
+import { isIndexable } from '@/lib/content-gate';
 import { pageMetadata } from '@/lib/seo';
 
-const ORIGINALS = {
-  'reaction-time-test': {
-    title: 'Reaction Time Test',
-    description:
-      'Test your reaction time in the browser. A PlayHubPlace original.',
-  },
-  'cps-test': {
-    title: 'CPS Test',
-    description:
-      'See how many times you can click in 5 seconds. A PlayHubPlace original.',
-  },
-} as const;
-
-type OriginalSlug = keyof typeof ORIGINALS;
+const ORIGINALS = ['reaction-time-test', 'cps-test'] as const;
+type OriginalSlug = (typeof ORIGINALS)[number];
 
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return Object.keys(ORIGINALS).map((slug) => ({ slug }));
+  return ORIGINALS.map((slug) => ({ slug }));
+}
+
+function isOriginal(slug: string): slug is OriginalSlug {
+  return (ORIGINALS as readonly string[]).includes(slug);
 }
 
 export async function generateMetadata({
@@ -31,17 +26,13 @@ export async function generateMetadata({
 }) {
   const { slug } = await params;
   if (!isOriginal(slug)) return {};
-  const page = ORIGINALS[slug];
+  const doc = loadContent('originals', slug);
   return pageMetadata({
-    title: page.title,
-    description: page.description,
+    title: doc?.title ?? slug,
+    description: doc?.summary ?? 'A PlayHubPlace original.',
     path: `/originals/${slug}/`,
-    index: true,
+    index: isIndexable('originals', slug),
   });
-}
-
-function isOriginal(slug: string): slug is OriginalSlug {
-  return Object.prototype.hasOwnProperty.call(ORIGINALS, slug);
 }
 
 export default async function OriginalPage({
@@ -51,9 +42,16 @@ export default async function OriginalPage({
 }) {
   const { slug } = await params;
   if (!isOriginal(slug)) notFound();
+  const doc = loadContent('originals', slug);
   return (
-    <main className="mx-auto max-w-5xl px-4 py-8">
+    <main className="mx-auto max-w-3xl px-4 py-8">
+      <h1 className="mb-4 text-display-sm text-ink">{doc?.title ?? slug}</h1>
       {slug === 'reaction-time-test' ? <ReactionTest /> : <CpsTest />}
+      {doc ? (
+        <div className="mt-8">
+          <ContentBlocks blocks={doc.blocks} />
+        </div>
+      ) : null}
     </main>
   );
 }

@@ -17,6 +17,7 @@ export default defineConfig({
   projects: [
     {
       name: 'mobile',
+      testIgnore: /devices\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 390, height: 844 },
@@ -24,10 +25,21 @@ export default defineConfig({
     },
     {
       name: 'desktop',
+      testIgnore: /devices\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1440, height: 900 },
       },
+    },
+    {
+      name: 'iphone',
+      testMatch: /devices\.spec\.ts/,
+      use: { ...devices['iPhone 13'] },
+    },
+    {
+      name: 'android',
+      testMatch: /devices\.spec\.ts/,
+      use: { ...devices['Pixel 5'] },
     },
   ],
 });
