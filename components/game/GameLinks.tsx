@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import type { GameRecord } from '@/lib/catalog/types';
 
 export function GameLinks({ games }: { games: readonly GameRecord[] }) {
@@ -9,12 +8,12 @@ export function GameLinks({ games }: { games: readonly GameRecord[] }) {
     <ul className="grid gap-3 sm:grid-cols-2">
       {games.map((game) => (
         <li key={game.slug}>
-          <Link
+          <a
             href={`/game/${game.slug}/`}
             className="flex min-h-11 items-center rounded-tile bg-deck px-3 py-2 text-ink"
           >
             {game.title}
-          </Link>
+          </a>
         </li>
       ))}
     </ul>

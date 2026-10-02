@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { SITE_NAME } from '@/config/site';
 
 const LINKS = [
@@ -16,20 +15,17 @@ export function SiteHeader() {
         className="mx-auto flex max-w-5xl flex-wrap items-center gap-2 px-4 py-3"
         aria-label="Main"
       >
-        <Link
-          href="/"
-          className="min-h-11 px-3 py-2 text-lg font-medium text-ink"
-        >
+        <a href="/" className="min-h-11 px-3 py-2 text-lg font-medium text-ink">
           {SITE_NAME}
-        </Link>
+        </a>
         {LINKS.map((link) => (
-          <Link
+          <a
             key={link.href}
             href={link.href}
             className="min-h-11 rounded-full px-3 py-2 text-ink-muted"
           >
             {link.label}
-          </Link>
+          </a>
         ))}
       </nav>
     </header>

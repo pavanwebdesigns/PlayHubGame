@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 const LINKS = [
   { href: '/about/', label: 'About' },
   { href: '/contact/', label: 'Contact' },
@@ -13,13 +11,13 @@ export function SiteFooter() {
     <footer className="border-t border-line">
       <div className="mx-auto flex max-w-5xl flex-wrap gap-2 px-4 py-6">
         {LINKS.map((link) => (
-          <Link
+          <a
             key={link.href}
             href={link.href}
             className="min-h-11 px-3 py-2 text-ink-muted"
           >
             {link.label}
-          </Link>
+          </a>
         ))}
       </div>
       <p className="mx-auto max-w-5xl px-4 pb-6 text-ink-muted">

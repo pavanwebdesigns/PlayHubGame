@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { GameFrame } from '@/components/game/GameFrame';
 import { GameLinks } from '@/components/game/GameLinks';
@@ -48,16 +47,16 @@ export default async function GamePage({
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
       <nav aria-label="Breadcrumb" className="mb-4 text-ink-muted">
-        <Link href="/" className="min-h-11 inline-flex items-center">
+        <a href="/" className="inline-flex min-h-11 items-center">
           Home
-        </Link>
+        </a>
         <span aria-hidden="true"> / </span>
-        <Link
+        <a
           href={`/category/${game.hub}/`}
-          className="min-h-11 inline-flex items-center"
+          className="inline-flex min-h-11 items-center"
         >
           {hubName}
-        </Link>
+        </a>
         <span aria-hidden="true"> / </span>
         <span className="text-ink">{game.title}</span>
       </nav>

@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { GameLinks } from '@/components/game/GameLinks';
 import { HUB_NAMES, type HubSlug } from '@/config/taxonomy';
 import { visibleCollections } from '@/config/collections';
@@ -27,12 +26,12 @@ export default function HomePage() {
           <ul className="flex flex-wrap gap-2">
             {collections.map((collection) => (
               <li key={collection.slug}>
-                <Link
+                <a
                   href={`/collection/${collection.slug}/`}
                   className="inline-flex min-h-11 items-center rounded-full bg-deck px-4 text-ink"
                 >
                   {collection.name}
-                </Link>
+                </a>
               </li>
             ))}
           </ul>
@@ -43,12 +42,12 @@ export default function HomePage() {
         <ul className="flex flex-wrap gap-2">
           {hubs.map(([slug, name]) => (
             <li key={slug}>
-              <Link
+              <a
                 href={`/category/${slug}/`}
                 className="inline-flex min-h-11 items-center rounded-full bg-deck px-4 text-ink"
               >
                 {name}
-              </Link>
+              </a>
             </li>
           ))}
         </ul>
