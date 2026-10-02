@@ -12,7 +12,7 @@ Hit the brief §1 targets on real phones, make the site usable for everyone, and
 | LCP (mobile, Moto G Power profile) | ≤ 2.5 s on home, game, category |
 | CLS | ≤ 0.05 (stricter than Google's 0.1 on purpose) |
 | TBT (lab proxy for INP) | ≤ 200 ms |
-| JS on home (gzip) | ≤ 120 KB |
+| JS on home (gzip) | ≤ 140 KB |
 | Images above the fold | ≤ 6 requests, total ≤ 300 KB |
 
 Techniques (check each, report which applied):

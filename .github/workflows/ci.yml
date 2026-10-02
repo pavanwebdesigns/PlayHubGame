@@ -69,4 +69,7 @@ jobs:
         run: npx playwright test
 
       - name: Lighthouse
-        run: rm -rf .lighthouseci && npx lhci autorun && node scripts/check-lighthouse.mjs
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: rm -rf .lighthouseci && npx lhci autorun && node scripts/check-lighthouse.mjs && node scripts/check-home-js.mjs

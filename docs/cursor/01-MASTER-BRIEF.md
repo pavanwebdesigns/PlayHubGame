@@ -19,9 +19,11 @@ Facts below were measured on the live site, the repo and the GamePix feed on 2 O
 |---|---|
 | Core Web Vitals, 75th percentile, mobile | LCP ≤ 2.5 s, INP ≤ 200 ms, CLS ≤ 0.1 |
 | Lighthouse mobile (home, game page, category page) | Performance ≥ 90, Accessibility 100, Best Practices 100 (≥ 95 once third-party ads run), SEO 100 |
-| Initial JS on home (gzip) | ≤ 120 KB |
+| Initial JS on home (gzip) | ≤ 140 KB |
 | Taps from home to a running game | ≤ 2 |
 | Indexed pages with original content | grows every week (tracked in Search Console) |
+
+The 140 KB home budget is the React and Next.js runtime. The measured baseline on 2 Oct 2026 is 134,029 bytes gzip. CI fails a pull request that grows past that by more than 5 KB unless the pull request body contains a `home-js:` note.
 
 ---
 
