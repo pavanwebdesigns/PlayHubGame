@@ -3,7 +3,9 @@ import { CategoryCard } from '@/components/game/CategoryCard';
 import { GameTile } from '@/components/game/GameTile';
 import { Row } from '@/components/game/Row';
 import { Spotlight } from '@/components/game/Spotlight';
-import { TileGrid } from '@/components/game/TileGrid';
+import { TILE_COLUMNS, TileGrid } from '@/components/game/TileGrid';
+import { mdCountForPackedGrid } from '@/lib/tile-pack';
+import type { TileGame } from '@/lib/tile-game';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { Footer } from '@/components/layout/Footer';
 import { SideRail } from '@/components/layout/SideRail';
@@ -20,11 +22,27 @@ const collections = [
   { href: '/collection/one-thumb/', label: 'One-thumb games' },
 ];
 
+function packedTiles(columns: number, games: readonly TileGame[]) {
+  const lead = games[0];
+  const rest = games.slice(1);
+  if (!lead || rest.length === 0) return [];
+  const mdCount = mdCountForPackedGrid(columns, rest.length);
+  const tiles: { game: TileGame; size: 'xl' | 'md' }[] = [
+    { game: lead, size: 'xl' },
+  ];
+  for (let index = 0; index < mdCount; index += 1) {
+    const game = rest[index % rest.length];
+    if (game) tiles.push({ game, size: 'md' });
+  }
+  return tiles;
+}
+
 export function GameSections() {
   const year = buildToday().getUTCFullYear();
   const first = sampleGames[0];
   const second = sampleGames[1];
-  if (!first || !second) return null;
+  const missing = sampleGames[2];
+  if (!first || !second || !missing) return null;
 
   return (
     <>
@@ -32,24 +50,26 @@ export function GameSections() {
         <h2 className="text-title">Game tile</h2>
         <div className="grid max-w-sm gap-4">
           <GameTile game={first} size="md" />
-          <GameTile game={second} size="lg" />
-          <GameTile game={sampleGames[2] ?? first} size="md" />
+          <GameTile game={missing} size="md" />
         </div>
       </section>
 
-      <section id="tile-grid" className="grid gap-3">
+      <section id="tile-grid" className="grid min-w-0 gap-6">
         <h2 className="text-title">Tile grid</h2>
-        <TileGrid
-          tiles={[
-            { game: first, size: 'xl' },
-            { game: second, size: 'md' },
-            { game: sampleGames[3] ?? first, size: 'lg' },
-            { game: sampleGames[4] ?? second, size: 'md' },
-          ]}
-        />
+        {TILE_COLUMNS.map((columns) => (
+          <div key={columns} className="grid min-w-0 gap-3">
+            <h3 className="text-lead">{columns} columns</h3>
+            <div className="min-w-0 overflow-x-auto">
+              <TileGrid
+                columns={columns}
+                tiles={packedTiles(columns, sampleGames)}
+              />
+            </div>
+          </div>
+        ))}
       </section>
 
-      <section id="row" className="grid gap-3">
+      <section id="row" className="grid min-w-0 gap-3">
         <h2 className="text-title">Row</h2>
         <Row
           title="Sample row"

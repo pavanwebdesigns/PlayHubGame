@@ -23,6 +23,7 @@
   --tap-lg: 52px;
   --bar: 56px;
   --bar-lg: 64px;
+  --row-tile: 10rem;
 }
 
 @theme inline {
@@ -106,34 +107,60 @@ body {
 }
 
 .tile-grid {
+  --tile-cols: 2;
   display: grid;
   grid-auto-flow: dense;
+  align-items: start;
   gap: 1rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--tile-cols), minmax(0, 1fr));
 }
 
 @media (min-width: 481px) {
   .tile-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    --tile-cols: 3;
   }
 }
 
 @media (min-width: 769px) {
   .tile-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    --tile-cols: 4;
   }
 }
 
 @media (min-width: 1025px) {
   .tile-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    --tile-cols: 6;
   }
 }
 
 @media (min-width: 1441px) {
   .tile-grid {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
+    --tile-cols: 8;
   }
+}
+
+.tile-grid[data-columns='2'] {
+  --tile-cols: 2;
+}
+
+.tile-grid[data-columns='3'] {
+  --tile-cols: 3;
+  min-width: 36rem;
+}
+
+.tile-grid[data-columns='4'] {
+  --tile-cols: 4;
+  min-width: 48rem;
+}
+
+.tile-grid[data-columns='6'] {
+  --tile-cols: 6;
+  min-width: 60rem;
+}
+
+.tile-grid[data-columns='8'] {
+  --tile-cols: 8;
+  min-width: 64rem;
 }
 
 .tile-xl {
@@ -141,18 +168,39 @@ body {
   grid-row: span 2;
 }
 
-.tile-lg {
-  grid-column: span 2;
+.tile-row {
+  width: var(--row-tile);
+  flex: 0 0 var(--row-tile);
+  scroll-snap-align: start;
 }
 
-.tile-row {
-  width: 10rem;
-  flex: 0 0 auto;
-  scroll-snap-align: start;
+.game-tile {
+  min-width: 0;
 }
 
 .game-tile:active {
   transform: scale(0.98);
+}
+
+.cover-frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--cover-aspect, 1.6);
+  overflow: hidden;
+  background: var(--deck);
+}
+
+.cover-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  text-align: center;
 }
 
 .tile-hub {
@@ -161,7 +209,9 @@ body {
 
 @media (hover: hover) and (pointer: fine) {
   .game-tile:hover,
-  .game-tile:focus-visible {
+  .game-tile:focus-visible,
+  .category-card:hover,
+  .category-card:focus-visible {
     transform: translateY(-2px);
     outline: 2px solid var(--play);
     outline-offset: 2px;
@@ -181,6 +231,32 @@ body {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+}
+
+.row-edge {
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: center;
+  height: calc(var(--row-tile) / var(--cover-aspect, 1.6));
+  width: 4.5rem;
+  pointer-events: none;
+}
+
+.row-edge > button {
+  pointer-events: auto;
+}
+
+.row-edge-prev {
+  left: 0;
+  justify-content: flex-start;
+  background: linear-gradient(to right, var(--night), transparent);
+}
+
+.row-edge-next {
+  right: 0;
+  justify-content: flex-end;
+  background: linear-gradient(to left, var(--night), transparent);
 }
 
 .spotlight-frame {
@@ -302,8 +378,34 @@ body {
   margin: 0.75rem 0;
 }
 
-.prose-ph :where(ul, ol) {
+.prose-ph ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.prose-ph ul > li {
+  position: relative;
   padding-left: 1.25rem;
+}
+
+.prose-ph ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: var(--radius-button);
+  background: var(--ink-muted);
+}
+
+.prose-ph ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+
+.prose-ph ol ::marker {
+  color: var(--ink-muted);
 }
 
 .prose-ph table {

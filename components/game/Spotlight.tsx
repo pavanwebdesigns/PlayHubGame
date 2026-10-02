@@ -12,7 +12,7 @@ export function Spotlight({ game }: { game: TileGame }) {
         <CoverImage
           src={game.cover}
           alt=""
-          aspect={game.aspect}
+          title={game.title}
           sizes="(max-width: 768px) 100vw, 40vw"
         />
         <h2 className="mt-3 font-display text-display text-ink">

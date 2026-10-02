@@ -4,7 +4,7 @@ export const sampleGames: readonly TileGame[] = [
   {
     slug: 'gallery-sample',
     title: 'Sample puzzle',
-    cover: '/placeholder-cover.svg',
+    cover: '',
     hub: 'puzzle',
     publishedAt: '2026-10-01',
     orientation: 'portrait',
@@ -13,7 +13,7 @@ export const sampleGames: readonly TileGame[] = [
   {
     slug: 'gallery-racer',
     title: 'Sample racer',
-    cover: '/placeholder-cover.svg',
+    cover: '',
     hub: 'racing-driving',
     publishedAt: '2026-01-01',
     orientation: 'landscape',
@@ -31,7 +31,7 @@ export const sampleGames: readonly TileGame[] = [
   {
     slug: 'gallery-match',
     title: 'Sample match',
-    cover: '/placeholder-cover.svg',
+    cover: '',
     hub: 'match-3',
     publishedAt: '2025-06-01',
     orientation: 'portrait',
@@ -40,7 +40,7 @@ export const sampleGames: readonly TileGame[] = [
   {
     slug: 'gallery-sport',
     title: 'Sample sport',
-    cover: '/placeholder-cover.svg',
+    cover: '',
     hub: 'sports',
     publishedAt: '2025-04-01',
     orientation: 'landscape',
@@ -49,7 +49,7 @@ export const sampleGames: readonly TileGame[] = [
   {
     slug: 'gallery-word',
     title: 'Sample word',
-    cover: '/placeholder-cover.svg',
+    cover: '',
     hub: 'math-word',
     publishedAt: '2025-03-01',
     orientation: 'portrait',
@@ -58,7 +58,7 @@ export const sampleGames: readonly TileGame[] = [
   {
     slug: 'gallery-draw',
     title: 'Sample drawing',
-    cover: '/placeholder-cover.svg',
+    cover: '',
     hub: 'coloring-drawing',
     publishedAt: '2025-02-01',
     orientation: 'landscape',
@@ -67,7 +67,7 @@ export const sampleGames: readonly TileGame[] = [
   {
     slug: 'gallery-casual',
     title: 'Sample casual',
-    cover: '/placeholder-cover.svg',
+    cover: '',
     hub: 'casual',
     publishedAt: '2025-01-01',
     orientation: 'all',

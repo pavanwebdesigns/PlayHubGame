@@ -2,42 +2,48 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { SITE_NAME } from '@/config/site';
 
 export function CoverImage({
   src,
   alt,
-  aspect,
+  title,
   sizes,
 }: {
   src: string;
   alt: string;
-  aspect: number;
+  title: string;
   sizes: string;
 }) {
-  const [failed, setFailed] = useState(false);
-  const ratio = String(aspect > 0 ? aspect : 1.6);
-
-  if (failed) {
-    return (
-      <span
-        className="flex w-full items-center justify-center bg-deck p-3 text-center font-display text-display-xs text-ink"
-        style={{ aspectRatio: ratio }}
-      >
-        {alt}
-      </span>
-    );
-  }
+  const [failed, setFailed] = useState(src.length === 0);
 
   return (
-    <span className="relative block w-full" style={{ aspectRatio: ratio }}>
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes={sizes}
-        className="object-cover"
-        onError={() => setFailed(true)}
-      />
+    <span className="cover-frame">
+      {failed ? (
+        <span className="cover-fallback">
+          <span
+            className="line-clamp-2 w-full min-w-0 font-display text-display-xs text-ink"
+            aria-hidden={alt.length === 0}
+          >
+            {title}
+          </span>
+          <span
+            className="max-w-full truncate text-ui leading-tight text-ink-muted"
+            aria-hidden="true"
+          >
+            {SITE_NAME}
+          </span>
+        </span>
+      ) : (
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          sizes={sizes}
+          className="object-cover"
+          onError={() => setFailed(true)}
+        />
+      )}
     </span>
   );
 }

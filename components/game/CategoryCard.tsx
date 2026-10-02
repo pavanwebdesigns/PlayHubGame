@@ -14,11 +14,13 @@ export function CategoryCard({
   return (
     <a
       href={href}
-      className="press flex min-h-tap items-center gap-3 rounded-tile bg-deck px-3 py-2 text-ink"
+      className="category-card press flex min-h-16 max-w-xs items-center gap-3 rounded-tile bg-deck px-4 text-ink"
     >
-      <Icon aria-hidden="true" size={20} />
-      <span className="font-medium">{name}</span>
-      <span className="text-ink-muted">{count}</span>
+      <Icon aria-hidden="true" size={24} />
+      <span className="min-w-0">
+        <span className="block truncate font-medium">{name}</span>
+        <span className="block text-ui text-ink-muted">{count} games</span>
+      </span>
     </a>
   );
 }

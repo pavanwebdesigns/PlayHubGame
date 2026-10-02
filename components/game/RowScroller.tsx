@@ -71,19 +71,21 @@ export function RowScroller({
         {children}
       </div>
       {overflow && edges.prev ? (
-        <div className="absolute top-1/2 left-1 -translate-y-1/2">
+        <div className="row-edge row-edge-prev">
           <IconButton
             label="Previous games"
             icon={ChevronLeft}
+            className="bg-deck"
             onClick={() => move(-1)}
           />
         </div>
       ) : null}
       {overflow && edges.next ? (
-        <div className="absolute top-1/2 right-1 -translate-y-1/2">
+        <div className="row-edge row-edge-next">
           <IconButton
             label="Next games"
             icon={ChevronRight}
+            className="bg-deck"
             onClick={() => move(1)}
           />
         </div>

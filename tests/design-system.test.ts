@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { spotlightPitch } from '@/config/spotlight';
+import { coverAspect } from '@/lib/cover-aspect';
 import { isSearchShortcutBlocked } from '@/lib/search-shortcut';
 import { isFavoriteSlug } from '@/lib/favorites';
 import { isNewGame, toTileGame } from '@/lib/tile-game';
+import { featuredSideCells, mdCountForPackedGrid } from '@/lib/tile-pack';
 import type { GameRecord } from '@/lib/catalog/types';
 
 const record: GameRecord = {
@@ -79,6 +81,25 @@ describe('favorite mark', () => {
     expect(isFavoriteSlug(raw, 'prism-match-3d')).toBe(true);
     expect(isFavoriteSlug(raw, 'other')).toBe(false);
     expect(isFavoriteSlug(null, 'prism-match-3d')).toBe(false);
+  });
+});
+
+describe('cover aspect', () => {
+  it('uses the measured median from the catalog', () => {
+    expect(coverAspect()).toBe(1.6);
+  });
+});
+
+describe('tile grid packing', () => {
+  it('fills the cells beside a large tile at every column count', () => {
+    for (const columns of [2, 3, 4, 6, 8]) {
+      const md = mdCountForPackedGrid(columns, 7);
+      expect(md).toBeGreaterThanOrEqual(featuredSideCells(columns));
+      expect(featuredSideCells(columns) - md).toBeLessThanOrEqual(0);
+    }
+    expect(mdCountForPackedGrid(4, 7)).toBe(7);
+    expect(mdCountForPackedGrid(6, 7)).toBe(8);
+    expect(mdCountForPackedGrid(8, 7)).toBe(12);
   });
 });
 

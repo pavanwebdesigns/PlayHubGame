@@ -6,7 +6,6 @@ import { FavoriteMark } from '@/components/game/FavoriteMark';
 
 const sizeClass = {
   xl: 'tile-xl',
-  lg: 'tile-lg',
   md: '',
   row: 'tile-row',
 } as const;
@@ -30,7 +29,7 @@ export function GameTile({
         <CoverImage
           src={game.cover}
           alt={game.title}
-          aspect={game.aspect}
+          title={game.title}
           sizes="(max-width: 768px) 50vw, 16vw"
         />
         <span className="absolute top-1 right-1">

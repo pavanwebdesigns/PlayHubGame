@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { ToastProvider } from '@/components/ui/Toast';
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_URL } from '@/config/site';
+import { coverAspect } from '@/lib/cover-aspect';
 import { LEGACY_GAME_REDIRECT } from '@/lib/legacy-redirect';
 import { anekLatin, jersey15 } from './fonts';
 import './globals.css';
@@ -22,7 +23,11 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${anekLatin.variable} ${jersey15.variable}`}>
+    <html
+      lang="en"
+      className={`${anekLatin.variable} ${jersey15.variable}`}
+      style={{ '--cover-aspect': coverAspect() } as CSSProperties}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: LEGACY_GAME_REDIRECT }} />
       </head>
