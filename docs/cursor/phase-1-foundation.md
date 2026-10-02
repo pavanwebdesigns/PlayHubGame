@@ -27,7 +27,7 @@ Reply with: the folder tree you will create, the exact Next.js / Tailwind / zod 
 6. Unit tests: schema accepts the real sample item in `tests/fixtures/gamepix-item.json`; rejects a bad one; slug collisions resolved deterministically; embed URL always has the sid.
 
 ### 1.3 Curation + taxonomy (`config/curation.ts`, `config/taxonomy.ts`)
-- Curated set = `quality ≥ 0.70` ∪ 200 newest by `publishedAt` ∪ `ALLOWLIST` − `DENYLIST`. Log the resulting count (expected ~1,600–1,800).
+- Curated set = `quality ≥ 0.70` ∪ 200 newest by `publishedAt` ∪ `ALLOWLIST` ∪ (top 40 by quality from each hub, after the denylist) − `DENYLIST`. A collection with fewer than 24 curated games is hidden. Log the resulting count.
 - `DENYLIST` starts with games whose raw category or title names a third-party brand (mario, minecraft, skibidi-toilet, ninja-turtle, granny — extend as found). They are excluded from pages, search and sitemaps.
 - Taxonomy: every one of the 147 raw categories maps to exactly one hub from brief §6 (a unit test fails if a raw category is unmapped — new categories in the feed must be mapped by a human). Raw category stays as a tag.
 - Collections from brief §6 as typed predicate functions in `config/collections.ts`.

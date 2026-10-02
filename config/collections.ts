@@ -2,6 +2,9 @@ import type { GameRecord } from '@/lib/catalog/types';
 
 type CollectionMatch = (game: GameRecord, now: Date) => boolean;
 
+/** A collection page is hidden until it has at least this many curated games. */
+export const COLLECTION_MIN = 24;
+
 export type CollectionSlug =
   | 'one-thumb'
   | 'two-players'
@@ -65,3 +68,23 @@ export const COLLECTIONS: readonly {
     },
   },
 ];
+
+export function collectionSize(
+  games: readonly GameRecord[],
+  slug: CollectionSlug,
+  now: Date,
+): number {
+  const collection = COLLECTIONS.find((item) => item.slug === slug);
+  if (!collection) return 0;
+  return games.filter((game) => collection.matches(game, now)).length;
+}
+
+export function visibleCollections(
+  games: readonly GameRecord[],
+  now: Date,
+): (typeof COLLECTIONS)[number][] {
+  return COLLECTIONS.filter(
+    (collection) =>
+      collectionSize(games, collection.slug, now) >= COLLECTION_MIN,
+  );
+}

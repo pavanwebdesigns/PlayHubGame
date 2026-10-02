@@ -44,6 +44,7 @@ export type CatalogMeta = {
   pagesFetched: number;
   stale: boolean;
   hubCounts: Record<string, number>;
+  collectionCounts: Record<string, { count: number; visible: boolean }>;
   coverSample: CoverSample;
   thresholds: {
     minValidGames: number;

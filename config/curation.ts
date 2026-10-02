@@ -2,6 +2,8 @@ import type { GameRecord } from '@/lib/catalog/types';
 
 export const QUALITY_MIN = 0.7;
 export const NEWEST_COUNT = 200;
+/** Top games by quality kept from each hub after the denylist. */
+export const HUB_FLOOR = 40;
 
 /** Game ids forced into the curated set. Empty until Pavan adds one. */
 export const ALLOWLIST: readonly string[] = [];
@@ -33,6 +35,11 @@ export function isDenied(
   return DENY_TITLE.test(game.title);
 }
 
+function byQuality(a: GameRecord, b: GameRecord): number {
+  if (a.quality !== b.quality) return b.quality - a.quality;
+  return a.id < b.id ? -1 : 1;
+}
+
 export function curate(
   games: readonly GameRecord[],
   allowlist: readonly string[] = ALLOWLIST,
@@ -48,6 +55,19 @@ export function curate(
       .map((game) => game.id),
   );
   const allowed = new Set(allowlist);
+  const byHub = new Map<string, GameRecord[]>();
+  for (const game of games) {
+    if (isDenied(game)) continue;
+    const group = byHub.get(game.hub) ?? [];
+    group.push(game);
+    byHub.set(game.hub, group);
+  }
+  const floorIds = new Set<string>();
+  for (const group of byHub.values()) {
+    for (const game of group.sort(byQuality).slice(0, HUB_FLOOR)) {
+      floorIds.add(game.id);
+    }
+  }
 
   return games
     .filter((game) => {
@@ -55,7 +75,8 @@ export function curate(
       return (
         game.quality >= QUALITY_MIN ||
         newestIds.has(game.id) ||
-        allowed.has(game.id)
+        allowed.has(game.id) ||
+        floorIds.has(game.id)
       );
     })
     .sort((a, b) => {

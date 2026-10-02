@@ -31,6 +31,10 @@ writeFileSync(
   'public/data/legacy-ids.json',
   `${JSON.stringify(outputs.legacyIds)}\n`,
 );
+writeFileSync(
+  'public/data/search-index.json',
+  `${JSON.stringify(outputs.searchIndex)}\n`,
+);
 
 const hubs = Object.entries(outputs.meta.hubCounts)
   .sort((a, b) => b[1] - a[1])
@@ -50,3 +54,7 @@ console.log(
   ].join(' '),
 );
 console.log(hubs);
+const collections = Object.entries(outputs.meta.collectionCounts)
+  .map(([slug, row]) => `${slug}=${row.count}${row.visible ? '' : ' (hidden)'}`)
+  .join(', ');
+console.log(collections);

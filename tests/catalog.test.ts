@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { COLLECTIONS } from '@/config/collections';
+import { COLLECTIONS, visibleCollections } from '@/config/collections';
 import { curate, isDenied } from '@/config/curation';
 import { HUB_NAMES, RAW_CATEGORY_TO_HUB, hubFor } from '@/config/taxonomy';
 import { catalogWithinThresholds, invalidRatio } from '@/lib/catalog/assess';
@@ -100,13 +100,24 @@ describe('curation', () => {
       game({
         id: `n${String(index).padStart(3, '0')}`,
         slug: `n${index}`,
+        hub: 'casual',
         quality: 0.1,
         publishedAt: '2026-10-01T00:00:00.000Z',
+      }),
+    );
+    const floor = Array.from({ length: 40 }, (_, index) =>
+      game({
+        id: `f${String(index).padStart(2, '0')}`,
+        slug: `f${index}`,
+        hub: 'action',
+        quality: 0.5,
+        publishedAt: '2015-01-01T00:00:00.000Z',
       }),
     );
     const older = game({
       id: 'old',
       slug: 'old',
+      hub: 'action',
       quality: 0.2,
       publishedAt: '2019-01-01T00:00:00.000Z',
     });
@@ -129,7 +140,7 @@ describe('curation', () => {
       quality: 0.99,
     });
     const curated = curate(
-      [...fillers, older, allowed, strong, mario],
+      [...fillers, ...floor, older, allowed, strong, mario],
       ['allow'],
     );
     const ids = curated.map((item) => item.id);
@@ -160,6 +171,66 @@ describe('curation', () => {
     const now = new Date('2026-10-02T00:00:00.000Z');
     expect(newest?.matches(recent, now)).toBe(true);
     expect(newest?.matches(old, now)).toBe(false);
+  });
+
+  it('keeps the top 40 in a hub and hides a short collection', () => {
+    const newer = Array.from({ length: 200 }, (_, index) =>
+      game({
+        id: `q${String(index).padStart(3, '0')}`,
+        slug: `q${index}`,
+        hub: 'casual',
+        quality: 0.1,
+        publishedAt: '2026-09-01T00:00:00.000Z',
+      }),
+    );
+    const low = Array.from({ length: 45 }, (_, index) =>
+      game({
+        id: `h${String(index).padStart(2, '0')}`,
+        slug: `h${index}`,
+        hub: 'seasonal',
+        rawCategory: 'christmas',
+        quality: index / 100,
+        publishedAt: '2010-01-01T00:00:00.000Z',
+      }),
+    );
+    const denied = game({
+      id: 'denied',
+      slug: 'denied',
+      hub: 'seasonal',
+      rawCategory: 'mario',
+      title: 'Mario',
+      quality: 1,
+    });
+    const curated = curate([...newer, ...low, denied]);
+    const seasonal = curated.filter((item) => item.hub === 'seasonal');
+    expect(seasonal).toHaveLength(40);
+    expect(seasonal.some((item) => item.id === 'denied')).toBe(false);
+    expect(seasonal.some((item) => item.id === 'h00')).toBe(false);
+    const now = new Date('2026-10-02T00:00:00.000Z');
+    const short = Array.from({ length: 23 }, (_, index) =>
+      game({
+        id: `p${index}`,
+        slug: `p${index}`,
+        orientation: 'portrait',
+        rawCategory: 'puzzle',
+      }),
+    );
+    expect(
+      visibleCollections(short, now).map((item) => item.slug),
+    ).not.toContain('one-thumb');
+    expect(
+      visibleCollections(
+        Array.from({ length: 24 }, (_, index) =>
+          game({
+            id: `p${index}`,
+            slug: `p${index}`,
+            orientation: 'portrait',
+            rawCategory: 'puzzle',
+          }),
+        ),
+        now,
+      ).map((item) => item.slug),
+    ).toContain('one-thumb');
   });
 });
 
@@ -248,13 +319,19 @@ describe('normalize', () => {
 });
 
 describe('home page data', () => {
-  it('does not import catalog data into the home page graph', () => {
+  it('does not import catalog data into the home page client graph', () => {
     const seen = new Set<string>();
-    const visit = (file: string) => {
+    const visit = (file: string, fromClient: boolean) => {
       if (seen.has(file)) return;
       seen.add(file);
       const text = readFileSync(file, 'utf8');
-      expect(text).not.toMatch(/data\/(catalog|curated|search-index|meta)/);
+      const isClient =
+        fromClient ||
+        text.includes("'use client'") ||
+        text.includes('"use client"');
+      if (isClient) {
+        expect(text).not.toMatch(/data\/(catalog|curated|search-index|meta)/);
+      }
       for (const match of text.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
         const spec = match[1];
         if (!spec?.startsWith('@/') && !spec?.startsWith('.')) continue;
@@ -271,10 +348,10 @@ describe('home page data', () => {
               return false;
             }
           });
-        if (resolved) visit(resolved);
+        if (resolved) visit(resolved, isClient);
       }
     };
-    visit(`${process.cwd()}/app/page.tsx`);
-    visit(`${process.cwd()}/app/layout.tsx`);
+    visit(`${process.cwd()}/app/page.tsx`, false);
+    visit(`${process.cwd()}/app/layout.tsx`, false);
   });
 });

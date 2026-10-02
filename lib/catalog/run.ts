@@ -1,3 +1,8 @@
+import {
+  COLLECTIONS,
+  collectionSize,
+  COLLECTION_MIN,
+} from '@/config/collections';
 import { curate } from '@/config/curation';
 import { MAX_INVALID_RATIO, MIN_VALID_GAMES } from '@/config/site';
 import { catalogWithinThresholds } from '@/lib/catalog/assess';
@@ -78,6 +83,12 @@ function assemble(
       pagesFetched: details.pagesFetched,
       stale: details.stale,
       hubCounts: hubCounts(curated),
+      collectionCounts: Object.fromEntries(
+        COLLECTIONS.map((collection) => {
+          const count = collectionSize(curated, collection.slug, details.now);
+          return [collection.slug, { count, visible: count >= COLLECTION_MIN }];
+        }),
+      ),
       coverSample: details.coverSample,
       thresholds: {
         minValidGames: MIN_VALID_GAMES,
