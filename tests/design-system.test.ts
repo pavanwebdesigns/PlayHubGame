@@ -43,6 +43,7 @@ describe('tile payload', () => {
         'cover',
         'coverWidth',
         'hub',
+        'id',
         'orientation',
         'publishedAt',
         'slug',

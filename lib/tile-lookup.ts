@@ -42,6 +42,7 @@ function readTile(value: unknown): TileGame | null {
   }
   if (typeof row.aspect !== 'number') return null;
   return {
+    id: typeof row.id === 'string' && row.id.length > 0 ? row.id : row.slug,
     slug: row.slug,
     title: row.title,
     cover: row.cover,

@@ -2,6 +2,7 @@ import type { TileGame } from '@/lib/tile-game';
 
 export const sampleGames: readonly TileGame[] = [
   {
+    id: 'gallery-sample',
     slug: 'gallery-sample',
     title: 'Sample puzzle',
     cover: '',
@@ -12,6 +13,7 @@ export const sampleGames: readonly TileGame[] = [
     aspect: 1.6,
   },
   {
+    id: 'gallery-racer',
     slug: 'gallery-racer',
     title: 'Sample racer',
     cover: '',
@@ -22,6 +24,7 @@ export const sampleGames: readonly TileGame[] = [
     aspect: 1.6,
   },
   {
+    id: 'gallery-missing',
     slug: 'gallery-missing',
     title: 'Missing cover',
     cover: '/missing-cover.svg',
@@ -32,6 +35,7 @@ export const sampleGames: readonly TileGame[] = [
     aspect: 0.8,
   },
   {
+    id: 'gallery-match',
     slug: 'gallery-match',
     title: 'Sample match',
     cover: '',
@@ -42,6 +46,7 @@ export const sampleGames: readonly TileGame[] = [
     aspect: 1,
   },
   {
+    id: 'gallery-sport',
     slug: 'gallery-sport',
     title: 'Sample sport',
     cover: '',
@@ -52,6 +57,7 @@ export const sampleGames: readonly TileGame[] = [
     aspect: 1.6,
   },
   {
+    id: 'gallery-word',
     slug: 'gallery-word',
     title: 'Sample word',
     cover: '',
@@ -62,6 +68,7 @@ export const sampleGames: readonly TileGame[] = [
     aspect: 1.2,
   },
   {
+    id: 'gallery-draw',
     slug: 'gallery-draw',
     title: 'Sample drawing',
     cover: '',
@@ -72,6 +79,7 @@ export const sampleGames: readonly TileGame[] = [
     aspect: 1.6,
   },
   {
+    id: 'gallery-casual',
     slug: 'gallery-casual',
     title: 'Sample casual',
     cover: '',

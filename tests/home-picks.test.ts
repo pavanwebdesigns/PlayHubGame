@@ -5,6 +5,7 @@ import type { TileGame } from '@/lib/tile-game';
 
 function tile(slug: string): TileGame {
   return {
+    id: slug,
     slug,
     title: slug,
     cover: 'https://img.gamepix.com/cover.jpg',
