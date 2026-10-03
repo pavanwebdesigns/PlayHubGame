@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 test('home, play, and the legacy game link', async ({ page }) => {
   await page.goto('/');
   await expect(
-    page.getByRole('heading', { level: 1, name: 'PlayHubPlace' }),
+    page.getByRole('heading', { level: 1, name: 'Free online games — play instantly' }),
   ).toBeVisible();
   const homeAxe = await new AxeBuilder({ page }).analyze();
   expect(homeAxe.violations).toEqual([]);

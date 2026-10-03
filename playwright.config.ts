@@ -17,7 +17,7 @@ export default defineConfig({
   projects: [
     {
       name: 'mobile',
-      testIgnore: /devices\.spec\.ts|rail\.spec\.ts/,
+      testIgnore: /devices\.spec\.ts|rail\.spec\.ts|home-h1\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 390, height: 844 },

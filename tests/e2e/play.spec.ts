@@ -143,6 +143,6 @@ test('home still opens when storage throws', async ({ page }) => {
   });
   await page.goto('/');
   await expect(
-    page.getByRole('heading', { level: 1, name: 'PlayHubPlace' }),
+    page.getByRole('heading', { level: 1, name: 'Free online games — play instantly' }),
   ).toBeVisible();
 });

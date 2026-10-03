@@ -10,7 +10,6 @@ import { visibleCollections, type CollectionSlug } from '@/config/collections';
 import { activeSeasonal } from '@/config/seasonal';
 import { dayOfYear, spotlightChoice } from '@/config/spotlight';
 import { HUB_SLUGS } from '@/config/taxonomy';
-import { SITE_NAME } from '@/config/site';
 import { XL_COVER_MIN } from '@/lib/catalog/cover-widths';
 import { loadCurated } from '@/lib/catalog/load';
 import { buildToday } from '@/lib/build-clock';
@@ -85,7 +84,7 @@ export default function HomePage() {
 
   return (
     <main className="mx-auto grid max-w-6xl gap-8 px-4 py-6">
-      <h1 className="font-display text-display text-ink">{SITE_NAME}</h1>
+      <h1 className="text-title text-ink">Free online games — play instantly</h1>
       <ContinuePlayingSlot />
       {spotlight ? <Spotlight game={toTileGame(spotlight)} /> : null}
       <section>
