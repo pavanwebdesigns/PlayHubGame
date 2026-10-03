@@ -67,8 +67,12 @@ function main(): void {
       join(dir, 'meta.json.gz'),
       gzipSync(readFileSync('data/meta.json')),
     );
+    writeFileSync(
+      join(dir, 'cover-widths.json.gz'),
+      gzipSync(readFileSync('data/cover-widths.json')),
+    );
     git(dir, ['init', '-b', SNAPSHOT_BRANCH]);
-    git(dir, ['add', 'catalog.json.gz', 'meta.json.gz']);
+    git(dir, ['add', 'catalog.json.gz', 'meta.json.gz', 'cover-widths.json.gz']);
     git(dir, [
       '-c',
       'user.name=github-actions[bot]',

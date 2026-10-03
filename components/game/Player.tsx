@@ -14,6 +14,7 @@ export type PlayGame = {
   slug: string;
   title: string;
   cover: string;
+  coverWidth: number | null;
   embedUrl: string;
   orientation: 'landscape' | 'portrait' | 'all';
   aspect: number;
@@ -241,6 +242,7 @@ export function Player({
                 src={game.cover}
                 alt=""
                 title={game.title}
+                coverWidth={game.coverWidth}
                 sizes="(max-width: 1024px) 100vw, 60vw"
                 priority
               />

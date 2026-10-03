@@ -34,6 +34,7 @@ export function GameTile({
           src={game.cover}
           alt={game.title}
           title={game.title}
+          coverWidth={game.coverWidth}
           sizes="(max-width: 768px) 50vw, 16vw"
         />
         <span className="absolute top-1 right-1">

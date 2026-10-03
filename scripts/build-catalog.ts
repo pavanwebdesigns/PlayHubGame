@@ -1,7 +1,11 @@
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { feedStartUrl } from '@/config/site';
 import { writePublicTiles } from './write-tiles';
 import { measureCoverSample } from '@/lib/catalog/covers';
+import {
+  loadCoverWidths,
+  measureMissingCovers,
+} from '@/lib/catalog/cover-widths';
 import { fetchFeed } from '@/lib/catalog/fetch-feed';
 import { buildCatalog } from '@/lib/catalog/run';
 import { readFirstSnapshot, snapshotSearchDirs } from '@/lib/catalog/snapshot';
@@ -16,6 +20,8 @@ const outputs = await buildCatalog({
   fetchFeed: () => fetchFeed({ startUrl: feedStartUrl() }),
   loadSnapshot: () => readFirstSnapshot(snapshotSearchDirs()),
   measureCovers: (games) => measureCoverSample(games),
+  loadCoverWidths: () => loadCoverWidths(['data', ...snapshotSearchDirs()]),
+  measureCoverWidths: (games, known) => measureMissingCovers(games, known),
 });
 
 mkdirSync('data', { recursive: true });
@@ -28,6 +34,15 @@ writeFileSync(
   `${JSON.stringify(outputs.searchIndex)}\n`,
 );
 writeFileSync('data/meta.json', `${JSON.stringify(outputs.meta, null, 2)}\n`);
+writeFileSync(
+  'data/cover-widths.json',
+  `${JSON.stringify(outputs.coverWidths)}\n`,
+);
+if (outputs.coverWidthNote) {
+  console.warn(outputs.coverWidthNote);
+  const summary = process.env.GITHUB_STEP_SUMMARY;
+  if (summary) appendFileSync(summary, `\n${outputs.coverWidthNote}\n`);
+}
 writeFileSync(
   'public/data/legacy-ids.json',
   `${JSON.stringify(outputs.legacyIds)}\n`,
@@ -52,6 +67,8 @@ console.log(
     `stale=${outputs.meta.stale}`,
     `coverMedian=${outputs.meta.coverSample.medianAspect}`,
     `coverMeasured=${outputs.meta.coverSample.measured}/${outputs.meta.coverSample.requested}`,
+    `coverWidths=${Object.keys(outputs.coverWidths).length}`,
+    `lowRes=${outputs.curated.filter((game) => (game.coverWidth ?? 0) < 480).length}`,
     `feedModified=${outputs.meta.feedModified ?? 'unknown'}`,
   ].join(' '),
 );

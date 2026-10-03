@@ -6,6 +6,7 @@ export type TileGame = {
   slug: string;
   title: string;
   cover: string;
+  coverWidth: number | null;
   hub: HubSlug;
   publishedAt: string;
   orientation: Orientation;
@@ -17,6 +18,7 @@ export function toTileGame(game: GameRecord): TileGame {
     slug: game.slug,
     title: game.title,
     cover: game.cover,
+    coverWidth: game.coverWidth,
     hub: game.hub,
     publishedAt: game.publishedAt,
     orientation: game.orientation,

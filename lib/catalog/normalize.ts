@@ -85,6 +85,7 @@ export function normalizeFeedItems(items: readonly unknown[]): NormalizeResult {
       publishedAt,
       updatedAt,
       aspect: game.width / game.height,
+      coverWidth: null,
       cover,
       icon,
       embedUrl,

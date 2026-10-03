@@ -19,6 +19,7 @@ const gameRecordSchema = z.object({
   publishedAt: z.string().min(1),
   updatedAt: z.string().min(1),
   aspect: z.number().positive(),
+  coverWidth: z.number().int().positive().nullable().optional(),
   cover: z.string().min(1),
   icon: z.string().min(1),
   embedUrl: z.string().min(1),
@@ -51,13 +52,17 @@ export function readSnapshot(dir: string): CatalogSnapshot | null {
     const catalogJson = readJsonFile(dir, 'catalog');
     const parsed = z.array(gameRecordSchema).safeParse(catalogJson);
     if (!parsed.success) return null;
+    const catalog = parsed.data.map((game) => ({
+      ...game,
+      coverWidth: game.coverWidth ?? null,
+    }));
     let meta: CatalogMeta | null = null;
     try {
       meta = readJsonFile(dir, 'meta') as CatalogMeta;
     } catch {
       meta = null;
     }
-    return { catalog: parsed.data, meta };
+    return { catalog, meta };
   } catch {
     return null;
   }

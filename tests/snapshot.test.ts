@@ -20,6 +20,7 @@ const sample = {
   publishedAt: '2020-01-01T00:00:00.000Z',
   updatedAt: '2020-01-01T00:00:00.000Z',
   aspect: 1.5,
+  coverWidth: null,
   cover: 'https://img.gamepix.com/cover.png',
   icon: 'https://img.gamepix.com/icon.png',
   embedUrl: 'https://play.gamepix.com/sample/embed?sid=LC991',

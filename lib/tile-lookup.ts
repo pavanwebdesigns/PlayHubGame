@@ -45,6 +45,7 @@ function readTile(value: unknown): TileGame | null {
     slug: row.slug,
     title: row.title,
     cover: row.cover,
+    coverWidth: typeof row.coverWidth === 'number' ? row.coverWidth : null,
     hub: row.hub as HubSlug,
     publishedAt: row.publishedAt,
     orientation,

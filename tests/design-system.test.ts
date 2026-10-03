@@ -28,6 +28,7 @@ const record: GameRecord = {
   publishedAt: '2026-10-01T00:00:00.000Z',
   updatedAt: '2026-10-01T00:00:00.000Z',
   aspect: 1.6,
+  coverWidth: 640,
   cover: 'https://img.gamepix.com/cover.jpg',
   icon: 'https://img.gamepix.com/icon.jpg',
   embedUrl: 'https://play.gamepix.com/game?sid=LC991',
@@ -40,6 +41,7 @@ describe('tile payload', () => {
       [
         'aspect',
         'cover',
+        'coverWidth',
         'hub',
         'orientation',
         'publishedAt',

@@ -15,6 +15,14 @@ describe('spotlight', () => {
     expect(spotlightChoice(available, 1)).toEqual({
       slug: 'drop-planets',
       skipped: ['prism-match-3d'],
+      lowRes: [],
+    });
+    expect(
+      spotlightChoice(available, 1, new Set(['drop-planets'])),
+    ).toEqual({
+      slug: 'defend-the-castle',
+      skipped: ['prism-match-3d'],
+      lowRes: ['drop-planets'],
     });
     expect(spotlightPitch('prism-match-3d')).toBeNull();
     expect(spotlightPitch('gallery-sample')).toBe(

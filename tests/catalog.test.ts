@@ -4,7 +4,10 @@ import { COLLECTIONS, visibleCollections } from '@/config/collections';
 import { curate, isDenied } from '@/config/curation';
 import { HUB_NAMES, RAW_CATEGORY_TO_HUB, hubFor } from '@/config/taxonomy';
 import { catalogWithinThresholds, invalidRatio } from '@/lib/catalog/assess';
+import { coverWidthWarning } from '@/lib/catalog/cover-widths';
 import { imageSize } from '@/lib/catalog/image-size';
+import { probeImageUrl } from '@/lib/catalog/probe-image';
+import { requestedCoverWidth } from '@/lib/catalog/urls';
 import { normalizeFeedItems } from '@/lib/catalog/normalize';
 import { CatalogError, buildCatalog } from '@/lib/catalog/run';
 import { gamePixItemSchema } from '@/lib/catalog/schema';
@@ -34,6 +37,7 @@ function game(overrides: Partial<GameRecord> = {}): GameRecord {
     publishedAt: '2020-01-01T00:00:00.000Z',
     updatedAt: '2020-01-01T00:00:00.000Z',
     aspect: 1.5,
+    coverWidth: null,
     cover: 'https://img.gamepix.com/cover.png',
     icon: 'https://img.gamepix.com/icon.png',
     embedUrl: 'https://play.gamepix.com/sample/embed?sid=LC991',
@@ -285,6 +289,37 @@ describe('thresholds and restore', () => {
         withinThresholds: () => true,
       }),
     ).rejects.toThrow(/Unmapped categories: brand-new-genre/);
+  });
+});
+
+describe('cover widths', () => {
+  it('never requests a width above the source', () => {
+    expect(requestedCoverWidth(640, 187)).toBe(187);
+    expect(requestedCoverWidth(160, null)).toBe(160);
+    expect(requestedCoverWidth(480, null)).toBe(160);
+  });
+
+  it('warns only when more than 5 percent of covers fail', () => {
+    expect(coverWidthWarning(100, 5)).toBeNull();
+    expect(coverWidthWarning(100, 6)).toMatch(/WARNING: 6 of 100/);
+  });
+
+  it('stops reading once the header has a size', async () => {
+    const png = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      'base64',
+    );
+    const fetchImpl: typeof fetch = async () =>
+      new Response(png, { status: 200, headers: { 'content-type': 'image/png' } });
+    await expect(probeImageUrl('https://img.gamepix.com/a.png', fetchImpl)).resolves.toEqual({
+      width: 1,
+      height: 1,
+    });
+  });
+
+  it('does not keep a failed measurement', async () => {
+    const fetchImpl: typeof fetch = async () => new Response(null, { status: 404 });
+    await expect(probeImageUrl('https://img.gamepix.com/missing.png', fetchImpl)).resolves.toBeNull();
   });
 });
 

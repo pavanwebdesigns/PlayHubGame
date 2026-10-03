@@ -69,15 +69,24 @@ export function dayOfYear(date: Date): number {
 export function spotlightChoice(
   available: ReadonlySet<string>,
   day: number,
-): { slug: string | null; skipped: string[] } {
+  lowRes: ReadonlySet<string> = new Set(),
+): { slug: string | null; skipped: string[]; lowRes: string[] } {
   const total = SPOTLIGHT_ROTATION.length;
   const start = (((day - 1) % total) + total) % total;
   const skipped: string[] = [];
+  const soft: string[] = [];
   for (let offset = 0; offset < total; offset += 1) {
     const slug = SPOTLIGHT_ROTATION[(start + offset) % total];
     if (!slug) continue;
-    if (available.has(slug)) return { slug, skipped };
-    skipped.push(slug);
+    if (!available.has(slug)) {
+      skipped.push(slug);
+      continue;
+    }
+    if (lowRes.has(slug)) {
+      soft.push(slug);
+      continue;
+    }
+    return { slug, skipped, lowRes: soft };
   }
-  return { slug: null, skipped };
+  return { slug: null, skipped, lowRes: soft };
 }

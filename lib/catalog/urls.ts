@@ -38,6 +38,15 @@ export function coverAtWidth(value: string, width: number): string {
   return url.toString();
 }
 
+/** Never ask the CDN for more pixels than the file actually has. */
+export function requestedCoverWidth(
+  wanted: number,
+  natural: number | null,
+): number {
+  if (natural == null) return Math.min(wanted, 160);
+  return Math.max(1, Math.min(wanted, natural));
+}
+
 export function toIso(value: string): string | null {
   const time = Date.parse(value);
   if (Number.isNaN(time)) return null;

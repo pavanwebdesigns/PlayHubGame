@@ -71,6 +71,7 @@ export default async function GamePage({
           slug: game.slug,
           title: game.title,
           cover: game.cover,
+          coverWidth: game.coverWidth,
           embedUrl: game.embedUrl,
           orientation: game.orientation,
           aspect: game.aspect,

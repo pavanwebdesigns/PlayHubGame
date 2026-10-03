@@ -3,11 +3,12 @@
 
 import { SITE_NAME } from '@/config/site';
 import gamepixLoader from '@/lib/gamepix-loader';
+import { requestedCoverWidth } from '@/lib/catalog/urls';
 
 const WIDTHS = [160, 320, 480, 640];
 
-function coverSrc(src: string, width: number): string {
-  return gamepixLoader({ src, width });
+function coverSrc(src: string, width: number, natural: number | null): string {
+  return gamepixLoader({ src, width: requestedCoverWidth(width, natural) });
 }
 
 function Fallback({ title, alt, silent }: { title: string; alt: string; silent: boolean }) {
@@ -34,21 +35,27 @@ export function CoverImage({
   alt,
   title,
   sizes,
+  coverWidth = null,
   priority = false,
 }: {
   src: string;
   alt: string;
   title: string;
   sizes: string;
+  coverWidth?: number | null;
   priority?: boolean;
 }) {
+  const offered = WIDTHS.filter((width) => requestedCoverWidth(width, coverWidth) === width);
+  const target = offered[offered.length - 1] ?? 160;
   return (
     <span className="cover-frame">
       <Fallback title={title} alt={alt} silent={src.length > 0} />
       {src.length > 0 ? (
         <img
-          src={coverSrc(src, 480)}
-          srcSet={WIDTHS.map((width) => `${coverSrc(src, width)} ${width}w`).join(', ')}
+          src={coverSrc(src, target, coverWidth)}
+          srcSet={offered
+            .map((width) => `${coverSrc(src, width, coverWidth)} ${width}w`)
+            .join(', ')}
           sizes={sizes}
           alt={alt}
           data-cover=""

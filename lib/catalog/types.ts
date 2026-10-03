@@ -16,6 +16,8 @@ export type GameRecord = {
   publishedAt: string;
   updatedAt: string;
   aspect: number;
+  /** Pixel width of the source cover. Null means it could not be measured. */
+  coverWidth: number | null;
   cover: string;
   icon: string;
   embedUrl: string;

@@ -13,6 +13,7 @@ export function Spotlight({ game }: { game: TileGame }) {
           src={game.cover}
           alt=""
           title={game.title}
+          coverWidth={game.coverWidth}
           sizes="(max-width: 768px) 100vw, 40vw"
           priority
         />

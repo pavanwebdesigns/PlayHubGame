@@ -7,6 +7,11 @@ import { curate } from '@/config/curation';
 import { MAX_INVALID_RATIO, MIN_VALID_GAMES } from '@/config/site';
 import { catalogWithinThresholds } from '@/lib/catalog/assess';
 import { normalizeFeedItems } from '@/lib/catalog/normalize';
+import {
+  applyCoverWidths,
+  coverWidthWarning,
+  widthsFromGames,
+} from '@/lib/catalog/cover-widths';
 import type { CatalogSnapshot } from '@/lib/catalog/snapshot';
 import type {
   CatalogMeta,
@@ -29,12 +34,19 @@ export type CatalogOutputs = {
   searchIndex: SearchIndexEntry[];
   legacyIds: Record<string, string>;
   meta: CatalogMeta;
+  coverWidths: Record<string, number>;
+  coverWidthNote: string | null;
 };
 
 type BuildInput = {
   fetchFeed: () => Promise<FeedFetchResult>;
   loadSnapshot: () => CatalogSnapshot | null;
   measureCovers: (games: readonly GameRecord[]) => Promise<CoverSample>;
+  loadCoverWidths?: () => Record<string, number>;
+  measureCoverWidths?: (
+    games: readonly GameRecord[],
+    known: Readonly<Record<string, number>>,
+  ) => Promise<{ widths: Record<string, number>; failed: number }>;
   now?: Date;
   withinThresholds?: (valid: number, invalid: number) => boolean;
 };
@@ -74,6 +86,8 @@ function assemble(
       tags: game.tags,
     })),
     legacyIds,
+    coverWidths: widthsFromGames(catalog),
+    coverWidthNote: null,
     meta: {
       generatedAt: details.now.toISOString(),
       feedModified: details.feedModified,
@@ -114,7 +128,11 @@ function fromSnapshot(input: BuildInput, reason: string): CatalogOutputs {
   console.warn(
     `Using the last good catalog snapshot (${reason}). This build is stale.`,
   );
-  return assemble(snapshot.catalog, {
+  const known = {
+    ...widthsFromGames(snapshot.catalog),
+    ...(input.loadCoverWidths?.() ?? {}),
+  };
+  const outputs = assemble(applyCoverWidths(snapshot.catalog, known), {
     validCount: snapshot.catalog.length,
     invalidCount: snapshot.meta?.invalidCount ?? 0,
     pagesFetched: snapshot.meta?.pagesFetched ?? 0,
@@ -123,6 +141,9 @@ function fromSnapshot(input: BuildInput, reason: string): CatalogOutputs {
     coverSample,
     now: input.now ?? new Date(),
   });
+  outputs.coverWidths = known;
+  outputs.coverWidthNote = null;
+  return outputs;
 }
 
 export async function buildCatalog(input: BuildInput): Promise<CatalogOutputs> {
@@ -144,7 +165,15 @@ export async function buildCatalog(input: BuildInput): Promise<CatalogOutputs> {
       return fromSnapshot(input, 'thresholds');
     }
     const coverSample = await input.measureCovers(normalized.catalog);
-    return assemble(normalized.catalog, {
+    const known = input.loadCoverWidths?.() ?? {};
+    const curatedIds = new Set(curate(normalized.catalog).map((game) => game.id));
+    const toMeasure = normalized.catalog.filter((game) => curatedIds.has(game.id));
+    const measured = input.measureCoverWidths
+      ? await input.measureCoverWidths(toMeasure, known)
+      : { widths: {}, failed: 0 };
+    const widths = { ...known, ...measured.widths };
+    const warning = coverWidthWarning(toMeasure.length, measured.failed);
+    const outputs = assemble(applyCoverWidths(normalized.catalog, widths), {
       validCount: normalized.catalog.length,
       invalidCount: normalized.invalidCount,
       pagesFetched: feed.pagesFetched,
@@ -153,6 +182,9 @@ export async function buildCatalog(input: BuildInput): Promise<CatalogOutputs> {
       coverSample,
       now: input.now ?? new Date(),
     });
+    outputs.coverWidths = widths;
+    outputs.coverWidthNote = warning;
+    return outputs;
   } catch (error) {
     if (error instanceof CatalogError) throw error;
     console.warn(

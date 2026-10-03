@@ -11,6 +11,7 @@ import { activeSeasonal } from '@/config/seasonal';
 import { dayOfYear, spotlightChoice } from '@/config/spotlight';
 import { HUB_SLUGS } from '@/config/taxonomy';
 import { SITE_NAME, DEFAULT_TITLE } from '@/config/site';
+import { XL_COVER_MIN } from '@/lib/catalog/cover-widths';
 import { loadCurated } from '@/lib/catalog/load';
 import { buildToday } from '@/lib/build-clock';
 import { loadContent } from '@/lib/content';
@@ -29,10 +30,13 @@ const ROW_ORDER: readonly CollectionSlug[] = [
 ];
 
 function featured(games: readonly GameRecord[]) {
-  return games.map((game, index) => ({
-    game: toTileGame(game),
-    size: (index === 0 ? 'xl' : 'md') as 'xl' | 'md',
-  }));
+  let xlUsed = false;
+  return games.map((game) => {
+    const sharp = (game.coverWidth ?? 0) >= XL_COVER_MIN;
+    const size = !xlUsed && sharp ? 'xl' : 'md';
+    if (size === 'xl') xlUsed = true;
+    return { game: toTileGame(game), size } as const;
+  });
 }
 
 function rowOf(
@@ -58,12 +62,21 @@ export default function HomePage() {
   const games = loadCurated();
   const now = buildToday();
   const available = new Set(games.map((game) => game.slug));
-  const choice = spotlightChoice(available, dayOfYear(now));
+  const lowRes = new Set(
+    games
+      .filter((game) => (game.coverWidth ?? 0) < XL_COVER_MIN)
+      .map((game) => game.slug),
+  );
+  const choice = spotlightChoice(available, dayOfYear(now), lowRes);
+  if (choice.lowRes.length > 0) {
+    console.warn(`Spotlight low-res, falling back: ${choice.lowRes.join(', ')}`);
+  }
   if (choice.skipped.length > 0) {
     console.warn(`Spotlight skipped: ${choice.skipped.join(', ')}`);
   }
   const spotlight =
-    games.find((game) => game.slug === choice.slug) ?? rankByQuality(games)[0];
+    games.find((game) => game.slug === choice.slug) ??
+    rankByQuality(games).find((game) => (game.coverWidth ?? 0) >= XL_COVER_MIN);
   const visible = visibleCollections(games, now);
   const hubs = HUB_SLUGS.flatMap((slug) => {
     const count = games.filter((game) => game.hub === slug).length;
