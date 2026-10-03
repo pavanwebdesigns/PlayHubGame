@@ -18,7 +18,11 @@ function walk(dir) {
     }
     if (!/\.(tsx?|css)$/.test(name)) continue;
     if (path === 'app/globals.css') continue;
-    const text = readFileSync(path, 'utf8');
+    // theme-color is a browser meta value, so it cannot use a CSS variable.
+    const text = readFileSync(path, 'utf8').replace(
+      /themeColor:\s*['"]#[0-9a-fA-F]+['"]/g,
+      'themeColor: token',
+    );
     if (hex.test(text)) problems.push(`${path}: hex color`);
     hex.lastIndex = 0;
     if (/font-family\s*:/.test(text)) problems.push(`${path}: font-family`);
