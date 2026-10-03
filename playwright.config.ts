@@ -34,7 +34,7 @@ export default defineConfig({
     {
       name: 'iphone',
       testMatch: /devices\.spec\.ts/,
-      use: { ...devices['iPhone 13'] },
+      use: { ...devices['iPhone 13'], browserName: 'chromium' },
     },
     {
       name: 'android',

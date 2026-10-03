@@ -20,7 +20,7 @@ test('home, play, and the legacy game link', async ({ page }) => {
   const gameAxe = await new AxeBuilder({ page }).analyze();
   expect(gameAxe.violations).toEqual([]);
 
-  await page.getByRole('button', { name: 'Play' }).click();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.locator('iframe')).toHaveAttribute('src', /sid=LC991/);
   const width = page.viewportSize()?.width ?? 1440;
   if (width <= 1024) {

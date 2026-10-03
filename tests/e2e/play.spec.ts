@@ -45,7 +45,7 @@ test('two taps reach immersive mode and Back restores home', async ({ page }) =>
   expect(scrolled).toBeGreaterThan(200);
   await page.locator('a.tile').filter({ visible: true }).nth(3).click();
   await expect(page).toHaveURL(/\/game\//);
-  await page.getByRole('button', { name: 'Play' }).click();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.locator('iframe')).toHaveCount(1);
   await expect(page.locator('[data-immersive="true"]')).toBeVisible();
   await page.goBack();
@@ -61,7 +61,7 @@ test('two taps reach immersive mode and Back restores home', async ({ page }) =>
 test('a landscape game asks for a sideways phone', async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) > 500, 'portrait phone');
   await page.goto('/game/the-floor-is-lying/');
-  await page.getByRole('button', { name: 'Play' }).click();
+  await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.getByText('Turn your phone sideways to play')).toBeVisible();
 });
 
@@ -81,7 +81,7 @@ test('tab from home through play, Esc, and Back', async ({ page }) => {
   await tabUntil(page, tile);
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/game\//);
-  const play = page.getByRole('button', { name: 'Play' });
+  const play = page.getByRole('button', { name: 'Play', exact: true });
   await tabUntil(page, play);
   await page.keyboard.press('Enter');
   await expect(page.locator('iframe')).toHaveCount(1);
@@ -95,7 +95,7 @@ test('tab from home through play, Esc, and Back', async ({ page }) => {
 
 test('keyboard starts the game', async ({ page }) => {
   await page.goto('/game/drop-planets/');
-  await page.getByRole('button', { name: 'Play' }).focus();
+  await page.getByRole('button', { name: 'Play', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('iframe')).toHaveCount(1);
   await expect(page.locator('iframe')).toHaveAttribute('title', 'Drop Planets game');
