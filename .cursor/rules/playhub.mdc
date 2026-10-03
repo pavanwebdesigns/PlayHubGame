@@ -28,7 +28,7 @@ You are the developer on playhubplace.com, a free browser-games site. Claude (th
 
 ## Stack
 Phase 0 only: the existing Vite + React app in `src/` — fix what `phase-0-hotfix.md` lists, nothing more.
-From Phase 1: Next.js (App Router, `output: 'export'`, `trailingSlash: true`) · TypeScript strict + `noUncheckedIndexedAccess` · Tailwind CSS v4 with tokens · zod at every data boundary · lucide-react icons · Vitest + Playwright + axe · GitHub Actions → Hostinger.
+From Phase 1: Next.js (App Router, `output: 'export'`, `trailingSlash: true`) · TypeScript strict + `noUncheckedIndexedAccess` · Tailwind CSS v4 with tokens · zod at every data boundary · inline SVG icons in `components/icons/glyphs.tsx` · Vitest + Playwright + axe · GitHub Actions → Hostinger.
 Server Components by default; `'use client'` only for interaction. Browser APIs only in effects/handlers. `localStorage` always in try/catch. Game favorites keep the existing key `playhub_favorites` (the one exception, so saved games survive the rebuild). Every new key uses `ph:<name>:v1`.
 
 ## Design tokens (no raw values elsewhere)
