@@ -26,6 +26,8 @@ blob-report/
 # Generated catalog. Never commit.
 data/
 public/data/
+public/sitemap.xml
+public/sitemap-*.xml
 
 # Editor directories and files
 .vscode/*
