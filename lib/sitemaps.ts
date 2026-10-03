@@ -18,13 +18,18 @@ export function sitemapSets(
 ): { pages: SitemapUrl[]; categories: SitemapUrl[]; games: SitemapUrl[] } {
   const pages: SitemapUrl[] = [
     { loc: absoluteUrl('/'), lastmod: contentUpdated('pages', 'home') },
-    { loc: absoluteUrl('/new/'), lastmod: null },
     { loc: absoluteUrl('/about/'), lastmod: null },
     { loc: absoluteUrl('/contact/'), lastmod: null },
     { loc: absoluteUrl('/privacy/'), lastmod: null },
     { loc: absoluteUrl('/cookies/'), lastmod: null },
     { loc: absoluteUrl('/terms/'), lastmod: null },
   ];
+  if (isIndexable('pages', 'new')) {
+    pages.push({
+      loc: absoluteUrl('/new/'),
+      lastmod: contentUpdated('pages', 'new'),
+    });
+  }
   for (const slug of ['reaction-time-test', 'cps-test'] as const) {
     if (isIndexable('originals', slug)) {
       pages.push({

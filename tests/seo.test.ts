@@ -3,6 +3,8 @@ import type { GameRecord } from '@/lib/catalog/types';
 import { listingMeta } from '@/lib/listing-meta';
 import { organizationLd } from '@/lib/structured-data';
 import { absoluteFileUrl, fitTitle, gameTitle, hubTitle, ogCover } from '@/lib/seo';
+import { isIndexable } from '@/lib/content-gate';
+import { loadContent } from '@/lib/content';
 import { homeIsDraft } from '@/lib/launch-gate';
 import { sitemapIndexXml, sitemapSets } from '@/lib/sitemaps';
 
@@ -88,10 +90,17 @@ describe('sitemaps', () => {
     embedUrl: 'https://play.gamepix.com/x?sid=LC991',
   } satisfies GameRecord;
 
+  it('keeps /new/ noindex until its page is published', () => {
+    const summary = loadContent('pages', 'new')?.summary ?? '';
+    expect(summary.length).toBeGreaterThanOrEqual(140);
+    expect(summary.length).toBeLessThanOrEqual(160);
+    expect(isIndexable('pages', 'new')).toBe(false);
+  });
+
   it('keeps draft games and paginated urls out', () => {
     const sets = sitemapSets([game], new Date('2026-10-03T00:00:00.000Z'));
     expect(sets.games).toEqual([]);
-    expect(sets.pages.map((item) => item.loc).join('\n')).toContain('/new/');
+    expect(sets.pages.map((item) => item.loc).join('\n')).not.toContain('/new/');
     expect(JSON.stringify(sets)).not.toContain('/page/');
     expect(JSON.stringify(sets)).not.toContain('/search/');
   });
