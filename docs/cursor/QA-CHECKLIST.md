@@ -51,18 +51,18 @@ Filled after the local `out/` build and the preview deploy of `0808b4b`. ✅ mea
 Filled from the local `out/` build on 3 Oct 2026. ✅ means it was actually checked.
 
 ## Build & code
-- [x] `npm run build` passes, including the service worker step (`sw=7c96c7499513 urls=19`). Vitest covers the pick merge, the legacy favorites key, analytics consent, and the install prompt. Playwright covers cover sizes (5 layouts), tile save, prefetch, smoke, and the offline CPS test.
-- [x] Home JS gzip is 138,102 bytes. The checker ceiling is that same number. React DOM is 71,459, the Next runtime chunks are 48,282 and 5,835, and Turbopack is 3,841. App code on the home page is about 8 KB. `web-vitals` is 3.3 KB gzip and is not a script tag on the home page.
+- [x] `npm run build` passes, including the service worker step (19 precache URLs, no `/game/` page). Vitest covers the pick merge, the legacy favorites key, analytics consent, and the install prompt. Playwright covers cover sizes (5 layouts), tile save, prefetch, smoke, and the offline CPS test.
+- [x] Home JS gzip is 137,192 bytes. The checker ceiling is that same number. React DOM is 71,628, the Next runtime chunks are 48,513 and 5,864, and Turbopack is 3,836. The analytics boot is not a home script tag. It loads with a dynamic import only after consent.
 - [x] New runtime dependency: `web-vitals` 6.2.2, loaded only after analytics consent. No secrets, `out/`, or `data/` committed. `sid=LC991` was not edited.
 
 ## Performance
-- [x] Phone LCP element is the Nova Hop spotlight image, 368×230, `fetchpriority=high`, `loading=eager`. Two Lighthouse mobile runs (390×844, DPR 2, slow 4G): score 0.60, LCP 10.3 s, CLS 0, TBT 10–14 ms. Phases on the second run: TTFB 452 ms, load delay 231 ms, load time 6,516 ms, render delay 3,080 ms. The image is an 82 KB file from `img.gamepix.com`.
-- [x] "Properly size images" still fails, about 140 KB estimated waste. A phone tile is 171 CSS px (342 device px at DPR 2) and the next srcset step is 480. The spotlight needs about 736 device px and the next step is 960. Those are the widths that were requested.
+- [x] Default mobile Lighthouse (Moto G Power, simulated throttling), 3 runs, median, on preview after the HTML shrink. Home 88 / LCP 3.61 s / CLS 0. Game prism-match-3d 93 / 3.23 s / CLS 0. Category puzzle 89 / 3.72 s / CLS 0. Accessibility 100. "Properly size images" waste is 0 bytes.
+- [x] After self-hosting today's Spotlight cover, the same home run is 88 / LCP 3.60 s / CLS 0. The LCP element is `/spotlight/nova-hop-800.avif` (about 30 KB, `image/avif`). Render delay is still about 71% of LCP. The 2.5 s budget is not met.
 - [x] Today's picks: phone still shows the same 23 one-thumb games, desktop the same 21, in the same order. CLS 0 at 390 and 1440. Screenshots in `tests/e2e/screenshots/picks-before-*.png` and `picks-after-*.png`.
 - [x] Tile hearts are real buttons. Saving and removing uses `playhub_favorites`. A blocked `localStorage` shows "Saving is not available in this browser."
 - [x] Offline: after the worker activates, airplane mode still opens the CPS test and shows Start. Precache is 19 URLs and includes no `/game/` page.
 
 ## Not checked here
-- [ ] Lighthouse on the game and category pages after this build. Home was measured locally. The 2.5 s LCP budget is not met.
-- [ ] axe on every page type, and VoiceOver or TalkBack. Those are on the phone checklist.
-- [ ] `@next/bundle-analyzer` was not added. The home script table above is the gzip of the script tags the checker counts. The production build uses Turbopack.
+- [x] axe in Playwright on every public page type: 16 pages, mobile and desktop, 0 violations.
+- [ ] VoiceOver or TalkBack. Those stay on the phone checklist.
+- [x] `@next/bundle-analyzer` does not apply. `next build` is Turbopack, and that package is the Webpack plugin. The home script table is the gzip of the script tags the checker counts.
