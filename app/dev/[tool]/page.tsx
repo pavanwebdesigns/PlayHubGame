@@ -11,7 +11,7 @@ type Tool = (typeof TOOLS)[number];
 export const dynamicParams = false;
 
 export function generateStaticParams(): { tool: Tool }[] {
-  if (process.env.PH_MAIN_BUILD === '1') return [];
+  // An empty list fails `output: 'export'`. Publish deletes out/dev after the build.
   return TOOLS.map((tool) => ({ tool }));
 }
 

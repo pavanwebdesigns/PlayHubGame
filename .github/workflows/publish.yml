@@ -75,6 +75,9 @@ jobs:
           CATALOG_CACHE_DIR: ${{ github.workspace }}/.catalog-cache
           CATALOG_SNAPSHOT_DIR: ${{ github.workspace }}/.catalog-snapshot
 
+      - name: Omit private dev pages
+        run: rm -rf out/dev
+
       - name: Keep the catalog cache
         run: node scripts/save-catalog-cache.mjs
 
