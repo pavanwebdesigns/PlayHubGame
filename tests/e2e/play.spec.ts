@@ -11,6 +11,12 @@ const pages = [
   '/my-games/',
   '/originals/cps-test/',
   '/originals/reaction-time-test/',
+  '/about/',
+  '/contact/',
+  '/privacy/',
+  '/terms/',
+  '/cookies/',
+  '/offline/',
   '/404.html',
 ];
 
