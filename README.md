@@ -47,6 +47,7 @@ These steps are done in the accounts, not in the repo:
 3. Inspect the home page and the first 10 game pages that have a published write-up, and request indexing.
 4. In Bing Webmaster Tools, import the site from Search Console.
 5. Optional: connect Search Console to Looker Studio for impressions, clicks, CTR, and indexed pages.
+6. In Google's Rich Results Test, open Code mode and paste the built HTML of the home page, one published game page, and one category page. Breadcrumbs should be valid. A game page will not earn a SoftwareApplication rich result, because we do not publish ratings. That is accepted. Do not add ratings to make the test pass.
 
 A main build refuses to publish while `content/pages/home.mdx` is still `draft`, because the home page is indexed. Other drafts are listed in the job summary and stay `noindex`. See `docs/CONTENT-GUIDE.md`.
 
