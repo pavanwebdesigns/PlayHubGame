@@ -1,5 +1,8 @@
 # PlayHubPlace static export.
 # Hostinger terminates TLS. www goes to the apex in one hop from this file.
+# AVIF is not in Hostinger's default types. Without this, nosniff blocks the Spotlight cover.
+AddType image/avif .avif
+AddType image/webp .webp
 # HTTP is upgraded only when Apache still sees a plain connection, so a request
 # Hostinger already upgraded does not redirect again.
 
@@ -47,5 +50,12 @@ ErrorDocument 404 /404.html
     Header set Cache-Control "public, max-age=31536000, immutable" env=LONG_CACHE
     <FilesMatch "\.html$">
         Header set Cache-Control "no-cache"
+    </FilesMatch>
+    # Hostinger has no AVIF type. nosniff would then refuse the Spotlight cover.
+    <FilesMatch "\.avif$">
+        Header set Content-Type "image/avif"
+    </FilesMatch>
+    <FilesMatch "\.webp$">
+        Header set Content-Type "image/webp"
     </FilesMatch>
 </IfModule>
