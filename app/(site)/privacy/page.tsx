@@ -1,4 +1,4 @@
-import { SITE_NAME } from '@/config/site';
+import { CONTACT_EMAIL, SITE_NAME } from '@/config/site';
 import { pageMetadata } from '@/lib/seo';
 
 export const metadata = pageMetadata({
@@ -23,6 +23,15 @@ export default function PrivacyPage() {
         When you open a game, the embed loads from GamePix. GamePix may use its
         own cookies or storage inside that frame. Their policy applies to that
         embed.
+      </p>
+      <p className="mt-3 text-ink">{CONTACT_EMAIL}</p>
+      <p className="mt-3">
+        <a
+          className="inline-flex min-h-tap items-center text-play"
+          href={`mailto:${CONTACT_EMAIL}`}
+        >
+          Email us
+        </a>
       </p>
     </main>
   );

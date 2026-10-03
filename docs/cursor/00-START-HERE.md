@@ -52,7 +52,7 @@ Then stop and wait for my approval. After approval, do one task at a time, commi
 ## What only you can do (Cursor will leave `TODO(Pavan)`)
 Deploys from `main` are blocked by CI while any `TODO(Pavan)` is unfilled — on purpose, so the live site never shows a placeholder.
 
-- [ ] Contact email for the site (`CONTACT_EMAIL`).
+- [x] Contact email for the site (`CONTACT_EMAIL` is `info@playhubplace.com`).
 - [ ] A dedicated Hostinger FTP account for GitHub → add as GitHub Secrets yourself (steps in `setup-auto-deploy.md`). Never paste them into Cursor chat.
 - [ ] Workutilities.com URLs for each moved tool (`config/legacy-tools.ts`).
 - [ ] Daily Spotlight picks list (`config/spotlight.ts`) — 30 games you like.

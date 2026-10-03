@@ -5,7 +5,7 @@ import { useSiteIcons } from '@/components/icons/IconProvider';
 import { buttonClass } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import type { Dialog } from '@/components/ui/Dialog';
-import { CONTACT_EMAIL, contactEmailPublished } from '@/config/site';
+import { CONTACT_EMAIL } from '@/config/site';
 import {
   readFavorites,
   readFavoritesSnapshot,
@@ -124,29 +124,25 @@ export function ActionBar({
       </button>
       {ReportDialog ? (
       <ReportDialog open={open} onClose={() => setOpen(false)} title="Report a problem">
-        {contactEmailPublished() ? (
-          <ul className="grid gap-2">
-            {REASONS.map(([id, label]) => (
-              <li key={id}>
-                <a
-                  className="inline-flex min-h-tap items-center text-play"
-                  href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Problem with ${title}`)}&body=${encodeURIComponent(`${label}\n${path}`)}`}
-                  onClick={() =>
-                    track({
-                      name: 'report_problem',
-                      slug: favorite.namespace,
-                      reason: id,
-                    })
-                  }
-                >
-                  {label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-ink">Reporting isn’t open yet.</p>
-        )}
+        <ul className="grid gap-2">
+          {REASONS.map(([id, label]) => (
+            <li key={id}>
+              <a
+                className="inline-flex min-h-tap items-center text-play"
+                href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Problem with ${title}`)}&body=${encodeURIComponent(`Slug: ${favorite.namespace}\nReason: ${label}`)}`}
+                onClick={() =>
+                  track({
+                    name: 'report_problem',
+                    slug: favorite.namespace,
+                    reason: id,
+                  })
+                }
+              >
+                {label}
+              </a>
+            </li>
+          ))}
+        </ul>
       </ReportDialog>
       ) : null}
     </div>

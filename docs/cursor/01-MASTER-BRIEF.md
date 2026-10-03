@@ -50,7 +50,7 @@ Phase 0 is merged and live (`9e6ae0a` on `main`). The public site is still the V
 - One `GamePixGame` type. `id` is a string, matching the feed (`"737HCH"`). Cover URLs set a single `w` parameter. The old double-`?` cache-bust is gone.
 - The mobile menu opens. It lists Games, Quick games (Reaction Time Test, CPS Test), Blog, and Favorites.
 - The tools section is gone, including the mobile wrench and tool favorites. `?page=tools` and `?page=tool-<id>` redirect to `https://workutilities.com/`. `?page=tool-reaction` opens Reaction Time Test and `?page=tool-cps` opens CPS Test.
-- Footer links go to About, Privacy, Terms, and Contact. Those pages exist. `CONTACT_EMAIL` is still `TODO(Pavan)`, and Contact does not show an address while that sentinel is in place.
+- Footer links go to About, Privacy, Terms, and Contact. Those pages exist. `CONTACT_EMAIL` is `info@playhubplace.com`.
 - `robots.txt`, a home-only `sitemap.xml`, a canonical URL, and a meta description are served. The name PlayHubGame is gone from titles and the footer.
 - `public/.htaccess` is the real filename. It denies source paths (`package.json`, `src/`, `docs/`, `.cursor/`, `*.ts`, `*.tsx`, `*.md`), caches `/assets/*`, and falls back to the SPA. It does not force HTTPS.
 - Body text uses a system font. Jersey 15 is limited to display headings.

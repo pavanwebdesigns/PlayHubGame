@@ -5,8 +5,8 @@ export const DEFAULT_TITLE = 'PlayHubPlace - Free Online Games';
 export const DEFAULT_DESCRIPTION =
   'PlayHubPlace - Play thousands of free online games instantly.';
 
-/** Replace this sentinel with a real address before the contact link goes live. */
-export const CONTACT_EMAIL = 'TODO(Pavan)';
+/** Shown on Contact, Privacy, and Report a problem. */
+export const CONTACT_EMAIL = 'info@playhubplace.com';
 
 /** Empty until Phase 6. Analytics stays off, and this is not a launch blocker. */
 export const GA4_MEASUREMENT_ID = '';
@@ -25,8 +25,4 @@ export function feedStartUrl(): string {
   url.searchParams.set('pagination', String(FEED_PAGE_SIZE));
   url.searchParams.set('page', '1');
   return url.toString();
-}
-
-export function contactEmailPublished(): boolean {
-  return CONTACT_EMAIL.length > 0 && !CONTACT_EMAIL.startsWith('TODO');
 }
