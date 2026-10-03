@@ -52,8 +52,9 @@ function precacheUrls(): string[] {
 function worker(cacheName: string, urls: readonly string[]): string {
   // Navigations revalidate. fetch(event.request) would reuse the HTTP cache,
   // including a cached copy of the old site. redirect manual lets the browser
-  // follow Apache redirects. The 4s timeout still falls through to the cache,
-  // then /offline/.
+  // follow Apache redirects. After 4s, an exact cached copy of this URL is
+  // shown. With no copy, the worker keeps waiting. /offline/ is only for a
+  // failed fetch.
   return `var CACHE=${JSON.stringify(cacheName)};
 var URLS=${JSON.stringify(urls)};
 self.addEventListener("install",function(event){
@@ -76,11 +77,23 @@ self.addEventListener("fetch",function(event){
     return;
   }
   event.respondWith(new Promise(function(resolve){
-    var timer=setTimeout(function(){resolve(null)},4000);
-    fetch(event.request.url,{cache:"no-cache",credentials:"same-origin",redirect:"manual"}).then(function(response){clearTimeout(timer);resolve(response)}).catch(function(){clearTimeout(timer);resolve(null)});
-  }).then(function(response){
-    if(response)return response;
-    return fromCache(event.request);
+    var settled=false;
+    var timer=setTimeout(function(){
+      caches.match(event.request).then(function(cached){
+        if(!settled&&cached){settled=true;resolve(cached)}
+      });
+    },4000);
+    fetch(event.request.url,{cache:"no-cache",credentials:"same-origin",redirect:"manual"}).then(function(response){
+      if(settled)return;
+      settled=true;
+      clearTimeout(timer);
+      resolve(response);
+    }).catch(function(){
+      if(settled)return;
+      settled=true;
+      clearTimeout(timer);
+      resolve(fromCache(event.request));
+    });
   }));
 });
 `;
