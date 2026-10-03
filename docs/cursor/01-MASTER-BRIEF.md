@@ -38,6 +38,8 @@ Initial JS is the external scripts in the home HTML before analytics consent. Me
 
 React and Next are about 130 KB of that total, so 120 KB cannot hold the page. The analytics boot is not in the total. It loads with a dynamic import only after consent. CI fails if the total grows past 137,192 bytes. Chunk names are from this build and change when the graph changes; the ceiling is the byte total.
 
+The lab LCP target above is 2.5 s. On 3 Oct 2026 the default mobile preset (simulated throttling, three runs, median) on preview was home LCP 2.78 s, performance 95. Game and category performance were 96 and 98. That 2.5 s lab figure is a known deviation. Real-user data decides any further LCP work: CrUX, and the web-vitals already wired to run after analytics consent at launch.
+
 ---
 
 ## 2. State after Phase 0
