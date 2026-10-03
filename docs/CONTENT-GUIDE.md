@@ -25,7 +25,7 @@ Leave `status: draft` until you have played the game and edited the page. The bu
 npx tsx scripts/new-game-content.ts the-game-slug
 ```
 
-That writes `content/games/the-game-slug.mdx` with the title filled in and empty sections. The summary is only the title, the category, and how you hold the screen. Replace it with what you saw. It must be 140–160 characters.
+That writes `content/games/the-game-slug.mdx` with the title filled in, an empty summary, and empty sections. Write the summary after you play. It must be 140–160 characters, in your own words. Do not use a template sentence such as "X is a Puzzle game on PlayHubPlace."
 
 ## The file
 

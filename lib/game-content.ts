@@ -1,8 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
-import { HUB_NAMES } from '@/config/taxonomy';
 import { contentPath, hasContent } from '@/lib/content-gate';
-import type { GameRecord } from '@/lib/catalog/types';
 
 const controlSchema = z.object({
   desktop: z.array(z.object({ key: z.string().min(1), action: z.string().min(1) })),
@@ -14,7 +12,7 @@ const faqSchema = z.array(z.object({ q: z.string().min(1), a: z.string().min(1) 
 export const gameContentSchema = z
   .object({
     title: z.string().min(1),
-    summary: z.string().min(140).max(160),
+    summary: z.string(),
     status: z.enum(['draft', 'published']),
     author: z.string(),
     playedOn: z.string(),
@@ -26,6 +24,20 @@ export const gameContentSchema = z
   })
   .superRefine((doc, ctx) => {
     if (doc.status !== 'published') return;
+    if (doc.summary.length < 140 || doc.summary.length > 160) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'published game needs a 140–160 character summary',
+        path: ['summary'],
+      });
+    }
+    if (isScaffoldSummary(doc.summary)) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'published game cannot use the scaffold summary',
+        path: ['summary'],
+      });
+    }
     if (!doc.author.trim()) {
       ctx.addIssue({ code: 'custom', message: 'published game needs an author', path: ['author'] });
     }
@@ -105,18 +117,18 @@ export function readGameContent(slug: string): GameContent | null {
   return parseGameContent(readFileSync(contentPath('games', slug), 'utf8'));
 }
 
-/** Feed facts only. Never uses the publisher description. */
-export function draftSummary(game: Pick<GameRecord, 'title' | 'hub' | 'orientation'>): string {
-  const screen =
-    game.orientation === 'landscape' ? 'a wide screen' : 'a phone held upright';
-  const text = `${game.title} is a ${HUB_NAMES[game.hub]} game on PlayHubPlace. You play it free in the browser on ${screen}, with no download and no account.`;
-  if (text.length > 160) {
-    throw new Error(`Draft summary for ${game.title} is ${text.length} characters`);
-  }
-  if (text.length >= 140) return text;
-  const padded = `${text} Press Play to start.`;
-  if (padded.length < 140 || padded.length > 160) {
-    throw new Error(`Draft summary for ${game.title} is ${padded.length} characters`);
-  }
-  return padded;
+const SCAFFOLD_SUMMARY =
+  /^.+ is a .+ game on PlayHubPlace\. You play it free in the browser on (?:a wide screen|a phone held upright), with no download and no account\.(?: Press Play to start\.)?$/;
+
+/** The sentence the scaffold used to invent. It is never a real summary. */
+export function isScaffoldSummary(summary: string): boolean {
+  return SCAFFOLD_SUMMARY.test(summary.trim());
+}
+
+/** A summary written for this game. Empty and scaffold sentences do not count. */
+export function realGameSummary(summary: string | undefined): string | null {
+  const text = summary?.trim() ?? '';
+  if (text.length < 140 || text.length > 160) return null;
+  if (isScaffoldSummary(text)) return null;
+  return text;
 }

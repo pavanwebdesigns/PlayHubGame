@@ -20,13 +20,23 @@ const blockSchema = z.discriminatedUnion('type', [
 
 const docSchema = z.object({
   title: z.string().min(1),
-  summary: z.string().min(1),
+  summary: z.string(),
   status: z.enum(['draft', 'published']),
   note: z.string().nullable(),
   blocks: z.array(blockSchema).min(1),
 });
 
 export type ContentDoc = z.infer<typeof docSchema>;
+
+function unquote(value: string): string {
+  if (
+    (value.startsWith('"') && value.endsWith('"')) ||
+    (value.startsWith("'") && value.endsWith("'"))
+  ) {
+    return value.slice(1, -1);
+  }
+  return value;
+}
 
 function parseFrontmatter(source: string): {
   fields: Record<string, string>;
@@ -40,7 +50,7 @@ function parseFrontmatter(source: string): {
     if (split === -1) continue;
     const key = line.slice(0, split).trim();
     const value = line.slice(split + 1).trim();
-    if (key) fields[key] = value;
+    if (key) fields[key] = unquote(value);
   }
   return { fields, body: source.slice(match[0].length) };
 }

@@ -1,7 +1,6 @@
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { loadCurated } from '@/lib/catalog/load';
 import { contentPath } from '@/lib/content-gate';
-import { draftSummary } from '@/lib/game-content';
 
 const slug = process.argv[2];
 if (!slug || !/^[a-z0-9-]+$/.test(slug)) {
@@ -15,10 +14,10 @@ const path = contentPath('games', slug);
 if (existsSync(path)) throw new Error(`${path} already exists`);
 
 const today = new Date().toISOString().slice(0, 10);
-const summary = draftSummary(game);
 const source = `---
 title: ${game.title}
-summary: ${summary}
+# TODO(Pavan) write a 140-160 character summary after you play
+summary: ""
 status: draft
 author: ""
 playedOn: ""
@@ -39,4 +38,4 @@ faq: []
 
 mkdirSync('content/games', { recursive: true });
 writeFileSync(path, source);
-console.log(`Wrote ${path} (${summary.length} character summary)`);
+console.log(`Wrote ${path}`);

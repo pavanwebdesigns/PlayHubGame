@@ -9,6 +9,7 @@ import { favoriteFromGame } from '@/lib/favorites';
 import { isIndexable } from '@/lib/content-gate';
 import { loadCurated, loadGame } from '@/lib/catalog/load';
 import { faqItems, loadContent } from '@/lib/content';
+import { realGameSummary } from '@/lib/game-content';
 import { similarGames } from '@/lib/similar';
 import { absoluteUrl, gameTitle, ogCover, pageMetadata } from '@/lib/seo';
 import { breadcrumbLd, faqLd } from '@/lib/structured-data';
@@ -29,10 +30,11 @@ export async function generateMetadata({
   const game = loadGame(slug);
   if (!game) return {};
   const doc = loadContent('games', game.slug);
+  const summary = realGameSummary(doc?.summary);
   return pageMetadata({
     title: gameTitle(game.title),
     description:
-      doc?.summary ??
+      summary ??
       `Play ${game.title} free in your browser on PlayHubPlace. No download.`,
     path: `/game/${game.slug}/`,
     index: isIndexable('games', game.slug),
@@ -50,6 +52,7 @@ export default async function GamePage({
   const game = loadGame(slug);
   if (!game) notFound();
   const doc = loadContent('games', game.slug);
+  const summary = realGameSummary(doc?.summary);
   const faqs = doc ? faqItems(doc) : [];
   const ranked = similarGames(loadCurated(), game.slug, game.hub, 12, (item) =>
     isIndexable('games', item),
@@ -103,7 +106,7 @@ export default async function GamePage({
             {
               '@type': ['VideoGame', 'SoftwareApplication'],
               name: game.title,
-              ...(doc?.summary ? { description: doc.summary } : {}),
+              ...(summary ? { description: summary } : {}),
               image: ogCover(game.cover, game.coverWidth),
               url: absoluteUrl(`/game/${game.slug}/`),
               applicationCategory: 'GameApplication',
