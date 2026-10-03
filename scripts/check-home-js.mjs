@@ -21,11 +21,12 @@ export const HOME_HTML_GZIP_MAX = 60 * 1024;
  * ~169 KB (the same shell as /privacy/) and each tile is ~3.8 KB once
  * HTML and flight are both counted. Six rows of 12 plus the picks grid
  * land here. The Spotlight srcset adds the 800 step, and the self-hosted
- * AVIF and WebP sources add the picture markup, and the three Anek
- * preloads add the rest, which is included.
+ * AVIF and WebP sources add the picture markup, the three Anek
+ * preloads add their links, and the favicon plus the apple icon add the
+ * rest, which is included.
  * The ceiling is that measurement, so the file cannot grow.
  */
-export const HOME_HTML_RAW_MAX = 733_935;
+export const HOME_HTML_RAW_MAX = 734_186;
 
 export function homeJsGzip(root = 'out') {
   const home = readFileSync(join(root, 'index.html'), 'utf8');

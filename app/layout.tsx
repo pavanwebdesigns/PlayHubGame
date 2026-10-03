@@ -28,7 +28,13 @@ export const metadata: Metadata = {
     template: '%s | PlayHubPlace',
   },
   description: DEFAULT_DESCRIPTION,
-  icons: { icon: '/playlogo.svg' },
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
   manifest: '/manifest.webmanifest',
 };
 

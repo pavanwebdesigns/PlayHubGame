@@ -95,6 +95,28 @@ jobs:
           test -f out/sitemap.xml
           test -f out/manifest.webmanifest
           test -f out/sw.js
+          test -f out/logo.png
+          test -f out/og-default.png
+          test -f out/icon-192.png
+          test -f out/icon-512.png
+          test -f out/icon-maskable-512.png
+          test -f out/apple-touch-icon.png
+          test -f out/favicon.svg
+          test -f out/favicon.ico
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const manifest = JSON.parse(readFileSync("out/manifest.webmanifest", "utf8"));
+            const icons = manifest.icons ?? [];
+            const maskable = icons.filter((icon) => String(icon.purpose).includes("maskable"));
+            if (maskable.length !== 1 || maskable[0].src !== "/icon-maskable-512.png") {
+              console.error("Manifest maskable icon must be /icon-maskable-512.png.");
+              process.exit(1);
+            }
+            if (icons.some((icon) => icon.src === "/logo.png")) {
+              console.error("logo.png is the organization image, not a manifest icon.");
+              process.exit(1);
+            }
+          '
           test -f out/404.html
           test -f out/game/prism-match-3d/index.html
           test -f out/category/puzzle/index.html
@@ -229,6 +251,17 @@ jobs:
           check "https://playhubplace.com/ads.txt"
           check "https://playhubplace.com/manifest.webmanifest"
           check "https://playhubplace.com/sw.js"
+          check "https://playhubplace.com/logo.png"
+          check "https://playhubplace.com/og-default.png"
+          check "https://playhubplace.com/icon-192.png"
+          check "https://playhubplace.com/icon-512.png"
+          check "https://playhubplace.com/icon-maskable-512.png"
+          check "https://playhubplace.com/apple-touch-icon.png"
+          check "https://playhubplace.com/favicon.svg"
+          check "https://playhubplace.com/favicon.ico"
+          manifest=$(curl -fsS --max-time 20 "https://playhubplace.com/manifest.webmanifest")
+          printf '%s' "$manifest" | grep -F -q '"/icon-maskable-512.png"'
+          printf '%s' "$manifest" | grep -F -q '"maskable"'
           ads=$(curl -fsS --max-time 20 "https://playhubplace.com/ads.txt")
           printf '%s\n' "$ads" | grep -F -q '#gpx-property-LC991'
           echo "ads.txt contains the GamePix line."

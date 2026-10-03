@@ -2,7 +2,16 @@ import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { shortBuildId } from '@/lib/build-id';
 
 const PAGES = ['/offline/', '/originals/cps-test/', '/originals/reaction-time-test/'] as const;
-const STATIC = ['/logo.png', '/icon-192.png', '/playlogo.svg'] as const;
+const STATIC = [
+  '/logo.png',
+  '/og-default.png',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/icon-maskable-512.png',
+  '/apple-touch-icon.png',
+  '/favicon.svg',
+  '/favicon.ico',
+] as const;
 
 function referenced(html: string): string[] {
   const found: string[] = [];
