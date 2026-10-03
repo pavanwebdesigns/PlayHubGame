@@ -26,6 +26,9 @@ export function Spotlight({ game }: { game: TileGame }) {
         <a
           href={`/game/${game.slug}/`}
           className={`${buttonClass('play', 'lg')} mt-3`}
+          data-slug={game.slug}
+          data-source="spotlight"
+          data-position={0}
         >
           Play
         </a>

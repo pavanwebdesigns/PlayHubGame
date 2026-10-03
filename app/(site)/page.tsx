@@ -97,6 +97,7 @@ export default function HomePage() {
                 title={collection.name}
                 href={`/collection/${collection.slug}/`}
                 games={row}
+                source={`row:${collection.slug}`}
                 previous={<Icon name="chevron-left" />}
                 next={<Icon name="chevron-right" />}
               />
@@ -112,6 +113,7 @@ export default function HomePage() {
                 title={season.name}
                 href="/category/seasonal/"
                 games={row}
+                source={`row:${season.id}`}
                 previous={<Icon name="chevron-left" />}
                 next={<Icon name="chevron-right" />}
               />

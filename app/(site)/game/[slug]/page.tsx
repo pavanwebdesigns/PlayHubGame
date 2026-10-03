@@ -87,11 +87,12 @@ export default async function GamePage({
           embedUrl: game.embedUrl,
           orientation: game.orientation,
           aspect: game.aspect,
+          hub: game.hub,
         }}
         favorite={favoriteFromGame(game)}
         upNextHref={upNext ? `/game/${upNext.slug}/` : '/'}
-        rail={tiles.map((item) => (
-          <GameTile key={item.slug} game={item} size="row" />
+        rail={tiles.map((item, index) => (
+          <GameTile key={item.slug} game={item} size="row" source="play_next" position={index} />
         ))}
       >
         <GameCopy

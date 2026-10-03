@@ -14,7 +14,7 @@ export function UpNext({ candidates }: { candidates: readonly TileGame[] }) {
     <section className="up-next">
       <h2 className="mb-3 text-title text-ink">Up next</h2>
       <div className="max-w-xs">
-        <GameTile game={game} size="md" />
+        <GameTile game={game} size="md" source="up_next" position={0} />
       </div>
     </section>
   );

@@ -9,6 +9,7 @@ import {
   SAVE_GAME_SCRIPT,
   TILE_PREFETCH_SCRIPT,
 } from '@/lib/page-scripts';
+import { AnalyticsBoot } from '@/components/analytics/AnalyticsBoot';
 import { SiteIcons } from '@/components/icons/SiteIcons';
 import { anekLatin, jersey15 } from './fonts';
 import './globals.css';
@@ -52,6 +53,7 @@ export default function RootLayout({
         >
           Skip to content
         </a>
+        <AnalyticsBoot />
         <SiteIcons>
           <div id="content">{children}</div>
         </SiteIcons>

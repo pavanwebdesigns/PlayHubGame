@@ -52,6 +52,9 @@ export function HomePicks({
             sizes={pickCoverSizes(thumbSize, wideSize)}
             className={pickClassName(pick)}
             style={style}
+            source="todays_picks"
+            position={pick.thumb?.order ?? pick.wide?.order ?? 0}
+            positionWide={pick.wide?.order}
           />
         );
       })}

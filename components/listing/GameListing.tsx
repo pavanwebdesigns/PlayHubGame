@@ -104,8 +104,14 @@ export function GameListing({
         </div>
       ) : null}
       <div className="tile-grid mt-4">
-        {games.map((game) => (
-          <GameTile key={game.slug} game={game} size="md" />
+        {games.map((game, index) => (
+          <GameTile
+            key={game.slug}
+            game={game}
+            size="md"
+            source="category"
+            position={index}
+          />
         ))}
       </div>
       {pages > 1 ? (

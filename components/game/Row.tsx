@@ -9,12 +9,14 @@ export function Row({
   games,
   previous,
   next,
+  source,
 }: {
   title: string;
   href: string;
   games: readonly TileGame[];
   previous: ReactNode;
   next: ReactNode;
+  source?: string;
 }) {
   return (
     <section className="min-w-0">
@@ -26,8 +28,14 @@ export function Row({
       </div>
       <div className="row-wrap relative min-w-0">
         <div className="row-scroller" tabIndex={0} role="region" aria-label={title}>
-          {games.map((game) => (
-            <GameTile key={game.slug} game={game} size="row" />
+          {games.map((game, index) => (
+            <GameTile
+              key={game.slug}
+              game={game}
+              size="row"
+              source={source}
+              position={index}
+            />
           ))}
         </div>
         <div className="row-edge row-edge-prev">

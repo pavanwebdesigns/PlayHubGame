@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Row } from '@/components/game/Row';
 import { useSiteIcons } from '@/components/icons/IconProvider';
 import { SearchField } from '@/components/ui/SearchField';
+import { track } from '@/lib/analytics';
 import type { SearchIndexEntry } from '@/lib/catalog/types';
 import { mergeSearch, readSearches, readSearchesSnapshot, subscribeSearches, writeSearches } from '@/lib/searches';
 import type { TileGame } from '@/lib/tile-game';
@@ -109,6 +110,11 @@ export function SearchBox({
       }
       const found = engine.current.search(trimmed).slice(0, 24);
       setResults(found);
+      track(
+        found.length === 0
+          ? { name: 'search_no_results', term: trimmed, results: 0 }
+          : { name: 'search', term: trimmed, results: found.length },
+      );
       setActive(0);
       setStatus(found.length === 0 ? 'No games match that search.' : '');
       const nextRecent = mergeSearch(readSearches(), trimmed);
@@ -183,6 +189,9 @@ export function SearchBox({
             <a
               id={`search-${game.slug}`}
               href={`/game/${game.slug}/`}
+              data-slug={game.slug}
+              data-source="search"
+              data-position={index}
               className={`inline-flex min-h-tap items-center text-ink ${index === active ? 'text-play' : ''}`}
             >
               {highlight(game.title, query)}
@@ -207,6 +216,7 @@ export function SearchBox({
               title="Today’s picks"
               href="/"
               games={picks}
+              source="todays_picks"
               previous={icons.previous}
               next={icons.next}
             />

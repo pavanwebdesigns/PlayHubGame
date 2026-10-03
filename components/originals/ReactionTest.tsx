@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { buttonClass } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { keepBest, readBest, writeBest } from '@/lib/best';
+import { track } from '@/lib/analytics';
 import { shareOrCopy } from '@/lib/share';
 
 const BEST_KEY = 'ph:reaction-best:v1';
@@ -54,6 +55,7 @@ export function ReactionTest() {
     setBest(next);
     setScore(reaction);
     setPhase('result');
+    track({ name: 'original_result', slug: 'reaction-time-test', score: reaction });
     setMessage(`${reaction} ms`);
   }
 
@@ -64,6 +66,13 @@ export function ReactionTest() {
       text: `My reaction time is ${score} ms on PlayHubPlace.`,
       url: window.location.href,
     });
+    if (outcome === 'shared' || outcome === 'copied') {
+      track({
+        name: 'share',
+        slug: 'reaction-time-test',
+        method: outcome === 'shared' ? 'native' : 'copy',
+      });
+    }
     if (outcome === 'copied') showToast('Link copied');
   }
 

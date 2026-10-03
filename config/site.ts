@@ -8,6 +8,9 @@ export const DEFAULT_DESCRIPTION =
 /** Replace this sentinel with a real address before the contact link goes live. */
 export const CONTACT_EMAIL = 'TODO(Pavan)';
 
+/** Replace this sentinel with the GA4 id before analytics can send. */
+export const GA4_MEASUREMENT_ID = 'TODO(Pavan)';
+
 /** Fail the catalog build below this many valid games. */
 export const MIN_VALID_GAMES = 10_000;
 

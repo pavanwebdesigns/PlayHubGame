@@ -97,8 +97,8 @@ export function GameCopy({
         <section className="mt-8">
           <h2 className="mb-3 text-title text-ink">Similar games</h2>
           <div className="tile-grid">
-            {similar.map((item) => (
-              <GameTile key={item.slug} game={item} size="md" />
+            {similar.map((item, index) => (
+              <GameTile key={item.slug} game={item} size="md" source="play_next" position={index} />
             ))}
           </div>
         </section>

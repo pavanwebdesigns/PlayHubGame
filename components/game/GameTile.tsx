@@ -19,6 +19,9 @@ export function GameTile({
   span = true,
   sizes,
   style,
+  source,
+  position,
+  positionWide,
 }: {
   game: TileGame;
   size: keyof typeof sizeClass;
@@ -27,6 +30,9 @@ export function GameTile({
   span?: boolean;
   sizes?: string;
   style?: CSSProperties;
+  source?: string;
+  position?: number;
+  positionWide?: number;
 }) {
   const isNew = isNewGame(game.publishedAt, buildToday());
   const spanClass = span ? sizeClass[size] : '';
@@ -39,6 +45,10 @@ export function GameTile({
         href={`/game/${game.slug}/`}
         className="game-tile relative block rounded-tile"
         data-orientation={game.orientation}
+        data-slug={source ? game.slug : undefined}
+        data-source={source}
+        data-position={position}
+        data-position-wide={positionWide}
       >
         <span
           className={`tile-media relative block overflow-hidden rounded-tile${isNew ? ' tile-media-new' : ''}`}

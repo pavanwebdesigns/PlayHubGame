@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import { buttonClass } from '@/components/ui/Button';
 import { useToast } from '@/components/ui/Toast';
 import { keepBest, readBest, writeBest } from '@/lib/best';
+import { track } from '@/lib/analytics';
 import { shareOrCopy } from '@/lib/share';
 
 const BEST_KEY = 'ph:cps-best:v1';
@@ -40,6 +41,7 @@ export function CpsTest() {
           setRunning(false);
           const cps = clicksRef.current / seconds;
           setResult(cps);
+          track({ name: 'original_result', slug: 'cps-test', score: cps });
           const next = keepBest(readBest(BEST_KEY), cps, 'high');
           writeBest(BEST_KEY, next);
           setBest(next);
@@ -64,6 +66,13 @@ export function CpsTest() {
       text,
       url: window.location.href,
     });
+    if (outcome === 'shared' || outcome === 'copied') {
+      track({
+        name: 'share',
+        slug: 'cps-test',
+        method: outcome === 'shared' ? 'native' : 'copy',
+      });
+    }
     if (outcome === 'copied') showToast('Link copied');
   }
 

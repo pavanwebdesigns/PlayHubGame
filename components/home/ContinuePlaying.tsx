@@ -32,6 +32,7 @@ export function ContinuePlaying() {
       title="Continue playing"
       href="/my-games/"
       games={games.slice(0, 20)}
+      source="row:continue"
       previous={icons.previous}
       next={icons.next}
     />

@@ -13,6 +13,7 @@ import {
   writeFavorites,
   type StoredFavorite,
 } from '@/lib/favorites';
+import { track } from '@/lib/analytics';
 import { shareOrCopy } from '@/lib/share';
 
 const REASONS = [
@@ -70,12 +71,23 @@ export function ActionBar({
         )
       : [...current, favorite];
     writeFavorites(next);
+    track({
+      name: exists ? 'favorite_remove' : 'favorite_add',
+      slug: favorite.namespace,
+    });
     showToast(exists ? 'Removed' : 'Saved to My games');
   }
 
   async function share() {
     const url = new URL(path, window.location.origin).href;
     const result = await shareOrCopy({ title, url });
+    if (result === 'shared' || result === 'copied') {
+      track({
+        name: 'share',
+        slug: favorite.namespace,
+        method: result === 'shared' ? 'native' : 'copy',
+      });
+    }
     if (result === 'copied') showToast('Link copied');
     if (result === 'failed') {
       showToast('Could not copy the link. Copy it from the address bar.');
@@ -119,6 +131,13 @@ export function ActionBar({
                 <a
                   className="inline-flex min-h-tap items-center text-play"
                   href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(`Problem with ${title}`)}&body=${encodeURIComponent(`${label}\n${path}`)}`}
+                  onClick={() =>
+                    track({
+                      name: 'report_problem',
+                      slug: favorite.namespace,
+                      reason: id,
+                    })
+                  }
                 >
                   {label}
                 </a>

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { ActionBar } from '@/components/game/ActionBar';
 import { CoverImage } from '@/components/game/CoverImage';
 import { Button } from '@/components/ui/Button';
+import { playDevice, track } from '@/lib/analytics';
 import { tipAt } from '@/config/loading-tips';
 import { PLAYER_SIZES, SPOTLIGHT_WIDTHS } from '@/lib/cover-sizes';
 import type { StoredFavorite } from '@/lib/favorites';
@@ -19,6 +20,7 @@ export type PlayGame = {
   embedUrl: string;
   orientation: 'landscape' | 'portrait' | 'all';
   aspect: number;
+  hub: string;
 };
 
 const LOAD_MS = 15_000;
@@ -79,15 +81,25 @@ export function Player({
   const [exitSolid, setExitSolid] = useState(false);
   const [tip, setTip] = useState(0);
   const [portrait, setPortrait] = useState(false);
+  const startedAt = useRef(0);
+  const immersiveAt = useRef(0);
+  const rotateSent = useRef(false);
 
   useEffect(() => {
     if (phase !== 'loading') return;
     const timer = window.setTimeout(
-      () => setPhase((current) => nextPhase(current, 'timeout')),
+      () =>
+        setPhase((current) => {
+          const next = nextPhase(current, 'timeout');
+          if (current === 'loading' && next === 'error') {
+            track({ name: 'game_load_failed', slug: game.slug });
+          }
+          return next;
+        }),
       LOAD_MS,
     );
     return () => window.clearTimeout(timer);
-  }, [phase, attempt]);
+  }, [phase, attempt, game.slug]);
 
   useEffect(() => {
     if (phase !== 'playing') return;
@@ -131,6 +143,8 @@ export function Player({
       pushed.current = true;
     }
     setImmersive(true);
+    immersiveAt.current = performance.now();
+    track({ name: 'immersive_enter', slug: game.slug });
     void shellRef.current?.requestFullscreen?.().catch(() => {});
     if (game.orientation !== 'landscape') return;
     try {
@@ -144,6 +158,12 @@ export function Player({
   }
 
   const exitImmersive = useCallback(() => {
+    if (immersiveRef.current) {
+      const seconds = immersiveAt.current
+        ? Math.round((performance.now() - immersiveAt.current) / 1000)
+        : 0;
+      track({ name: 'immersive_exit', slug: game.slug, seconds_in_game: seconds });
+    }
     if (document.fullscreenElement) {
       void document.exitFullscreen().catch(() => {});
     }
@@ -151,7 +171,7 @@ export function Player({
     if (!pushed.current) return;
     pushed.current = false;
     history.back();
-  }, []);
+  }, [game.slug]);
 
   useEffect(() => {
     immersiveRef.current = immersive;
@@ -186,6 +206,15 @@ export function Player({
   }, []);
 
   function play() {
+    startedAt.current = performance.now();
+    rotateSent.current = false;
+    track({
+      name: 'game_play_start',
+      slug: game.slug,
+      hub: game.hub,
+      orientation: game.orientation,
+      device: playDevice(),
+    });
     setTip(nextTip());
     setPhase((current) => nextPhase(current, 'play'));
     if (wantsImmersive(window.innerWidth, navigator.maxTouchPoints)) {
@@ -201,6 +230,12 @@ export function Player({
   const showCover = phase === 'cover' || phase === 'loading';
   const showFrame = phase === 'loading' || phase === 'playing';
   const showRotate = immersive && game.orientation === 'landscape' && portrait;
+
+  useEffect(() => {
+    if (!showRotate || rotateSent.current) return;
+    rotateSent.current = true;
+    track({ name: 'rotate_prompt_shown', slug: game.slug });
+  }, [showRotate, game.slug]);
 
   return (
     <div>
@@ -234,7 +269,19 @@ export function Player({
               src={game.embedUrl}
               allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"
               className="absolute inset-0 h-full w-full border-0"
-              onLoad={() => setPhase((current) => nextPhase(current, 'loaded'))}
+              onLoad={() =>
+                setPhase((current) => {
+                  const next = nextPhase(current, 'loaded');
+                  if (current === 'loading' && next === 'playing' && startedAt.current) {
+                    track({
+                      name: 'game_load_time',
+                      slug: game.slug,
+                      ms: Math.round(performance.now() - startedAt.current),
+                    });
+                  }
+                  return next;
+                })
+              }
             />
           ) : null}
           {showCover ? (
