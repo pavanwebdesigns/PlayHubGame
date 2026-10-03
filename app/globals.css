@@ -369,8 +369,10 @@ img.cover-img[hidden] {
 /* On a phone the featured pick is almost as wide as the column. Bleed the
    Spotlight to the screen edge so its image stays the largest paint. */
 @media (max-width: 767px) {
-  .spotlight-frame {
+  /* The column clamp (max-width: 100%) would cancel the bleed. */
+  .site-main > main > .spotlight-frame {
     width: calc(100% + 2rem);
+    max-width: none;
     margin-inline: -1rem;
   }
 }
