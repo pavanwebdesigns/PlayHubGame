@@ -2,7 +2,7 @@
 
 Events go to GA4 only after the player allows analytics. Until then `track()` does nothing and the Google script is not loaded.
 
-Consent is `localStorage` key `ph:consent:v1` with `{"analytics":true}`. The consent banner that writes this key arrives in Phase 6. The measurement id is `GA4_MEASUREMENT_ID` in `config/site.ts` and is still `TODO(Pavan)`.
+Consent is `localStorage` key `ph:consent:v1` with `{"analytics":true}`. The consent banner that writes this key arrives in Phase 6. The measurement id is `GA4_MEASUREMENT_ID` in `config/site.ts`. It is empty until Phase 6, so analytics stays off and the empty id is not a launch blocker.
 
 On a preview or local build, `?ph_debug_analytics=1` turns events on without consent so they can be checked. That query does nothing when the site is built with `PH_MAIN_BUILD=1`.
 

@@ -1,8 +1,11 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
+/** Code and config only. Drafts under content/ must not fail a main build. */
 const ROOTS = ['app', 'components', 'config', 'lib', 'scripts'];
 const NEEDLE = 'TODO(Pavan)';
+/** This file writes the needle into new content files. It is not a config TODO. */
+const SKIP = new Set(['scripts/check-todos.ts', 'scripts/new-game-content.ts']);
 
 function walk(dir: string, out: string[]): void {
   let names: string[];
@@ -25,7 +28,8 @@ const files: string[] = [];
 for (const root of ROOTS) walk(root, files);
 
 const hits = files.filter((file) => {
-  if (relative(process.cwd(), file) === 'scripts/check-todos.ts') return false;
+  const rel = relative(process.cwd(), file);
+  if (rel.startsWith('content/') || SKIP.has(rel)) return false;
   return readFileSync(file, 'utf8').includes(NEEDLE);
 });
 if (hits.length === 0) process.exit(0);
