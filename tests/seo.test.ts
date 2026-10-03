@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import type { GameRecord } from '@/lib/catalog/types';
 import { listingMeta } from '@/lib/listing-meta';
 import { fitTitle, gameTitle, hubTitle, ogCover } from '@/lib/seo';
+import { sitemapSets } from '@/lib/sitemaps';
 
 describe('titles', () => {
   it('keeps the home and hub patterns inside 60 characters', () => {
@@ -61,6 +63,35 @@ describe('listing urls', () => {
     });
     expect(meta.index).toBe(false);
     expect(meta.path).toBe('/category/puzzle/new/page/2/');
+  });
+});
+
+describe('sitemaps', () => {
+  const game = {
+    id: '1',
+    slug: 'prism-match-3d',
+    title: 'Prism Match 3D',
+    publisherDescription: '',
+    rawCategory: 'match-3',
+    hub: 'match-3',
+    tags: ['match-3'],
+    orientation: 'landscape',
+    quality: 0.9,
+    publishedAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-02-01T00:00:00.000Z',
+    aspect: 1.6,
+    coverWidth: 800,
+    cover: 'https://img.gamepix.com/a.png',
+    icon: 'https://img.gamepix.com/i.png',
+    embedUrl: 'https://play.gamepix.com/x?sid=LC991',
+  } satisfies GameRecord;
+
+  it('keeps draft games and paginated urls out', () => {
+    const sets = sitemapSets([game], new Date('2026-10-03T00:00:00.000Z'));
+    expect(sets.games).toEqual([]);
+    expect(sets.pages.map((item) => item.loc).join('\n')).toContain('/new/');
+    expect(JSON.stringify(sets)).not.toContain('/page/');
+    expect(JSON.stringify(sets)).not.toContain('/search/');
   });
 });
 

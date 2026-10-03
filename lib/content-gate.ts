@@ -35,3 +35,10 @@ export function contentStatus(
 export function isIndexable(kind: ContentKind, slug: string): boolean {
   return contentStatus(kind, slug) === 'published';
 }
+
+export function contentUpdated(kind: ContentKind, slug: string): string | null {
+  if (!hasContent(kind, slug)) return null;
+  const source = readFileSync(contentPath(kind, slug), 'utf8');
+  const match = source.match(/^updated:\s*(\d{4}-\d{2}-\d{2})/m);
+  return match?.[1] ?? null;
+}
