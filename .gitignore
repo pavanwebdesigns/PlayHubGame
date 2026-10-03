@@ -12,6 +12,24 @@ dist
 dist-ssr
 *.local
 
+# Next.js
+.next/
+out/
+*.tsbuildinfo
+.lighthouseci/
+test-results/
+playwright-report/
+blob-report/
+.catalog-cache/
+.catalog-snapshot/
+
+# Generated catalog and the day's Spotlight cover. Never commit.
+data/
+public/data/
+public/spotlight/
+public/sitemap.xml
+public/sitemap-*.xml
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

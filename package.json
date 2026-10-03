@@ -4,31 +4,42 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "test": "node --experimental-strip-types --test tests/*.test.ts",
-    "preview": "vite preview"
+    "dev": "next dev",
+    "build": "npm run check-todos && tsx scripts/check-game-content.ts && npm run catalog && tsx scripts/spotlight-cover.ts && tsx scripts/report-index.ts && tsx scripts/write-sitemaps.ts && next build && tsx scripts/write-sw.ts && node scripts/check-home-js.mjs",
+    "catalog": "tsx scripts/build-catalog.ts",
+    "lint": "eslint . --max-warnings 0 && node scripts/check-tokens.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "format": "prettier --write .",
+    "check-todos": "node --experimental-strip-types scripts/check-todos.ts"
   },
   "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "lucide-react": "1.50.0",
+    "minisearch": "7.2.0",
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "web-vitals": "^6.2.2",
+    "zod": "4.6.5"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@axe-core/playwright": "4.13.0",
+    "@lhci/cli": "0.15.1",
+    "@playwright/test": "1.63.0",
+    "@tailwindcss/postcss": "4.3.3",
     "@types/node": "^24.10.0",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "@vitejs/plugin-react": "^5.1.0",
     "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "typescript": "~5.9.3",
-    "typescript-eslint": "^8.46.3",
-    "vite": "npm:rolldown-vite@7.2.2"
-  },
-  "overrides": {
-    "vite": "npm:rolldown-vite@7.2.2"
+    "eslint-config-next": "16.3.8",
+    "eslint-config-prettier": "10.1.8",
+    "playwright": "1.63.0",
+    "prettier": "3.9.9",
+    "sharp": "^0.35.5",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "5.0.3"
   }
 }

@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, rebuild/next]
   workflow_dispatch:
 
 permissions:
@@ -12,9 +12,28 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Restore catalog cache
+        uses: actions/cache@v4
+        with:
+          path: .catalog-cache
+          key: catalog-${{ github.run_id }}
+          restore-keys: |
+            catalog-
+
+      - name: Restore catalog snapshot
+        run: |
+          set -euo pipefail
+          mkdir -p .catalog-snapshot
+          if git fetch --depth 1 origin catalog-snapshot; then
+            git archive FETCH_HEAD | tar -x -C .catalog-snapshot
+          else
+            echo "catalog-snapshot is not on the remote yet."
+          fi
 
       - name: Set up Node 24
         uses: actions/setup-node@v4
@@ -28,5 +47,32 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
       - name: Build
         run: npm run build
+        env:
+          CATALOG_CACHE_DIR: ${{ github.workspace }}/.catalog-cache
+          CATALOG_SNAPSHOT_DIR: ${{ github.workspace }}/.catalog-snapshot
+          # A pull request into main is the launch gate. Off main these stay unset.
+          PH_MAIN_BUILD: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' && '1' || '' }}
+          GITHUB_REF: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' && 'refs/heads/main' || github.ref }}
+
+      - name: Build report
+        run: node scripts/build-report.mjs
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright smoke
+        run: npx playwright test
+
+      - name: Lighthouse
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+        run: rm -rf .lighthouseci && npx lhci autorun && node scripts/check-lighthouse.mjs && node scripts/check-home-js.mjs

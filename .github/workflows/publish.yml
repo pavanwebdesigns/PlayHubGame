@@ -3,10 +3,12 @@ name: Publish
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '0 21 * * *'
   workflow_dispatch:
     inputs:
       ref:
-        description: "Commit SHA or tag on main to build. Defaults to main."
+        description: 'Commit SHA or tag on main to build. Defaults to main.'
         required: false
         default: main
         type: string
@@ -22,7 +24,7 @@ jobs:
   publish:
     name: Publish deploy branch
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,6 +35,29 @@ jobs:
       - name: Record source commit
         id: git
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Restore catalog cache
+        uses: actions/cache@v4
+        with:
+          path: .catalog-cache
+          key: catalog-${{ github.run_id }}
+          restore-keys: |
+            catalog-
+
+      - name: Restore catalog snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p .catalog-snapshot
+          auth=$(printf 'x-access-token:%s' "$GITHUB_TOKEN" | base64 -w 0)
+          git -c "http.https://github.com/.extraheader=AUTHORIZATION: basic ${auth}" \
+            fetch --depth 1 origin catalog-snapshot || true
+          if git rev-parse --verify --quiet FETCH_HEAD >/dev/null; then
+            git archive FETCH_HEAD | tar -x -C .catalog-snapshot
+          else
+            echo "catalog-snapshot is not on the remote yet."
+          fi
 
       - name: Set up Node 24
         uses: actions/setup-node@v4
@@ -45,29 +70,89 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          PH_MAIN_BUILD: '1'
+          CATALOG_CACHE_DIR: ${{ github.workspace }}/.catalog-cache
+          CATALOG_SNAPSHOT_DIR: ${{ github.workspace }}/.catalog-snapshot
+
+      - name: Omit private dev pages
+        run: rm -rf out/dev
+
+      - name: Keep the catalog cache
+        run: node scripts/save-catalog-cache.mjs
+
+      - name: Store catalog snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx tsx scripts/push-catalog-snapshot.ts
 
       - name: Guard checks
         id: guard
         run: |
           set -euo pipefail
-          test -f dist/index.html
-          test -f dist/ads.txt
-          grep -F -q '#gpx-property-LC991' dist/ads.txt
-          test -f dist/.htaccess
-          bad=$(find dist \( -name '*.map' -o -name '.env' -o -name '.DS_Store' \) -print)
+          test -f out/index.html
+          test -f out/ads.txt
+          grep -F -q '#gpx-property-LC991' out/ads.txt
+          test -f out/.htaccess
+          test -f out/robots.txt
+          test -f out/sitemap.xml
+          test -f out/manifest.webmanifest
+          test -f out/sw.js
+          test -f out/logo.png
+          test -f out/og-default.png
+          test -f out/icon-192.png
+          test -f out/icon-512.png
+          test -f out/icon-maskable-512.png
+          test -f out/apple-touch-icon.png
+          test -f out/favicon.svg
+          test -f out/favicon.ico
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const manifest = JSON.parse(readFileSync("out/manifest.webmanifest", "utf8"));
+            const icons = manifest.icons ?? [];
+            const maskable = icons.filter((icon) => String(icon.purpose).includes("maskable"));
+            if (maskable.length !== 1 || maskable[0].src !== "/icon-maskable-512.png") {
+              console.error("Manifest maskable icon must be /icon-maskable-512.png.");
+              process.exit(1);
+            }
+            if (icons.some((icon) => icon.src === "/logo.png")) {
+              console.error("logo.png is the organization image, not a manifest icon.");
+              process.exit(1);
+            }
+          '
+          test -f out/404.html
+          test -f out/game/prism-match-3d/index.html
+          test -f out/category/puzzle/index.html
+          test -f out/new/index.html
+          test -f out/originals/cps-test/index.html
+          test -f out/data/legacy-ids.json
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const map = JSON.parse(readFileSync("out/data/legacy-ids.json", "utf8"));
+            if (map["737HCH"] !== "prism-match-3d") {
+              console.error("737HCH does not map to prism-match-3d");
+              process.exit(1);
+            }
+            const home = readFileSync("out/index.html", "utf8");
+            if (!home.includes("/data/legacy-ids.json")) {
+              console.error("Home HTML is missing the legacy game redirect.");
+              process.exit(1);
+            }
+          '
+          bad=$(find out \( -name '*.map' -o -name '.env' -o -name '.DS_Store' \) -print)
           if [ -n "$bad" ]; then
             echo "Refusing to publish:"
             printf '%s\n' "$bad"
             exit 1
           fi
-          js=$(grep -oE 'assets/index-[^"]+\.js' dist/index.html | head -n 1)
+          js=$(node scripts/main-js.mjs)
           if [ -z "$js" ]; then
-            echo "Could not find the main JS file name in dist/index.html."
+            echo "Could not find a /_next/static script in out/index.html."
             exit 1
           fi
           echo "js=$js" >> "$GITHUB_OUTPUT"
 
-      - name: Publish dist to deploy
+      - name: Publish out to deploy
         id: publish
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -90,35 +175,43 @@ jobs:
           if [ "$remote_status" -eq 0 ]; then
             git "${git_auth[@]}" clone --depth 1 --branch deploy "$remote" /tmp/site-publish
             find /tmp/site-publish -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
-            cp -a "${GITHUB_WORKSPACE}/dist/." /tmp/site-publish/
+            cp -a "${GITHUB_WORKSPACE}/out/." /tmp/site-publish/
           elif [ "$remote_status" -eq 2 ]; then
             mkdir -p /tmp/site-publish
-            cp -a "${GITHUB_WORKSPACE}/dist/." /tmp/site-publish/
+            cp -a "${GITHUB_WORKSPACE}/out/." /tmp/site-publish/
             git -C /tmp/site-publish init -b deploy
           else
             echo "Could not check the deploy branch (git ls-remote exited ${remote_status})."
             exit 1
           fi
 
-          # git add -A stages new files and removals, so old hashed assets leave the branch.
           git -C /tmp/site-publish add -A
           git -C /tmp/site-publish ls-files --error-unmatch .htaccess ads.txt index.html >/dev/null
-          if git -C /tmp/site-publish ls-files | grep -E '(^|/)(package\.json|package-lock\.json|src/|node_modules/|\.github/)' >/dev/null; then
+          if git -C /tmp/site-publish ls-files | grep -E '(^|/)(package\.json|package-lock\.json|src/|app/|legacy/|node_modules/|\.github/)' >/dev/null; then
             echo "Refusing to publish source files."
             git -C /tmp/site-publish ls-files
             exit 1
           fi
 
-          if git -C /tmp/site-publish diff --cached --quiet; then
+          git -C /tmp/site-publish diff --cached --name-only > /tmp/deploy-paths.txt
+          scope=$(npx tsx "${GITHUB_WORKSPACE}/scripts/classify-deploy-diff.ts" /tmp/deploy-paths.txt)
+          count=$(grep -c . /tmp/deploy-paths.txt || true)
+          echo "scope=$scope"
+          echo "files=$count"
+          echo "scope=$scope" >> "$GITHUB_OUTPUT"
+          if [ "$scope" = "skip" ]; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Built files match the deploy branch. No commit."
             exit 0
+          fi
+          if [ "$scope" = "home" ]; then
+            echo "Only the home page changed. Committing those files."
           fi
 
           git -C /tmp/site-publish \
             -c user.name='github-actions[bot]' \
             -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-            commit -m "Publish ${SOURCE_SHA}"
+            commit -m "Publish ${SOURCE_SHA} (${scope})"
           git -C /tmp/site-publish "${git_auth[@]}" push "$remote" HEAD:deploy
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
@@ -138,18 +231,69 @@ jobs:
             echo "Live HTML does not reference $js yet."
             sleep 15
           done
-          ads=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "https://playhubplace.com/ads.txt" || true)
+          check() {
+            code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "$1" || true)
+            echo "$1 $code"
+            if [ "$code" != "200" ]; then
+              echo "$1 returned HTTP $code. Expected 200."
+              return 1
+            fi
+          }
           if [ "$ok" -ne 1 ]; then
             echo "The live homepage still does not reference $js after 5 minutes. In hPanel, set Git to branch deploy (never main), flush the CDN cache, then re-run this workflow."
             echo "result=fail" >> "$GITHUB_OUTPUT"
             exit 1
           fi
-          if [ "$ads" != "200" ]; then
-            echo "/ads.txt returned HTTP $ads. Expected 200."
-            echo "result=fail" >> "$GITHUB_OUTPUT"
+          check "https://playhubplace.com/"
+          check "https://playhubplace.com/game/prism-match-3d/"
+          check "https://playhubplace.com/category/puzzle/"
+          check "https://playhubplace.com/new/"
+          check "https://playhubplace.com/originals/cps-test/"
+          check "https://playhubplace.com/robots.txt"
+          check "https://playhubplace.com/sitemap.xml"
+          check "https://playhubplace.com/ads.txt"
+          check "https://playhubplace.com/manifest.webmanifest"
+          check "https://playhubplace.com/sw.js"
+          check "https://playhubplace.com/logo.png"
+          check "https://playhubplace.com/og-default.png"
+          check "https://playhubplace.com/icon-192.png"
+          check "https://playhubplace.com/icon-512.png"
+          check "https://playhubplace.com/icon-maskable-512.png"
+          check "https://playhubplace.com/apple-touch-icon.png"
+          check "https://playhubplace.com/favicon.svg"
+          check "https://playhubplace.com/favicon.ico"
+          manifest=$(curl -fsS --max-time 20 "https://playhubplace.com/manifest.webmanifest")
+          printf '%s' "$manifest" | grep -F -q '"/icon-maskable-512.png"'
+          printf '%s' "$manifest" | grep -F -q '"maskable"'
+          ads=$(curl -fsS --max-time 20 "https://playhubplace.com/ads.txt")
+          printf '%s\n' "$ads" | grep -F -q '#gpx-property-LC991'
+          echo "ads.txt contains the GamePix line."
+          missing=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "https://playhubplace.com/this-page-is-not-real/" || true)
+          echo "https://playhubplace.com/this-page-is-not-real/ $missing"
+          if [ "$missing" != "404" ]; then
+            echo "Expected the unknown URL to return 404."
             exit 1
           fi
-          echo "Homepage references $js and /ads.txt returned 200."
+          ids=$(curl -fsS --max-time 20 "https://playhubplace.com/data/legacy-ids.json")
+          printf '%s' "$ids" | grep -F -q '"737HCH":"prism-match-3d"'
+          printf '%s' "$html" | grep -F -q '/data/legacy-ids.json'
+          echo "Legacy game id 737HCH maps to prism-match-3d, and the home page loads that map."
+          tools_headers=$(curl -sS -D - -o /dev/null --max-time 20 "https://playhubplace.com/?page=tools")
+          tools_code=$(printf '%s\n' "$tools_headers" | awk 'BEGIN{c=""} /^HTTP/{c=$2} END{print c}')
+          tools_loc=$(printf '%s\n' "$tools_headers" | awk 'tolower($1)=="location:" {print $2}' | tr -d '\r' | tail -n 1)
+          echo "https://playhubplace.com/?page=tools $tools_code $tools_loc"
+          if [ "$tools_code" != "301" ]; then
+            echo "Expected ?page=tools to return 301."
+            exit 1
+          fi
+          case "$tools_loc" in
+            https://workutilities.com|https://workutilities.com/|https://workutilities.com/?*) ;;
+            *)
+              echo "Expected ?page=tools to redirect to https://workutilities.com/."
+              exit 1
+              ;;
+          esac
+          echo "Homepage references $js and the smoke URLs returned 200."
           echo "result=pass" >> "$GITHUB_OUTPUT"
 
       - name: Job summary
@@ -158,8 +302,9 @@ jobs:
           {
             echo "### Publish"
             echo "- Source commit: \`${{ steps.git.outputs.sha }}\`"
-            echo "- Ref input: \`${{ github.event_name == 'workflow_dispatch' && inputs.ref || 'push' }}\`"
-            echo "- Branch: \`deploy\`"
+            echo "- Ref input: \`${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.event_name }}\`"
+            echo "- Branch: \`deploy\` (no force)"
+            echo "- Catalog snapshot: \`catalog-snapshot\` (one commit, force, only that branch)"
             echo "- Commit pushed: \`${{ steps.publish.outputs.changed }}\`"
             echo "- Main JS: \`${{ steps.guard.outputs.js }}\`"
             echo "- Smoke test: \`${{ steps.smoke.outcome }}\`"
