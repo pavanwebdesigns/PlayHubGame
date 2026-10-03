@@ -20,7 +20,7 @@ Search uses [MiniSearch](https://lucaong.github.io/minisearch/) 7.2.0, about 5.8
 
 `npm run catalog` fetches the GamePix feed, checks each game, and writes `data/catalog.json`, `data/curated.json`, `data/search-index.json`, `data/meta.json`, and `public/data/legacy-ids.json`. Those files are gitignored. `npm run build` runs the catalog first.
 
-The build fails when valid games are below `MIN_VALID_GAMES` (10,000) or invalid games are above `MAX_INVALID_RATIO` (1%), both in `config/site.ts`. It then restores the last good catalog from `CATALOG_CACHE_DIR` (Actions cache) or `CATALOG_SNAPSHOT_DIR` (the `catalog-snapshot` branch) and marks `meta.stale`. The snapshot branch holds one commit, `catalog.json.gz` and `meta.json.gz`, and is force-pushed after a good build. Force-push is allowed only there. `main` and `deploy` are never force-pushed. A stale build does not replace the snapshot. If neither copy exists, the build stops. A new raw category that is not in `config/taxonomy.ts` also stops the build, so a person maps it.
+The build fails when valid games are below `MIN_VALID_GAMES` (10,000) or invalid games are above `MAX_INVALID_RATIO` (1%), both in `config/site.ts`. It then restores the last good catalog from `CATALOG_CACHE_DIR` (Actions cache) or `CATALOG_SNAPSHOT_DIR` (the `catalog-snapshot` branch) and marks `meta.stale`. The snapshot branch holds one commit, `catalog.json.gz`, `meta.json.gz`, and `cover-widths.json.gz`, and is force-pushed after a good build. Force-push is allowed only there. `main` and `deploy` are never force-pushed. A stale build does not replace the snapshot. If neither copy exists, the build stops. A new raw category that is not in `config/taxonomy.ts` also stops the build, so a person maps it.
 
 ## Config
 
@@ -37,6 +37,18 @@ Merging into `main` runs Publish, and that updates the live site. Hostinger pull
 `public/.htaccess` is copied into the build. It 301s `www.playhubplace.com` to `https://playhubplace.com` and upgrades HTTP only when Apache still sees a plain connection (`HTTPS` is off and `X-Forwarded-Proto` is not `https`). Hostinger already 301s `http://playhubplace.com` to the apex. `http://www` stays two hops until that edge rule changes, because Hostinger upgrades it to `https://www` before this file runs.
 
 Playwright, axe, and Lighthouse CI are devDependencies. They are not part of the site bundle. MiniSearch (7.2.0, about 5.8 KB gzip) loads only on the search page.
+
+## Search Console, after launch
+
+These steps are done in the accounts, not in the repo:
+
+1. In Google Search Console, add `https://playhubplace.com/` and verify it with a DNS TXT record at Hostinger.
+2. Submit `https://playhubplace.com/sitemap.xml`.
+3. Inspect the home page and the first 10 game pages that have a published write-up, and request indexing.
+4. In Bing Webmaster Tools, import the site from Search Console.
+5. Optional: connect Search Console to Looker Studio for impressions, clicks, CTR, and indexed pages.
+
+A main build refuses to publish while `content/pages/home.mdx` is still `draft`, because the home page is indexed. Other drafts are listed in the job summary and stay `noindex`. See `docs/CONTENT-GUIDE.md`.
 
 ## Dry run (2 Oct 2026)
 
