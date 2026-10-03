@@ -62,22 +62,12 @@ export function CoverImage({
       data-cover=""
       fetchPriority={priority ? 'high' : 'auto'}
       loading={priority ? 'eager' : 'lazy'}
-      decoding={priority ? 'sync' : 'async'}
+      decoding="async"
       className="cover-img"
     />
   ) : null;
   return (
     <span className="cover-frame">
-      {priority && local ? (
-        <link
-          rel="preload"
-          as="image"
-          type="image/avif"
-          imageSrcSet={local.avif}
-          imageSizes={sizes}
-          fetchPriority="high"
-        />
-      ) : null}
       <Fallback title={title} alt={alt} silent={src.length > 0} />
       {local && image ? (
         <picture>

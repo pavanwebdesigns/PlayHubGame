@@ -8,9 +8,9 @@ module.exports = {
         formFactor: 'mobile',
         screenEmulation: {
           mobile: true,
-          width: 412,
-          height: 823,
-          deviceScaleFactor: 1.75,
+          width: 390,
+          height: 844,
+          deviceScaleFactor: 2,
           disabled: false,
         },
         onlyCategories: [

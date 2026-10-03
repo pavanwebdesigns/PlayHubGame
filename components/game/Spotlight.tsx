@@ -1,8 +1,9 @@
+import { preload } from 'react-dom';
 import { buttonClass } from '@/components/ui/Button';
 import { CoverImage } from '@/components/game/CoverImage';
 import { SPOTLIGHT_SIZES, SPOTLIGHT_WIDTHS } from '@/lib/cover-sizes';
 import { spotlightPitch } from '@/config/spotlight';
-import { readSpotlightManifest, spotlightSrcSet } from '@/lib/spotlight-asset';
+import { readSpotlightManifest, spotlightFile, spotlightSrcSet } from '@/lib/spotlight-asset';
 import type { TileGame } from '@/lib/tile-game';
 
 export function Spotlight({ game }: { game: TileGame }) {
@@ -15,6 +16,18 @@ export function Spotlight({ game }: { game: TileGame }) {
           webp: spotlightSrcSet(game.slug, hosted.widths, 'webp'),
         }
       : null;
+  if (local && hosted) {
+    const width = hosted.widths[0];
+    if (width) {
+      preload(spotlightFile(game.slug, width, 'avif'), {
+        as: 'image',
+        type: 'image/avif',
+        imageSrcSet: local.avif,
+        imageSizes: SPOTLIGHT_SIZES,
+        fetchPriority: 'high',
+      });
+    }
+  }
 
   return (
     <div className="spotlight-frame">
