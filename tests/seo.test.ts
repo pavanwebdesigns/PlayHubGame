@@ -178,8 +178,8 @@ Players who like puzzles.
 });
 
 describe('launch gate', () => {
-  it('treats the current home page as a draft', () => {
-    expect(homeIsDraft()).toBe(true);
+  it('treats the current home page as published', () => {
+    expect(homeIsDraft()).toBe(false);
   });
 });
 
