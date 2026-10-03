@@ -23,9 +23,10 @@ blob-report/
 .catalog-cache/
 .catalog-snapshot/
 
-# Generated catalog. Never commit.
+# Generated catalog and the day's Spotlight cover. Never commit.
 data/
 public/data/
+public/spotlight/
 public/sitemap.xml
 public/sitemap-*.xml
 

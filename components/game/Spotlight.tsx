@@ -2,10 +2,19 @@ import { buttonClass } from '@/components/ui/Button';
 import { CoverImage } from '@/components/game/CoverImage';
 import { SPOTLIGHT_SIZES, SPOTLIGHT_WIDTHS } from '@/lib/cover-sizes';
 import { spotlightPitch } from '@/config/spotlight';
+import { readSpotlightManifest, spotlightSrcSet } from '@/lib/spotlight-asset';
 import type { TileGame } from '@/lib/tile-game';
 
 export function Spotlight({ game }: { game: TileGame }) {
   const pitch = spotlightPitch(game.slug);
+  const hosted = readSpotlightManifest();
+  const local =
+    hosted && hosted.slug === game.slug
+      ? {
+          avif: spotlightSrcSet(game.slug, hosted.widths, 'avif'),
+          webp: spotlightSrcSet(game.slug, hosted.widths, 'webp'),
+        }
+      : null;
 
   return (
     <div className="spotlight-frame">
@@ -18,6 +27,7 @@ export function Spotlight({ game }: { game: TileGame }) {
           widths={SPOTLIGHT_WIDTHS}
           sizes={SPOTLIGHT_SIZES}
           priority
+          local={local}
         />
         <h2 className="mt-3 font-display text-display text-ink">
           {game.title}

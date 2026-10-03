@@ -37,6 +37,7 @@ export function CoverImage({
   widths = TILE_WIDTHS,
   coverWidth = null,
   priority = false,
+  local = null,
 }: {
   src: string;
   alt: string;
@@ -45,27 +46,48 @@ export function CoverImage({
   widths?: readonly number[];
   coverWidth?: number | null;
   priority?: boolean;
+  /** Same-origin AVIF and WebP srcsets. The img src stays the GamePix URL. */
+  local?: { avif: string; webp: string } | null;
 }) {
   const offered = widths.filter((width) => requestedCoverWidth(width, coverWidth) === width);
   const target = offered[offered.length - 1] ?? 160;
+  const image = src.length > 0 ? (
+    <img
+      src={coverSrc(src, target, coverWidth)}
+      srcSet={offered
+        .map((width) => `${coverSrc(src, width, coverWidth)} ${width}w`)
+        .join(', ')}
+      sizes={sizes}
+      alt={alt}
+      data-cover=""
+      fetchPriority={priority ? 'high' : 'auto'}
+      loading={priority ? 'eager' : 'lazy'}
+      decoding={priority ? 'sync' : 'async'}
+      className="cover-img"
+    />
+  ) : null;
   return (
     <span className="cover-frame">
-      <Fallback title={title} alt={alt} silent={src.length > 0} />
-      {src.length > 0 ? (
-        <img
-          src={coverSrc(src, target, coverWidth)}
-          srcSet={offered
-            .map((width) => `${coverSrc(src, width, coverWidth)} ${width}w`)
-            .join(', ')}
-          sizes={sizes}
-          alt={alt}
-          data-cover=""
-          fetchPriority={priority ? 'high' : 'auto'}
-          loading={priority ? 'eager' : 'lazy'}
-          decoding={priority ? 'sync' : 'async'}
-          className="cover-img"
+      {priority && local ? (
+        <link
+          rel="preload"
+          as="image"
+          type="image/avif"
+          imageSrcSet={local.avif}
+          imageSizes={sizes}
+          fetchPriority="high"
         />
       ) : null}
+      <Fallback title={title} alt={alt} silent={src.length > 0} />
+      {local && image ? (
+        <picture>
+          <source type="image/avif" srcSet={local.avif} sizes={sizes} />
+          <source type="image/webp" srcSet={local.webp} sizes={sizes} />
+          {image}
+        </picture>
+      ) : (
+        image
+      )}
     </span>
   );
 }

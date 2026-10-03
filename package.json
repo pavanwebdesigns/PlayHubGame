@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "npm run check-todos && tsx scripts/check-game-content.ts && npm run catalog && tsx scripts/report-index.ts && tsx scripts/write-sitemaps.ts && next build && tsx scripts/write-sw.ts && node scripts/check-home-js.mjs",
+    "build": "npm run check-todos && tsx scripts/check-game-content.ts && npm run catalog && tsx scripts/spotlight-cover.ts && tsx scripts/report-index.ts && tsx scripts/write-sitemaps.ts && next build && tsx scripts/write-sw.ts && node scripts/check-home-js.mjs",
     "catalog": "tsx scripts/build-catalog.ts",
     "lint": "eslint . --max-warnings 0 && node scripts/check-tokens.mjs",
     "typecheck": "tsc --noEmit",
@@ -36,6 +36,7 @@
     "eslint-config-prettier": "10.1.8",
     "playwright": "1.63.0",
     "prettier": "3.9.9",
+    "sharp": "^0.35.5",
     "tailwindcss": "4.3.3",
     "tsx": "4.23.15",
     "typescript": "5.9.3",

@@ -30,12 +30,20 @@ async function chosenWidth(page: Page, selector: string): Promise<string | null>
   return img.evaluate((element) => {
     const image = element as HTMLImageElement;
     const displayed = image.getBoundingClientRect().width;
-    const candidates = (image.srcset || '')
+    const picture = image.parentElement?.tagName === 'PICTURE' ? image.parentElement : null;
+    const localSet = picture?.querySelector('source')?.getAttribute('srcset') ?? '';
+    const srcset =
+      image.currentSrc.includes('/spotlight/') && localSet ? localSet : image.srcset;
+    const candidates = srcset
       .split(',')
       .map((part) => Number(/ (\d+)w$/.exec(part.trim())?.[1]))
       .filter((width) => width > 0)
       .sort((a, b) => a - b);
-    const selected = Number(/[?&]w=(\d+)/.exec(image.currentSrc)?.[1] ?? 0);
+    const selected = Number(
+      /[?&]w=(\d+)/.exec(image.currentSrc)?.[1] ??
+        /-(\d+)\.(?:avif|webp)/.exec(image.currentSrc)?.[1] ??
+        0,
+    );
     const need = displayed * window.devicePixelRatio;
     const expected = candidates.find((width) => width >= need - 1) ?? candidates.at(-1) ?? 0;
     if (selected === expected) return '';
