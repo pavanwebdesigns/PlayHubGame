@@ -1,7 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { Row } from '@/components/game/Row';
+import { HOME_ROW_CAP, Row } from '@/components/game/Row';
 import { useSiteIcons } from '@/components/icons/IconProvider';
 import { ContinueSkeleton } from '@/components/home/ContinueSkeleton';
 import { parseRecent, readRecentSnapshot, subscribeRecent } from '@/lib/recent';
@@ -31,7 +31,7 @@ export function ContinuePlaying() {
     <Row
       title="Continue playing"
       href="/my-games/"
-      games={games.slice(0, 20)}
+      games={games.slice(0, HOME_ROW_CAP)}
       source="row:continue"
       previous={icons.previous}
       next={icons.next}

@@ -9,7 +9,7 @@ test('home, play, and the legacy game link', async ({ page }) => {
   const homeAxe = await new AxeBuilder({ page }).analyze();
   expect(homeAxe.violations).toEqual([]);
 
-  const tile = page.locator('a.game-tile').filter({ visible: true }).first();
+  const tile = page.locator('a.tile').filter({ visible: true }).first();
   await expect(tile).toBeVisible();
   const href = await tile.getAttribute('href');
   expect(href).toBeTruthy();

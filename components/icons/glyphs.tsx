@@ -1,14 +1,12 @@
-import { createElement, type SVGProps } from 'react';
-
 /**
  * Paths copied from lucide-react 1.50.0 (ISC).
- * Plain SVG so the home page does not download the Lucide client runtime.
+ * Drawn once by IconSprite. Callers use `<use href="#i-name">`.
  */
 export const ICON_NAMES = ["brain","car","castle","coffee","compass","crosshair","gem","hash","joystick","palette","person-standing","puzzle","shirt","smile","snowflake","spade","smartphone","sparkles","swords","timer","trophy","users","zap","chevron-left","chevron-right","flag","heart","house","layout-grid","maximize","play","search","share-2","x"] as const;
 
 export type IconName = (typeof ICON_NAMES)[number];
 
-const NODES: Record<IconName, readonly (readonly [string, Record<string, string>])[]> = {
+export const NODES: Record<IconName, readonly (readonly [string, Record<string, string>])[]> = {
   "brain": [
     [
       "path",
@@ -913,26 +911,3 @@ const NODES: Record<IconName, readonly (readonly [string, Record<string, string>
     ]
   ]
 };
-
-export function Icon({
-  name,
-  size = 20,
-  ...props
-}: { name: IconName; size?: number } & SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      aria-hidden="true"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      {NODES[name].map(([tag, attrs], index) => createElement(tag, { ...attrs, key: index }))}
-    </svg>
-  );
-}

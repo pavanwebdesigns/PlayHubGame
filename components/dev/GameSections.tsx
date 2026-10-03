@@ -1,4 +1,4 @@
-import { Icon } from '@/components/icons/glyphs';
+import { Icon } from '@/components/icons/Icon';
 import { CategoryCard } from '@/components/game/CategoryCard';
 import { GameTile } from '@/components/game/GameTile';
 import { Row } from '@/components/game/Row';

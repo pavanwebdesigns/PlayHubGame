@@ -3,6 +3,9 @@ import { GameTile } from '@/components/game/GameTile';
 import { IconButton } from '@/components/ui/IconButton';
 import type { TileGame } from '@/lib/tile-game';
 
+/** Scroller rows are not the picks grid, so the full-row pack does not apply. */
+export const HOME_ROW_CAP = 12;
+
 export function Row({
   title,
   href,
@@ -37,6 +40,9 @@ export function Row({
               position={index}
             />
           ))}
+          <a className="tile-more" href={href}>
+            See all
+          </a>
         </div>
         <div className="row-edge row-edge-prev">
           <IconButton

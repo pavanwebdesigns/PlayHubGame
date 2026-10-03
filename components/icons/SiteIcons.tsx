@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Icon } from '@/components/icons/glyphs';
+import { Icon } from '@/components/icons/Icon';
 import { IconProvider } from '@/components/icons/IconProvider';
 
 export function SiteIcons({ children }: { children: ReactNode }) {

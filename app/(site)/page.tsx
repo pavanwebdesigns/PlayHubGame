@@ -3,8 +3,8 @@ import { CategorySection } from '@/components/home/CategorySection';
 import { ContinuePlayingSlot } from '@/components/home/ContinuePlayingSlot';
 import { HomePicks } from '@/components/home/HomePicks';
 import { OriginalsRow } from '@/components/home/OriginalsRow';
-import { Row } from '@/components/game/Row';
-import { Icon } from '@/components/icons/glyphs';
+import { HOME_ROW_CAP, Row } from '@/components/game/Row';
+import { Icon } from '@/components/icons/Icon';
 import { Spotlight } from '@/components/game/Spotlight';
 import { visibleCollections, type CollectionSlug } from '@/config/collections';
 import { activeSeasonal } from '@/config/seasonal';
@@ -33,7 +33,7 @@ function rowOf(
   take: (game: GameRecord) => boolean,
 ): TileGame[] {
   return rankByQuality(games.filter(take))
-    .slice(0, 16)
+    .slice(0, HOME_ROW_CAP)
     .map((game) => toTileGame(game));
 }
 

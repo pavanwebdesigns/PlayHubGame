@@ -14,13 +14,13 @@ function Fallback({ title, alt, silent }: { title: string; alt: string; silent: 
   return (
     <span className="cover-fallback" aria-hidden={silent ? true : undefined}>
       <span
-        className="cover-title line-clamp-2 w-full min-w-0 text-ink"
+        className="cover-title"
         aria-hidden={alt.length === 0}
       >
         {title}
       </span>
       <span
-        className="cover-mark max-w-full truncate text-ui leading-tight text-ink-muted"
+        className="cover-mark"
         aria-hidden="true"
       >
         {SITE_NAME}
@@ -63,7 +63,7 @@ export function CoverImage({
           fetchPriority={priority ? 'high' : 'auto'}
           loading={priority ? 'eager' : 'lazy'}
           decoding={priority ? 'sync' : 'async'}
-          className="cover-img absolute inset-0 h-full w-full object-cover"
+          className="cover-img"
         />
       ) : null}
     </span>

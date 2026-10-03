@@ -12,6 +12,7 @@ import {
   TILE_PREFETCH_SCRIPT,
 } from '@/lib/page-scripts';
 import { AnalyticsBoot } from '@/components/analytics/AnalyticsBoot';
+import { IconSprite } from '@/components/icons/IconSprite';
 import { SiteIcons } from '@/components/icons/SiteIcons';
 import { anekLatin, jersey15 } from './fonts';
 import './globals.css';
@@ -52,6 +53,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: INSTALL_PROMPT_SCRIPT }} />
       </head>
       <body>
+        <IconSprite />
         <a
           href="#content"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-skip focus:bg-play focus:px-3 focus:py-2 focus:text-night"

@@ -1,6 +1,6 @@
 import { CategoryCard } from '@/components/game/CategoryCard';
 import { HUB_ICONS } from '@/components/game/hub-icons';
-import { Icon } from '@/components/icons/glyphs';
+import { Icon } from '@/components/icons/Icon';
 import { HUB_NAMES, type HubSlug } from '@/config/taxonomy';
 
 export function CategorySection({

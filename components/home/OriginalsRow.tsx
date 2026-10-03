@@ -12,18 +12,16 @@ export function OriginalsRow() {
           <a
             key={item.href}
             href={item.href}
-            className="game-tile block rounded-tile"
+            className="tile"
           >
-            <span className="tile-media relative block overflow-hidden rounded-tile">
+            <span className="tile-cover">
               <span className="cover-frame">
                 <span className="cover-fallback">
-                  <span className="cover-title line-clamp-2 text-ink">
-                    {item.title}
-                  </span>
+                  <span className="cover-title">{item.title}</span>
                 </span>
               </span>
             </span>
-            <span className="mt-1 block truncate text-ink">{item.title}</span>
+            <span className="tile-title">{item.title}</span>
           </a>
         ))}
       </div>

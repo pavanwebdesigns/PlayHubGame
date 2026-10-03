@@ -4,7 +4,7 @@ test('immersive play and the sideways prompt', async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => window.scrollTo(0, 500));
   const before = await page.evaluate(() => window.scrollY);
-  await page.locator('a.game-tile').filter({ visible: true }).first().click();
+  await page.locator('a.tile').filter({ visible: true }).first().click();
   await page.getByRole('button', { name: 'Play' }).click();
   await expect(page.locator('iframe')).toHaveCount(1);
   await expect(page.getByRole('button', { name: 'Exit' })).toBeVisible();

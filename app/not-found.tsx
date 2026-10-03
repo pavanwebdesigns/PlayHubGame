@@ -1,6 +1,6 @@
 import { SiteChrome } from '@/components/layout/SiteChrome';
 import { Row } from '@/components/game/Row';
-import { Icon } from '@/components/icons/glyphs';
+import { Icon } from '@/components/icons/Icon';
 import { loadCurated } from '@/lib/catalog/load';
 import { buildToday } from '@/lib/build-clock';
 import { todaysPicks } from '@/lib/picks';

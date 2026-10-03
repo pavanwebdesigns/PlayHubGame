@@ -27,39 +27,15 @@ function readCollapsed(): boolean {
   }
 }
 
-function Chevrons({ left }: { left: boolean }) {
-  return (
-    <svg
-      aria-hidden="true"
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {left ? (
-        <>
-          <path d="m11 17-5-5 5-5" />
-          <path d="m18 17-5-5 5-5" />
-        </>
-      ) : (
-        <>
-          <path d="m6 17 5-5-5-5" />
-          <path d="m13 17 5-5-5-5" />
-        </>
-      )}
-    </svg>
-  );
-}
-
 export function RailShell({
   preview = false,
+  collapseIcon,
+  expandIcon,
   children,
 }: {
   preview?: boolean;
+  collapseIcon: ReactNode;
+  expandIcon: ReactNode;
   children: ReactNode;
 }) {
   const collapsed = useSyncExternalStore(
@@ -92,7 +68,7 @@ export function RailShell({
         aria-pressed={collapsed}
         onClick={toggle}
       >
-        <Chevrons left={!collapsed} />
+        {collapsed ? expandIcon : collapseIcon}
         <span className="rail-toggle-label">{collapsed ? 'Expand menu' : 'Collapse menu'}</span>
       </button>
       {children}

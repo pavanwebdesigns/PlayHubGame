@@ -37,7 +37,7 @@ test('two taps reach immersive mode and Back restores home', async ({ page }) =>
   await page.evaluate(() => window.scrollTo(0, 640));
   const scrolled = await page.evaluate(() => window.scrollY);
   expect(scrolled).toBeGreaterThan(200);
-  await page.locator('a.game-tile').filter({ visible: true }).nth(3).click();
+  await page.locator('a.tile').filter({ visible: true }).nth(3).click();
   await expect(page).toHaveURL(/\/game\//);
   await page.getByRole('button', { name: 'Play' }).click();
   await expect(page.locator('iframe')).toHaveCount(1);
@@ -71,7 +71,7 @@ async function tabUntil(page: import('@playwright/test').Page, locator: import('
 test('tab from home through play, Esc, and Back', async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) > 1024, 'phone immersive');
   await page.goto('/');
-  const tile = page.locator('a.game-tile').filter({ visible: true }).first();
+  const tile = page.locator('a.tile').filter({ visible: true }).first();
   await tabUntil(page, tile);
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/game\//);

@@ -1,5 +1,6 @@
 import { COLLECTION_ICONS, HUB_ICONS } from '@/components/game/hub-icons';
-import { Icon, type IconName } from '@/components/icons/glyphs';
+import { Icon } from '@/components/icons/Icon';
+import type { IconName } from '@/components/icons/glyphs';
 import { RailShell } from '@/components/layout/RailShell';
 import type { CollectionSlug } from '@/config/collections';
 import type { HubSlug } from '@/config/taxonomy';
@@ -17,7 +18,11 @@ export function SideRail({
   preview?: boolean;
 }) {
   return (
-    <RailShell preview={preview}>
+    <RailShell
+      preview={preview}
+      collapseIcon={<Icon name="chevrons-left" />}
+      expandIcon={<Icon name="chevrons-right" />}
+    >
       <RailLink href="/" label="Home" icon="house" />
       <RailLink href="/new/" label="New" icon="sparkles" />
       {collections.map((item) => (
@@ -55,7 +60,7 @@ function RailLink({
   return (
     <a
       href={href}
-      className="rail-link relative inline-flex min-h-tap w-full min-w-0 items-center gap-2 rounded-tile px-2 text-ink"
+      className="rail-link"
     >
       <Icon name={icon} size={20} />
       <span className="rail-label min-w-0">{label}</span>

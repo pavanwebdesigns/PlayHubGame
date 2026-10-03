@@ -1,4 +1,4 @@
-import { Icon } from '@/components/icons/glyphs';
+import { Icon } from '@/components/icons/Icon';
 import {
   ButtonLoadingDemo,
   ChipDemo,

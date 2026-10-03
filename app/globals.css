@@ -212,24 +212,121 @@ body {
   scroll-snap-align: start;
 }
 
-.game-tile {
-  min-width: 0;
+.icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 
-.game-tile:active {
+.icon {
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tile-slot {
+  position: relative;
+}
+
+.tile {
+  display: block;
+  min-width: 0;
+  border-radius: var(--radius-tile);
+  color: inherit;
+  text-decoration: none;
+}
+
+.tile:active {
   transform: scale(0.98);
 }
 
-.save-game svg {
+.tile-cover {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-tile);
+}
+
+.tile-title {
+  display: block;
+  margin-top: 0.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.tile-save {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-button);
+  background: var(--night);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.tile-save .icon {
   fill: transparent;
 }
 
-.save-game[aria-pressed='true'] {
+.tile-save[aria-pressed='true'] {
   color: var(--spark);
 }
 
-.save-game[aria-pressed='true'] svg {
+.tile-save[aria-pressed='true'] .icon {
   fill: var(--spark);
+}
+
+.tile-new {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: var(--radius-button);
+  background: var(--night);
+  padding-inline: 0.5rem;
+  font-size: var(--text-ui);
+  line-height: var(--text-ui--line-height);
+  color: var(--spark);
+}
+
+.tile-new-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-button);
+  background: var(--spark);
+}
+
+.tile-more {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--row-tile);
+  flex: 0 0 var(--row-tile);
+  height: calc(var(--row-tile) / var(--cover-aspect, 1.6));
+  scroll-snap-align: start;
+  border-radius: var(--radius-tile);
+  background: var(--deck);
+  color: var(--play);
+  font-weight: 600;
+  text-decoration: none;
 }
 
 #ph-toast:not(:empty) {
@@ -255,6 +352,14 @@ body {
   container-type: inline-size;
 }
 
+.cover-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 img.cover-img[hidden] {
   display: none;
 }
@@ -276,14 +381,31 @@ img.cover-img[hidden] {
   text-align: center;
 }
 
-.tile-media-new .cover-fallback {
+.tile-cover-new .cover-fallback {
   padding-top: 2.25rem;
 }
 
 .cover-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
   font-family: var(--font-display);
   font-size: clamp(0.75rem, 11cqi, 1.5rem);
   line-height: 1.15;
+  color: var(--ink);
+}
+
+.cover-mark {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-ui);
+  line-height: 1.25;
+  color: var(--ink-muted);
 }
 
 @container (max-width: 11.25rem) {
@@ -293,12 +415,20 @@ img.cover-img[hidden] {
 }
 
 .tile-hub {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  background: var(--night);
+  padding: 0.25rem 0.5rem;
+  font-size: var(--text-ui);
+  line-height: var(--text-ui--line-height);
+  color: var(--ink);
   opacity: 0;
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .game-tile:hover,
-  .game-tile:focus-visible,
+  .tile:hover,
+  .tile:focus-visible,
   .category-card:hover,
   .category-card:focus-visible {
     transform: translateY(-2px);
@@ -306,8 +436,8 @@ img.cover-img[hidden] {
     outline-offset: 2px;
   }
 
-  .game-tile:hover .tile-hub,
-  .game-tile:focus-visible .tile-hub {
+  .tile:hover .tile-hub,
+  .tile:focus-visible .tile-hub {
     opacity: 1;
   }
 }
@@ -446,6 +576,20 @@ img.cover-img[hidden] {
 .bottom-nav[data-preview='mobile'] {
   position: static;
   display: flex;
+}
+
+.rail-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--tap);
+  padding-inline: 0.5rem;
+  border-radius: var(--radius-tile);
+  color: var(--ink);
+  text-decoration: none;
 }
 
 .side-rail {

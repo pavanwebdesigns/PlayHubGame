@@ -3,7 +3,7 @@ import { HUB_NAMES } from '@/config/taxonomy';
 import { buildToday } from '@/lib/build-clock';
 import { isNewGame, type TileGame } from '@/lib/tile-game';
 import { CoverImage } from '@/components/game/CoverImage';
-import { Icon } from '@/components/icons/glyphs';
+import { Icon } from '@/components/icons/Icon';
 import { ROW_SIZES, TILE_SIZES, TILE_WIDTHS, XL_SIZES } from '@/lib/cover-sizes';
 
 const sizeClass = {
@@ -37,22 +37,20 @@ export function GameTile({
   const isNew = isNewGame(game.publishedAt, buildToday());
   const spanClass = span ? sizeClass[size] : '';
 
-  const frame = `${spanClass}${className ? ` ${className}` : ''}`.trim();
+  const frame = [spanClass, className].filter(Boolean).join(' ');
 
   return (
-    <div className={`relative ${frame}`} style={style}>
+    <div className={frame ? `tile-slot ${frame}` : 'tile-slot'} style={style}>
       <a
         href={`/game/${game.slug}/`}
-        className="game-tile relative block rounded-tile"
+        className="tile"
         data-orientation={game.orientation}
         data-slug={source ? game.slug : undefined}
         data-source={source}
         data-position={position}
-        data-position-wide={positionWide}
+        {...(positionWide === undefined ? {} : { 'data-position-wide': positionWide })}
       >
-        <span
-          className={`tile-media relative block overflow-hidden rounded-tile${isNew ? ' tile-media-new' : ''}`}
-        >
+        <span className={isNew ? 'tile-cover tile-cover-new' : 'tile-cover'}>
           <CoverImage
             src={game.cover}
             alt={game.title}
@@ -65,32 +63,22 @@ export function GameTile({
             }
           />
           {isNew ? (
-            <span className="tile-new absolute top-2 left-2 inline-flex items-center gap-1 rounded-button bg-night px-2 text-ui text-spark">
-              <span
-                className="size-2 rounded-button bg-spark"
-                aria-hidden="true"
-              />
+            <span className="tile-new">
+              <span className="tile-new-dot" aria-hidden="true" />
               New
             </span>
           ) : null}
-          <span
-            className="tile-hub absolute inset-x-0 bottom-0 bg-night px-2 py-1 text-ui text-ink"
-            aria-hidden="true"
-          >
+          <span className="tile-hub" aria-hidden="true">
             {HUB_NAMES[game.hub]}
           </span>
         </span>
-        <span
-          aria-hidden="true"
-          className="mt-1 block truncate text-ink"
-          title={game.title}
-        >
+        <span className="tile-title" title={game.title} aria-hidden="true">
           {game.title}
         </span>
       </a>
       <button
         type="button"
-        className="save-game absolute top-1 right-1 z-10 inline-flex h-tap w-tap items-center justify-center rounded-button bg-night text-ink"
+        className="tile-save"
         data-save={game.slug}
         data-id={game.id}
         data-title={game.title}
