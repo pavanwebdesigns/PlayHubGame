@@ -657,6 +657,12 @@ img.cover-img[hidden] {
   gap: 2rem;
 }
 
+/* A row measures 186px. The placeholder matches so skipped rows do not jump. */
+.home-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 11.625rem;
+}
+
 @media (min-width: 1024px) {
   .home-row-new {
     order: -1;
