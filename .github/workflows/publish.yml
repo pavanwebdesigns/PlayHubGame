@@ -93,7 +93,27 @@ jobs:
           test -f out/.htaccess
           test -f out/robots.txt
           test -f out/sitemap.xml
+          test -f out/manifest.webmanifest
+          test -f out/sw.js
+          test -f out/404.html
           test -f out/game/prism-match-3d/index.html
+          test -f out/category/puzzle/index.html
+          test -f out/new/index.html
+          test -f out/originals/cps-test/index.html
+          test -f out/data/legacy-ids.json
+          node --input-type=module -e '
+            import { readFileSync } from "node:fs";
+            const map = JSON.parse(readFileSync("out/data/legacy-ids.json", "utf8"));
+            if (map["737HCH"] !== "prism-match-3d") {
+              console.error("737HCH does not map to prism-match-3d");
+              process.exit(1);
+            }
+            const home = readFileSync("out/index.html", "utf8");
+            if (!home.includes("/data/legacy-ids.json")) {
+              console.error("Home HTML is missing the legacy game redirect.");
+              process.exit(1);
+            }
+          '
           bad=$(find out \( -name '*.map' -o -name '.env' -o -name '.DS_Store' \) -print)
           if [ -n "$bad" ]; then
             echo "Refusing to publish:"
@@ -199,10 +219,44 @@ jobs:
             echo "result=fail" >> "$GITHUB_OUTPUT"
             exit 1
           fi
+          check "https://playhubplace.com/"
+          check "https://playhubplace.com/game/prism-match-3d/"
+          check "https://playhubplace.com/category/puzzle/"
+          check "https://playhubplace.com/new/"
+          check "https://playhubplace.com/originals/cps-test/"
           check "https://playhubplace.com/robots.txt"
           check "https://playhubplace.com/sitemap.xml"
           check "https://playhubplace.com/ads.txt"
-          check "https://playhubplace.com/game/prism-match-3d/"
+          check "https://playhubplace.com/manifest.webmanifest"
+          check "https://playhubplace.com/sw.js"
+          ads=$(curl -fsS --max-time 20 "https://playhubplace.com/ads.txt")
+          printf '%s\n' "$ads" | grep -F -q '#gpx-property-LC991'
+          echo "ads.txt contains the GamePix line."
+          missing=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "https://playhubplace.com/this-page-is-not-real/" || true)
+          echo "https://playhubplace.com/this-page-is-not-real/ $missing"
+          if [ "$missing" != "404" ]; then
+            echo "Expected the unknown URL to return 404."
+            exit 1
+          fi
+          ids=$(curl -fsS --max-time 20 "https://playhubplace.com/data/legacy-ids.json")
+          printf '%s' "$ids" | grep -F -q '"737HCH":"prism-match-3d"'
+          printf '%s' "$html" | grep -F -q '/data/legacy-ids.json'
+          echo "Legacy game id 737HCH maps to prism-match-3d, and the home page loads that map."
+          tools_headers=$(curl -sS -D - -o /dev/null --max-time 20 "https://playhubplace.com/?page=tools")
+          tools_code=$(printf '%s\n' "$tools_headers" | awk 'BEGIN{c=""} /^HTTP/{c=$2} END{print c}')
+          tools_loc=$(printf '%s\n' "$tools_headers" | awk 'tolower($1)=="location:" {print $2}' | tr -d '\r' | tail -n 1)
+          echo "https://playhubplace.com/?page=tools $tools_code $tools_loc"
+          if [ "$tools_code" != "301" ]; then
+            echo "Expected ?page=tools to return 301."
+            exit 1
+          fi
+          case "$tools_loc" in
+            https://workutilities.com|https://workutilities.com/|https://workutilities.com/?*) ;;
+            *)
+              echo "Expected ?page=tools to redirect to https://workutilities.com/."
+              exit 1
+              ;;
+          esac
           echo "Homepage references $js and the smoke URLs returned 200."
           echo "result=pass" >> "$GITHUB_OUTPUT"
 

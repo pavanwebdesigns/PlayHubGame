@@ -58,6 +58,9 @@ jobs:
         env:
           CATALOG_CACHE_DIR: ${{ github.workspace }}/.catalog-cache
           CATALOG_SNAPSHOT_DIR: ${{ github.workspace }}/.catalog-snapshot
+          # A pull request into main is the launch gate. Off main these stay unset.
+          PH_MAIN_BUILD: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' && '1' || '' }}
+          GITHUB_REF: ${{ github.event_name == 'pull_request' && github.base_ref == 'main' && 'refs/heads/main' || github.ref }}
 
       - name: Build report
         run: node scripts/build-report.mjs
