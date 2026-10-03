@@ -19,25 +19,27 @@ async function chosenWidth(page: Page, selector: string): Promise<string | null>
   await img.evaluate(
     (element) =>
       new Promise<void>((resolve) => {
-        if (element.complete && element.currentSrc) resolve();
+        const image = element as HTMLImageElement;
+        if (image.complete && image.currentSrc) resolve();
         else {
-          element.addEventListener('load', () => resolve(), { once: true });
-          element.addEventListener('error', () => resolve(), { once: true });
+          image.addEventListener('load', () => resolve(), { once: true });
+          image.addEventListener('error', () => resolve(), { once: true });
         }
       }),
   );
   return img.evaluate((element) => {
-    const displayed = element.getBoundingClientRect().width;
-    const candidates = (element.srcset || '')
+    const image = element as HTMLImageElement;
+    const displayed = image.getBoundingClientRect().width;
+    const candidates = (image.srcset || '')
       .split(',')
       .map((part) => Number(/ (\d+)w$/.exec(part.trim())?.[1]))
       .filter((width) => width > 0)
       .sort((a, b) => a - b);
-    const selected = Number(/[?&]w=(\d+)/.exec(element.currentSrc)?.[1] ?? 0);
+    const selected = Number(/[?&]w=(\d+)/.exec(image.currentSrc)?.[1] ?? 0);
     const need = displayed * window.devicePixelRatio;
     const expected = candidates.find((width) => width >= need - 1) ?? candidates.at(-1) ?? 0;
     if (selected === expected) return '';
-    return `${element.alt || selector} displayed ${Math.round(displayed)} need ${Math.round(need)} selected ${selected} expected ${expected} candidates ${candidates.join(',')}`;
+    return `${image.alt || selector} displayed ${Math.round(displayed)} need ${Math.round(need)} selected ${selected} expected ${expected} candidates ${candidates.join(',')}`;
   });
 }
 
@@ -52,11 +54,15 @@ for (const viewport of viewports) {
         rail.setAttribute('data-collapsed', collapsed);
       }, viewport.rail);
     }
-    const picks = viewport.width < 768 ? '.picks-thumb' : '.picks-wide';
+    const phone = viewport.width < 769;
     const checks = [
       '.spotlight-frame img.cover-img',
-      `${picks} .tile-xl img.cover-img`,
-      `${picks} .game-tile:not(.tile-xl) img.cover-img`,
+      phone
+        ? '.home-picks .pick-xl-thumb img.cover-img'
+        : '.home-picks .pick-xl-wide img.cover-img',
+      phone
+        ? '.home-picks .pick-thumb:not(.pick-xl-thumb) img.cover-img'
+        : '.home-picks .pick-wide:not(.pick-xl-wide) img.cover-img',
       '.home-row img.cover-img',
     ];
     const mismatches: string[] = [];

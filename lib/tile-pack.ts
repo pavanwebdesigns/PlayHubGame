@@ -26,6 +26,25 @@ export function mdHiddenAt(index: number, mdAvailable: number): TileColumns[] {
   );
 }
 
+/** Hide classes for each tile, matching the full-row rule in the tile grid. */
+export function tileHiddenClasses(
+  tiles: readonly { size: 'xl' | 'md' }[],
+): string[] {
+  const mdTotal = tiles.filter((tile) => tile.size === 'md').length;
+  const packMd =
+    tiles[0]?.size === 'xl' &&
+    tiles.every((tile, index) => index === 0 || tile.size === 'md');
+  return tiles.map((tile, index) => {
+    if (!packMd || tile.size !== 'md') return '';
+    const mdIndex = tiles
+      .slice(0, index)
+      .filter((item) => item.size === 'md').length;
+    return mdHiddenAt(mdIndex, mdTotal)
+      .map((count) => `hide-cols-${count}`)
+      .join(' ');
+  });
+}
+
 /** Md tiles to render so every breakpoint can hide down to a full row. */
 export function mdTilesToRender(available: number): number {
   const widest = Math.max(

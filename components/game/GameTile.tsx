@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { HUB_NAMES } from '@/config/taxonomy';
 import { buildToday } from '@/lib/build-clock';
 import { isNewGame, type TileGame } from '@/lib/tile-game';
@@ -15,17 +16,26 @@ export function GameTile({
   game,
   size,
   className,
+  span = true,
+  sizes,
+  style,
 }: {
   game: TileGame;
   size: keyof typeof sizeClass;
   className?: string;
+  /** When false, the caller supplies the span class so it can change by breakpoint. */
+  span?: boolean;
+  sizes?: string;
+  style?: CSSProperties;
 }) {
   const isNew = isNewGame(game.publishedAt, buildToday());
+  const spanClass = span ? sizeClass[size] : '';
 
   return (
     <a
       href={`/game/${game.slug}/`}
-      className={`game-tile relative block rounded-tile ${sizeClass[size]}${className ? ` ${className}` : ''}`}
+      style={style}
+      className={`game-tile relative block rounded-tile ${spanClass}${className ? ` ${className}` : ''}`}
       data-orientation={game.orientation}
     >
       <span
@@ -37,7 +47,10 @@ export function GameTile({
           title={game.title}
           coverWidth={game.coverWidth}
           widths={TILE_WIDTHS}
-          sizes={size === 'row' ? ROW_SIZES : size === 'xl' ? XL_SIZES : TILE_SIZES}
+          sizes={
+            sizes ??
+            (size === 'row' ? ROW_SIZES : size === 'xl' ? XL_SIZES : TILE_SIZES)
+          }
         />
         <span className="absolute top-1 right-1">
           <FavoriteMark slug={game.slug} />
