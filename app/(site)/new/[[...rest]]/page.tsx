@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation';
 import { GameListing } from '@/components/listing/GameListing';
 import { loadCurated } from '@/lib/catalog/load';
-import { listingPath, pageCount, pageSlice } from '@/lib/listing';
+import { pageCount, pageSlice } from '@/lib/listing';
 import { listingGames, listingRests, parsedListing } from '@/lib/listing-build';
+import { listingMeta } from '@/lib/listing-meta';
 import { pageMetadata } from '@/lib/seo';
 import { toTileGame } from '@/lib/tile-game';
 
@@ -23,12 +24,18 @@ export async function generateMetadata({
   const { rest } = await params;
   const query = parsedListing(rest, 'new');
   if (!query) return {};
-  return pageMetadata({
-    title: 'New games',
-    description: 'The newest free browser games on PlayHubPlace.',
-    path: listingPath('/new', query, 'new'),
-    index: true,
+  const filtered = listingGames(loadCurated(), query);
+  const meta = listingMeta({
+    name: 'New',
+    summary: 'The newest free browser games on PlayHubPlace.',
+    query,
+    pages: pageCount(filtered.length),
+    base: '/new',
+    defaultSort: 'new',
+    indexable: true,
+    kind: 'new',
   });
+  return pageMetadata({ ...meta, absoluteTitle: true });
 }
 
 export default async function NewPage({

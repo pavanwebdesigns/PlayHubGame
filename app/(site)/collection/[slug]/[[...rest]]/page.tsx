@@ -5,8 +5,9 @@ import { loadCurated } from '@/lib/catalog/load';
 import { buildToday } from '@/lib/build-clock';
 import { loadContent } from '@/lib/content';
 import { isIndexable } from '@/lib/content-gate';
-import { listingPath, pageCount, pageSlice } from '@/lib/listing';
+import { pageCount, pageSlice } from '@/lib/listing';
 import { listingGames, listingRests, parsedListing } from '@/lib/listing-build';
+import { listingMeta } from '@/lib/listing-meta';
 import { pageMetadata } from '@/lib/seo';
 import { toTileGame } from '@/lib/tile-game';
 
@@ -35,14 +36,21 @@ export async function generateMetadata({
   const query = parsedListing(rest, 'popular');
   if (!collection || !query) return {};
   const doc = loadContent('collections', slug);
-  return pageMetadata({
-    title: collection.name,
-    description:
+  const now = buildToday();
+  const matched = loadCurated().filter((game) => collection.matches(game, now));
+  const meta = listingMeta({
+    name: collection.name,
+    summary:
       doc?.summary ??
       `${collection.name} you can play free in your browser on PlayHubPlace.`,
-    path: listingPath(`/collection/${slug}`, query, 'popular'),
-    index: isIndexable('collections', slug),
+    query,
+    pages: pageCount(listingGames(matched, query).length),
+    base: `/collection/${slug}`,
+    defaultSort: 'popular',
+    indexable: isIndexable('collections', slug),
+    kind: 'collection',
   });
+  return pageMetadata({ ...meta, absoluteTitle: true });
 }
 
 export default async function CollectionPage({

@@ -9,8 +9,9 @@ import { favoriteFromGame } from '@/lib/favorites';
 import { isIndexable } from '@/lib/content-gate';
 import { loadCurated, loadGame } from '@/lib/catalog/load';
 import { coverAtWidth } from '@/lib/catalog/urls';
+import { loadContent } from '@/lib/content';
 import { similarGames } from '@/lib/similar';
-import { absoluteUrl, gameTitle, pageMetadata } from '@/lib/seo';
+import { absoluteUrl, gameTitle, ogCover, pageMetadata } from '@/lib/seo';
 import { toTileGame } from '@/lib/tile-game';
 
 export const dynamicParams = false;
@@ -27,13 +28,16 @@ export async function generateMetadata({
   const { slug } = await params;
   const game = loadGame(slug);
   if (!game) return {};
+  const doc = loadContent('games', game.slug);
   return pageMetadata({
     title: gameTitle(game.title),
-    description: `Play ${game.title} free in your browser on PlayHubPlace. No download.`,
+    description:
+      doc?.summary ??
+      `Play ${game.title} free in your browser on PlayHubPlace. No download.`,
     path: `/game/${game.slug}/`,
     index: isIndexable('games', game.slug),
     absoluteTitle: true,
-    image: coverAtWidth(game.cover, 640),
+    image: ogCover(game.cover, game.coverWidth),
   });
 }
 

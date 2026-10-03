@@ -10,13 +10,13 @@ import { visibleCollections, type CollectionSlug } from '@/config/collections';
 import { activeSeasonal } from '@/config/seasonal';
 import { dayOfYear, spotlightChoice } from '@/config/spotlight';
 import { HUB_SLUGS } from '@/config/taxonomy';
-import { SITE_NAME, DEFAULT_TITLE } from '@/config/site';
+import { SITE_NAME } from '@/config/site';
 import { XL_COVER_MIN } from '@/lib/catalog/cover-widths';
 import { loadCurated } from '@/lib/catalog/load';
 import { buildToday } from '@/lib/build-clock';
 import { loadContent } from '@/lib/content';
 import { rankByQuality, todaysPicks } from '@/lib/picks';
-import { pageMetadata } from '@/lib/seo';
+import { HOME_TITLE, pageMetadata } from '@/lib/seo';
 import { toTileGame, type TileGame } from '@/lib/tile-game';
 import type { GameRecord } from '@/lib/catalog/types';
 
@@ -51,8 +51,8 @@ function rowOf(
 const homeDoc = loadContent('pages', 'home');
 
 export const metadata = pageMetadata({
-  title: DEFAULT_TITLE,
-  description: homeDoc?.summary ?? DEFAULT_TITLE,
+  title: HOME_TITLE,
+  description: homeDoc?.summary ?? HOME_TITLE,
   path: '/',
   index: true,
   absoluteTitle: true,

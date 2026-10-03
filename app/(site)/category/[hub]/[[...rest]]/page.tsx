@@ -4,8 +4,9 @@ import { HUB_NAMES, HUB_SLUGS, type HubSlug } from '@/config/taxonomy';
 import { gamesInHub } from '@/lib/catalog/load';
 import { loadContent } from '@/lib/content';
 import { isIndexable } from '@/lib/content-gate';
-import { listingPath, pageCount, pageSlice, rawTags } from '@/lib/listing';
+import { pageCount, pageSlice, rawTags } from '@/lib/listing';
 import { listingGames, listingRests, parsedListing } from '@/lib/listing-build';
+import { listingMeta } from '@/lib/listing-meta';
 import { pageMetadata } from '@/lib/seo';
 import { toTileGame } from '@/lib/tile-game';
 
@@ -38,14 +39,20 @@ export async function generateMetadata({
   if (!query) return {};
   const doc = loadContent('categories', hub);
   const name = HUB_NAMES[hub];
-  return pageMetadata({
-    title: `${name} games`,
-    description:
+  const filtered = listingGames(gamesInHub(hub), query);
+  const meta = listingMeta({
+    name,
+    summary:
       doc?.summary ??
       `${name} games you can play free in your browser on PlayHubPlace.`,
-    path: listingPath('/category/' + hub, query, 'popular'),
-    index: isIndexable('categories', hub),
+    query,
+    pages: pageCount(filtered.length),
+    base: `/category/${hub}`,
+    defaultSort: 'popular',
+    indexable: isIndexable('categories', hub),
+    kind: 'hub',
   });
+  return pageMetadata({ ...meta, absoluteTitle: true });
 }
 
 export default async function CategoryPage({

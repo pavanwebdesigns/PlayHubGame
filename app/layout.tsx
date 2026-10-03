@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import type { CSSProperties, ReactNode } from 'react';
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_URL } from '@/config/site';
 import { coverAspect } from '@/lib/cover-aspect';
@@ -7,6 +7,10 @@ import { COVER_FALLBACK_SCRIPT, ROW_SCROLL_SCRIPT } from '@/lib/page-scripts';
 import { SiteIcons } from '@/components/icons/SiteIcons';
 import { anekLatin, jersey15 } from './fonts';
 import './globals.css';
+
+export const viewport: Viewport = {
+  themeColor: '#140B33',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

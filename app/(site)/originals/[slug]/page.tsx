@@ -32,6 +32,7 @@ export async function generateMetadata({
     description: doc?.summary ?? 'A PlayHubPlace original.',
     path: `/originals/${slug}/`,
     index: isIndexable('originals', slug),
+    ogType: 'article',
   });
 }
 
