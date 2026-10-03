@@ -38,6 +38,12 @@ Merging into `main` runs Publish, and that updates the live site. Hostinger pull
 
 Playwright, axe, and Lighthouse CI are devDependencies. They are not part of the site bundle. MiniSearch (7.2.0, about 5.8 KB gzip) loads only on the search page.
 
+## Remove a bad service worker
+
+The site registers `/sw.js` after the page loads. One build uses one cache, named `ph-` plus the build id, and the next build deletes older caches.
+
+To take the worker off every browser, build once with `PH_SW_KILL=1`. That writes `scripts/sw-kill.js` to `out/sw.js`. The replacement unregisters itself and deletes the caches. Deploy that `out/` the same way as any other build. The following build can omit `PH_SW_KILL` and a normal worker returns.
+
 ## Search Console, after launch
 
 These steps are done in the accounts, not in the repo:

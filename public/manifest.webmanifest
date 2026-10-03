@@ -1,0 +1,13 @@
+{
+  "name": "PlayHubPlace",
+  "short_name": "PlayHub",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#140B33",
+  "background_color": "#140B33",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
