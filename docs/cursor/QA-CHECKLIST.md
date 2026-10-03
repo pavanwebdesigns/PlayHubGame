@@ -1,49 +1,47 @@
-# QA checklist — Phase 0 (`hotfix/live-bugs`)
+# QA checklist — Phase 4 (`feat/seo-content` → `rebuild/next`)
 
-Filled for this PR. ✅ means it was actually checked. ➖ means it does not apply to this hotfix. ❌ means it was not checked, or it failed.
+Filled after the local `out/` build and the preview deploy of `0808b4b`. ✅ means it was actually checked. ➖ means it does not apply. ❌ means it was not checked, or it failed.
 
 ## Build & code
-- [x] `npx tsc -b`, `npm run lint`, `npm test`, and `npm run build` pass locally. CI has not finished yet; it starts when this PR is opened.
-- [x] No `any` in `src/`. No `console.log`. The only TODO is `TODO(Pavan)` on `CONTACT_EMAIL`.
-- [➖] Raw hex colors are still in the existing pages. Design tokens are a later phase, and this hotfix does not restyle.
-- [➖] No new dependencies. Tests use Node's built-in `node:test`.
-- [x] No secrets, `.env`, `out/`, or `data/` are part of this branch.
+- [x] `npm test` (57 tests), `npm run lint`, and `npm run build` pass locally. The Next build's TypeScript step passed. Preview workflow `37105268720` succeeded.
+- [x] Home JS gzip is 137,047 bytes. The ceiling is 138,240. The growth limit was not applied, because this went to `rebuild/next` directly.
+- [x] No new runtime dependency. Cover measurement uses the image header already parsed in the repo.
+- [x] No secrets, `.env`, `out/`, or `data/` are committed. Generated `public/sitemap*.xml` files are gitignored.
+- [x] `sid=LC991` is still on embed URLs. `ads.txt` was not edited.
+
+## SEO
+- [x] `node scripts/audit-seo.mjs`: `audited=45 pages=2360 sitemap=7 warnings=39 errors=0`. Every real page has a canonical. Indexable self-canonical titles and descriptions are unique. Every sitemap URL is in `out/`, indexable, and not paginated. No orphan indexable pages. Next's not-found document is skipped because it is already `noindex`.
+- [x] The 39 warnings are `/new/` and its page URLs. Those descriptions are shorter than 140 characters. Listing files are warnings. Game files outside 140–160 would fail the build.
+- [x] Sitemap index points at `sitemap-pages.xml`, `sitemap-categories.xml`, and `sitemap-games.xml` with no trailing slash. Paginated, sort, and tag URLs are absent. Draft games are absent. `robots.txt` disallows `/search/`, `/my-games/`, and `/dev/`.
+- [x] Local Lighthouse mobile SEO: home 100. `/game/prism-match-3d/` 69 and `/category/puzzle/` 69, both only on `is-crawlable`, because those pages are still draft and send `noindex`. Preview SEO will be lower on every URL because the preview host is `noindex` on purpose.
+- [x] Home JSON-LD is Organization (logo `https://playhubplace.com/logo.png`, file is 512×512 in `public/logo.png`) plus WebSite, and a separate FAQPage from the visible home FAQ. WebSite has no SearchAction.
+- [x] Game JSON-LD is VideoGame + SoftwareApplication and BreadcrumbList. Description is included only when the MDX summary exists. The three scaffolds have a facts-only summary, so that sentence is present. Publisher text is not used. FAQPage is omitted because those scaffolds have an empty FAQ.
+- [x] Category JSON-LD is CollectionPage, ItemList (first 24), and BreadcrumbList.
+- [➖] Google's Rich Results Test was not run on the preview host. Preview `robots.txt` is `Disallow: /`, so Google cannot fetch it. The graphs above were read from the local `out/` HTML.
+
+## Content
+- [x] `content/games/prism-match-3d.mdx`, `drop-planets.mdx`, and `memory-cards.mdx` are `status: draft` scaffolds. Body sections are empty. The publisher description is not in the body.
+- [x] `docs/CONTENT-GUIDE.md` and `/dev/content` exist. `/dev/ui` and `/dev/content` are built only when `PH_MAIN_BUILD` is unset. Preview keeps them `noindex` and unlinked. A main build omits them.
+- [x] Indexable games: 0 of 1,862. Home is still draft, so a main build fails until that copy is reviewed. Other drafts are listed as a warning only on main builds.
+- [x] No ratings, play counts, quotes, or developer names were invented.
 
 ## Layout
-- [x] Checked in the browser at 360×800, 390×844, 768×1024, 1024×768, and phone landscape 844×390. No horizontal scroll (`scrollWidth` matched the viewport). The mobile menu opens at 360 and 390, including on a game page. At 768 and above, Quick games opens in the header. 1440 was checked in the earlier Phase 0 pass.
-- [x] No horizontal scroll on home, the CPS page, or a game page at those widths.
-- [➖] New menu, footer, and quick-game buttons are at least 44 px. Existing game-tile hearts are still 32 px.
-- [➖] Escape closes the mobile menu and the Quick games menu and returns focus to the button that opened them. A full keyboard pass of search, play, and favorites was not done.
-- [❌] `prefers-reduced-motion` was not checked.
-
-## Accessibility
-- [x] axe-core 4.13.0: 0 violations on home, one game page (Prism Match 3D), and About. One home violation (`page-has-heading-one`) was fixed by making the games heading an `h1`, then axe was run again.
-- [❌] Alt text was not audited across every image. Cover images use the game title when the feed provides one.
-- [x] Home has one `h1` (Featured Games, or the search/category title). Game, About, Reaction Time Test, and CPS Test each have one `h1`. The footer wordmark stays an `h2`.
-- [➖] Keyboard: Escape on the menus only. See Layout.
-- [❌] VoiceOver and TalkBack were not used.
+- [x] Side-rail labels do not wrap. At 1024 px the rail is 64 px and labels are clipped to the icon. At 1280 px and 1440 px the rail is 240 px, labels are `nowrap`, and each label has one line box. Playwright screenshots: `tests/e2e/screenshots/rail-1024.png`, `rail-1280.png`, `rail-1440.png`. The same widths were checked in the browser on the local `out/` build.
+- [x] A loaded cover hides the tile title (`visibility: hidden` on `.cover-fallback`). Firing the cover error hides the image and shows the title. Checked on the home spotlight in the browser.
+- [➖] A full pass at 360, 390, 768, and phone landscape was not repeated in this phase. Those widths were checked in Phase 3.
 
 ## Performance
-- [x] Lighthouse mobile, local production preview. Home: Performance 85, Accessibility 100, Best Practices 100, SEO 100. Game page (Prism Match 3D): Performance 83, Accessibility 100, Best Practices 77, SEO 100. The game Best Practices score is third-party cookies and DevTools issues from the GamePix frame. The Performance 90 target is a later phase.
-- [➖] The first six home covers are eager, and the first has `fetchpriority="high"`, with width and height set. On the latest home run, LCP was 4.2 s and CLS was 0. The game page LCP was 4.4 s and CLS was 0.
-- [➖] The 120 KB home-JS budget is a later phase. This build is `dist/assets/index-Crdd2-cy.js`, 231.30 KB, gzip 70.43 KB. Before removing tools it was gzip 126.72 KB.
-- [➖] Covers stay on the GamePix CDN. They are not converted to AVIF or WebP here. Tile images have width and height.
+- [x] Preview Lighthouse mobile, 3 runs, median. Transferred JS is every script response, not only the home bundle.
 
-## SEO & content
-- [➖] One canonical, title, and description live on `index.html` for the whole app. Unique URLs per game are a later phase.
-- [➖] No JSON-LD in this phase.
-- [x] `robots.txt`, `sitemap.xml` (home only), and `ads.txt` are in `public/` and are copied into `dist/`. `ads.txt` was not edited. They are not on the live site until this PR is merged.
-- [x] No ratings, play counts, quotes, or developer names were invented.
-- [➖] There is no write-up status field yet. The game page still shows the GamePix description.
+| Page | Score | LCP | LCP element | CLS | TBT | Transferred JS |
+| --- | ---: | ---: | --- | ---: | ---: | ---: |
+| `/` | 89 | 3.71 s | Knife Smash cover (`w=480`) | 0 | 11 ms | 139,223 |
+| `/game/prism-match-3d/` | 97 | 2.52 s | Prism Match 3D cover (`w=640`) | 0.00016 | 10 ms | 145,061 |
+| `/category/puzzle/` | 94 | 2.96 s | a puzzle cover | 0 | 19 ms | 138,588 |
 
-## Play
-- [➖] Click-to-play is a later phase. The iframe still loads when the game view opens.
-- [x] Opening a game from the grid and pressing Back restored the grid scroll (checked once, at 2000 px, in the earlier pass).
-- [x] A favorited game (Prism Match 3D) was still in `playhub_favorites` and in the Favorites list after a reload. Tool favorites are no longer read or written. Versioned `ph:*:v1` keys were intentionally not introduced.
-- [➖] Phone landscape (844×390) showed the game page with no horizontal scroll. Fullscreen play in that orientation was not exercised.
-- [➖] The sponsored sidebar and the floating wrench are gone. Distance from the frame to other controls was not measured.
+- [x] Home's median score is 89. One of the three runs was 90. The LCP element is the spotlight cover from the GamePix CDN.
+- [x] Cover widths were read from the original file, with no `w` parameter. GamePix upscales when `w` is larger than the file. Curated covers: 1,862 measured, 0 failed, 0 under 480 px. Minimum 766, median 1,360, maximum 2,720. Knife Smash's original file is 1,400×861. A request with `w=480` returns 480×295. A request with `w=4096` is upscaled to 4,096 and is not used.
 
-## Privacy
-- [➖] There is no consent banner in this phase. No new analytics or ad script was added. The GamePix feed and cover images still load when the page loads.
-- [➖] There is nothing new to reject.
-- [➖] The footer has no "Do not sell" link. That belongs with the consent work in a later phase.
+## Play & privacy
+- [➖] Click-to-play, favorites, and the 150 px ad gap were not changed in this phase.
+- [➖] No new analytics or ad script. Consent behavior is unchanged.
