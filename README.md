@@ -42,14 +42,14 @@ git tag pre-rebuild origin/deploy
 git push origin pre-rebuild
 ```
 
-To roll the live site back, make a new commit on `deploy` that restores that tree, then push it normally. Fetch the tag inside the clone. `git restore` is in no-overlay mode (do not pass `--overlay`), so files that exist on `deploy` and not in `pre-rebuild` are removed.
+To roll the live site back, make a new commit on `deploy` that restores that tree, then push it normally. Fetch the tag inside the clone. `--no-overlay` removes files that exist on `deploy` and not in `pre-rebuild`.
 
 The restored Vite tree has no `sw.js`. The new site registers `/sw.js`, and a returning browser would keep that worker. The rollback commit also writes the kill-switch worker to `/sw.js`. That file is `scripts/sw-kill.js` on `main`. It unregisters itself and deletes its caches.
 
 ```bash
 git clone --branch deploy --single-branch https://github.com/pavanwebdesigns/PlayHubGame.git /tmp/playhub-rollback
 git -C /tmp/playhub-rollback fetch origin tag pre-rebuild
-git -C /tmp/playhub-rollback restore --source=pre-rebuild --worktree --staged .
+git -C /tmp/playhub-rollback restore --source=pre-rebuild --worktree --staged --no-overlay .
 git -C /tmp/playhub-rollback fetch origin main
 git -C /tmp/playhub-rollback show FETCH_HEAD:scripts/sw-kill.js > /tmp/playhub-rollback/sw.js
 git -C /tmp/playhub-rollback add sw.js
