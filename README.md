@@ -24,7 +24,7 @@ The build fails when valid games are below `MIN_VALID_GAMES` (10,000) or invalid
 
 ## Config
 
-Site name, canonical URL, GamePix partner id, catalog thresholds, and the contact address live in `config/site.ts`. `CONTACT_EMAIL` is `TODO(Pavan)` until a real address is published.
+Site name, canonical URL, GamePix partner id, catalog thresholds, and the contact address live in `config/site.ts`. `CONTACT_EMAIL` is `info@playhubplace.com`.
 
 ## Deploying
 
@@ -32,7 +32,38 @@ Hostinger's Git deployment tracks the branch `deploy`, never `main`. `main` is t
 
 `publish.yml` runs on `main`, on a nightly schedule at 21:00 UTC, and when someone starts it by hand. GitHub only runs the schedule from the default branch, so the nightly build stays dormant until this file is on `main`. The job builds the catalog, then the Next export. The build id is a hash of the git commit and `data/curated.json`, so an unchanged catalog produces the same files. Publish compares `out/` with `deploy`: no difference means no commit, a home-page-only difference commits just those files, and anything else commits the full diff. The push to `deploy` is not a force-push. The job also replaces `catalog-snapshot` with one gzipped catalog commit. Do not run Publish from `rebuild/next`. That would update the live site.
 
-Merging into `main` runs Publish, and that updates the live site. Hostinger pulls `deploy` from its webhook. To roll back, open Actions → Publish → Run workflow and set `ref` to the last good commit on `main`. Do not point Hostinger at `main`, and do not force-push `deploy`.
+Merging into `main` runs Publish, and that updates the live site. Hostinger pulls `deploy` from its webhook. Do not point Hostinger at `main`, and do not force-push `deploy`.
+
+The commit on `deploy` from before this rebuild is the tag `pre-rebuild`. Create it once, from the deploy branch, and push the tag:
+
+```bash
+git fetch origin deploy
+git tag pre-rebuild origin/deploy
+git push origin pre-rebuild
+```
+
+To roll the live site back, make a new commit on `deploy` that restores that tree, then push it normally. Fetch the tag inside the clone. `git restore` is in no-overlay mode (do not pass `--overlay`), so files that exist on `deploy` and not in `pre-rebuild` are removed.
+
+The restored Vite tree has no `sw.js`. The new site registers `/sw.js`, and a returning browser would keep that worker. The rollback commit also writes the kill-switch worker to `/sw.js`. That file is `scripts/sw-kill.js` on `main`. It unregisters itself and deletes its caches.
+
+```bash
+git clone --branch deploy --single-branch https://github.com/pavanwebdesigns/PlayHubGame.git /tmp/playhub-rollback
+git -C /tmp/playhub-rollback fetch origin tag pre-rebuild
+git -C /tmp/playhub-rollback restore --source=pre-rebuild --worktree --staged .
+git -C /tmp/playhub-rollback fetch origin main
+git -C /tmp/playhub-rollback show FETCH_HEAD:scripts/sw-kill.js > /tmp/playhub-rollback/sw.js
+git -C /tmp/playhub-rollback add sw.js
+git -C /tmp/playhub-rollback commit -m "Restore the site to the pre-rebuild tag"
+git -C /tmp/playhub-rollback push origin HEAD:deploy
+```
+
+## Branch protection
+
+In GitHub → Settings → Branches, add a rule for `main` and a rule for `deploy`:
+
+- Block force pushes.
+- Block deletion.
+- On `main`, require a pull request and require the CI status check `Build` before merge.
 
 `public/.htaccess` is copied into the build. It 301s `www.playhubplace.com` to `https://playhubplace.com` and upgrades HTTP only when Apache still sees a plain connection (`HTTPS` is off and `X-Forwarded-Proto` is not `https`). Hostinger already 301s `http://playhubplace.com` to the apex. `http://www` stays two hops until that edge rule changes, because Hostinger upgrades it to `https://www` before this file runs.
 
