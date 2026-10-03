@@ -1,6 +1,7 @@
 import { GA4_MEASUREMENT_ID } from '@/config/site';
+import { CONSENT_KEY, shouldTrack, trackingOpen } from '@/lib/analytics-consent';
 
-export const CONSENT_KEY = 'ph:consent:v1';
+export { CONSENT_KEY, shouldTrack, trackingOpen };
 
 export type AnalyticsEvent =
   | { name: 'tile_click'; slug: string; source: string; position: number }
@@ -23,16 +24,6 @@ export type AnalyticsParams = Record<string, string | number>;
 
 type Gtag = (command: 'event' | 'js' | 'config', ...args: unknown[]) => void;
 
-export function shouldTrack(input: {
-  consent: boolean;
-  mainBuild: boolean;
-  debug: boolean;
-}): boolean {
-  if (input.consent) return true;
-  if (input.mainBuild) return false;
-  return input.debug;
-}
-
 export function measurementIdReady(id: string = GA4_MEASUREMENT_ID): boolean {
   return id.length > 0 && !id.startsWith('TODO');
 }
@@ -44,38 +35,6 @@ export function eventParams(event: AnalyticsEvent): AnalyticsParams {
     if (typeof value === 'string' || typeof value === 'number') params[key] = value;
   }
   return params;
-}
-
-function readConsent(): boolean {
-  try {
-    const raw = localStorage.getItem(CONSENT_KEY);
-    if (!raw) return false;
-    const parsed: unknown = JSON.parse(raw);
-    return (
-      !!parsed &&
-      typeof parsed === 'object' &&
-      (parsed as { analytics?: unknown }).analytics === true
-    );
-  } catch {
-    return false;
-  }
-}
-
-function debugRequested(): boolean {
-  try {
-    return new URLSearchParams(window.location.search).get('ph_debug_analytics') === '1';
-  } catch {
-    return false;
-  }
-}
-
-export function trackingOpen(): boolean {
-  if (typeof window === 'undefined') return false;
-  return shouldTrack({
-    consent: readConsent(),
-    mainBuild: process.env.PH_MAIN_BUILD === '1',
-    debug: debugRequested(),
-  });
 }
 
 function windowGtag(): Gtag | null {

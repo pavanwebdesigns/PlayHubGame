@@ -11,7 +11,7 @@ import {
   SW_REGISTER_SCRIPT,
   TILE_PREFETCH_SCRIPT,
 } from '@/lib/page-scripts';
-import { AnalyticsBoot } from '@/components/analytics/AnalyticsBoot';
+import { AnalyticsGate } from '@/components/analytics/AnalyticsGate';
 import { IconSprite } from '@/components/icons/IconSprite';
 import { SiteIcons } from '@/components/icons/SiteIcons';
 import { anekLatin, jersey15 } from './fonts';
@@ -60,7 +60,7 @@ export default function RootLayout({
         >
           Skip to content
         </a>
-        <AnalyticsBoot />
+        <AnalyticsGate />
         <SiteIcons>
           <div id="content">{children}</div>
         </SiteIcons>

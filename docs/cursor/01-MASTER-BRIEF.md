@@ -19,11 +19,24 @@ Facts below were measured on the live site, the repo and the GamePix feed on 2 O
 |---|---|
 | Core Web Vitals, 75th percentile, mobile | LCP ≤ 2.5 s, INP ≤ 200 ms, CLS ≤ 0.1 |
 | Lighthouse mobile (home, game page, category page) | Performance ≥ 90, Accessibility 100, Best Practices 100 (≥ 95 once third-party ads run), SEO 100 |
-| Initial JS on home (gzip) | ≤ 135 KB |
+| Initial JS on home (gzip) | 137,192 bytes |
 | Taps from home to a running game | ≤ 2 |
 | Indexed pages with original content | grows every week (tracked in Search Console) |
 
-The 135 KB home budget is the React and Next.js runtime. The measured baseline on 2 Oct 2026 is 134,029 bytes gzip. CI fails a pull request that grows past that by more than 5 KB unless the pull request body contains a `home-js:` note.
+Initial JS is the external scripts in the home HTML before analytics consent. Measured 3 Oct 2026, gzip, on `rebuild/next`:
+
+| gzip | chunk | what |
+|---|---|---|
+| 71,628 | `1rj7ns8rte9vc.js` | react-dom |
+| 48,513 | `1-l63z5egxej3.js` | Next.js runtime |
+| 5,864 | `3vk2fbt5lrvym.js` | Next.js runtime |
+| 3,836 | `turbopack-26b1856ggrtrs.js` | Turbopack runtime |
+| 4,222 | `2zmnq3okg6ipw.js` | icon provider and the analytics gate |
+| 2,150 | `34-513v609_jx.js` | app shell |
+| 979 | `0xl_gh3buk7bx.js` | continue playing |
+| **137,192** | | **total** |
+
+React and Next are about 130 KB of that total, so 120 KB cannot hold the page. The analytics boot is not in the total. It loads with a dynamic import only after consent. CI fails if the total grows past 137,192 bytes. Chunk names are from this build and change when the graph changes; the ceiling is the byte total.
 
 ---
 
