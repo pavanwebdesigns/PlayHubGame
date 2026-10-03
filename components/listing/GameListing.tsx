@@ -8,7 +8,7 @@ import {
   type ListingQuery,
   type ListingSort,
 } from '@/lib/listing';
-import { absoluteUrl } from '@/lib/seo';
+import { breadcrumbLd, collectionLd } from '@/lib/structured-data';
 import type { TileGame } from '@/lib/tile-game';
 
 function chipClass(current: boolean): string {
@@ -127,18 +127,16 @@ export function GameListing({
       <JsonLd
         data={{
           '@context': 'https://schema.org',
-          '@type': 'CollectionPage',
-          name: title,
-          url: absoluteUrl(pathFor({ page: query.page })),
-          mainEntity: {
-            '@type': 'ItemList',
-            itemListElement: games.map((game, index) => ({
-              '@type': 'ListItem',
-              position: index + 1,
-              url: absoluteUrl(`/game/${game.slug}/`),
-              name: game.title,
-            })),
-          },
+          '@graph': [
+            collectionLd({
+              name: title,
+              path: pathFor({ page: query.page }),
+              games,
+            }),
+            breadcrumbLd(
+              crumbs.map((crumb) => ({ name: crumb.label, path: crumb.href })),
+            ),
+          ],
         }}
       />
     </main>

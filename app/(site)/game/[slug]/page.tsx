@@ -8,10 +8,10 @@ import { HUB_NAMES } from '@/config/taxonomy';
 import { favoriteFromGame } from '@/lib/favorites';
 import { isIndexable } from '@/lib/content-gate';
 import { loadCurated, loadGame } from '@/lib/catalog/load';
-import { coverAtWidth } from '@/lib/catalog/urls';
-import { loadContent } from '@/lib/content';
+import { faqItems, loadContent } from '@/lib/content';
 import { similarGames } from '@/lib/similar';
 import { absoluteUrl, gameTitle, ogCover, pageMetadata } from '@/lib/seo';
+import { breadcrumbLd, faqLd } from '@/lib/structured-data';
 import { toTileGame } from '@/lib/tile-game';
 
 export const dynamicParams = false;
@@ -49,6 +49,8 @@ export default async function GamePage({
   const { slug } = await params;
   const game = loadGame(slug);
   if (!game) notFound();
+  const doc = loadContent('games', game.slug);
+  const faqs = doc ? faqItems(doc) : [];
   const ranked = similarGames(loadCurated(), game.slug, game.hub, 12);
   const tiles = ranked.map((item) => toTileGame(item));
   const upNext = tiles[0];
@@ -99,34 +101,23 @@ export default async function GamePage({
             {
               '@type': ['VideoGame', 'SoftwareApplication'],
               name: game.title,
+              ...(doc?.summary ? { description: doc.summary } : {}),
+              image: ogCover(game.cover, game.coverWidth),
               url: absoluteUrl(`/game/${game.slug}/`),
-              applicationCategory: 'Game',
-              operatingSystem: 'Web',
-              image: coverAtWidth(game.cover, 640),
-              offers: {
-                '@type': 'Offer',
-                price: '0',
-                priceCurrency: 'USD',
-              },
+              applicationCategory: 'GameApplication',
+              operatingSystem: 'Web browser',
+              genre: hubName,
+              gamePlatform: 'Web browser',
+              datePublished: game.publishedAt,
+              offers: { '@type': 'Offer', price: 0, priceCurrency: 'USD' },
+              publisher: { '@type': 'Organization', name: 'GamePix' },
             },
-            {
-              '@type': 'BreadcrumbList',
-              itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Home', item: absoluteUrl('/') },
-                {
-                  '@type': 'ListItem',
-                  position: 2,
-                  name: hubName,
-                  item: absoluteUrl(`/category/${game.hub}/`),
-                },
-                {
-                  '@type': 'ListItem',
-                  position: 3,
-                  name: game.title,
-                  item: absoluteUrl(`/game/${game.slug}/`),
-                },
-              ],
-            },
+            breadcrumbLd([
+              { name: 'Home', path: '/' },
+              { name: hubName, path: `/category/${game.hub}/` },
+              { name: game.title, path: `/game/${game.slug}/` },
+            ]),
+            ...(faqs.length > 0 ? [faqLd(faqs)] : []),
           ],
         }}
       />

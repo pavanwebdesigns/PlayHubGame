@@ -1,7 +1,7 @@
 import { ContentBlocks } from '@/components/content/ContentBlocks';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { faqItems, type ContentDoc } from '@/lib/content';
-import { absoluteUrl } from '@/lib/seo';
+import { organizationLd, websiteLd, faqLd } from '@/lib/structured-data';
 
 export function AboutHome({ doc }: { doc: ContentDoc }) {
   const faqs = faqItems(doc);
@@ -26,29 +26,12 @@ export function AboutHome({ doc }: { doc: ContentDoc }) {
         </div>
       ) : null}
       {faqs.length > 0 ? (
-        <JsonLd
-          data={{
-            '@context': 'https://schema.org',
-            '@type': 'FAQPage',
-            mainEntity: faqs.map((item) => ({
-              '@type': 'Question',
-              name: item.question,
-              acceptedAnswer: { '@type': 'Answer', text: item.answer },
-            })),
-          }}
-        />
+        <JsonLd data={{ '@context': 'https://schema.org', ...faqLd(faqs) }} />
       ) : null}
       <JsonLd
         data={{
           '@context': 'https://schema.org',
-          '@type': 'WebSite',
-          name: 'PlayHubPlace',
-          url: absoluteUrl('/'),
-          potentialAction: {
-            '@type': 'SearchAction',
-            target: `${absoluteUrl('/search/')}?q={search_term_string}`,
-            'query-input': 'required name=search_term_string',
-          },
+          '@graph': [organizationLd(), websiteLd()],
         }}
       />
     </section>
