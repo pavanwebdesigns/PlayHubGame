@@ -50,6 +50,10 @@ function precacheUrls(): string[] {
 }
 
 function worker(cacheName: string, urls: readonly string[]): string {
+  // Navigations revalidate. fetch(event.request) would reuse the HTTP cache,
+  // including a cached copy of the old site. redirect manual lets the browser
+  // follow Apache redirects. The 4s timeout still falls through to the cache,
+  // then /offline/.
   return `var CACHE=${JSON.stringify(cacheName)};
 var URLS=${JSON.stringify(urls)};
 self.addEventListener("install",function(event){
@@ -73,7 +77,7 @@ self.addEventListener("fetch",function(event){
   }
   event.respondWith(new Promise(function(resolve){
     var timer=setTimeout(function(){resolve(null)},4000);
-    fetch(event.request).then(function(response){clearTimeout(timer);resolve(response)}).catch(function(){clearTimeout(timer);resolve(null)});
+    fetch(event.request.url,{cache:"no-cache",credentials:"same-origin",redirect:"manual"}).then(function(response){clearTimeout(timer);resolve(response)}).catch(function(){clearTimeout(timer);resolve(null)});
   }).then(function(response){
     if(response)return response;
     return fromCache(event.request);
@@ -89,6 +93,6 @@ if (kill) {
 } else {
   const id = shortBuildId();
   const urls = precacheUrls();
-  writeFileSync('out/sw.js', worker(`ph-${id}`, urls));
+  writeFileSync('out/sw.js', worker(`ph-v2-${id}`, urls));
   console.log(`sw=${id} urls=${urls.length}`);
 }

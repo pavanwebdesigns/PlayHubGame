@@ -84,3 +84,12 @@ Filled on 3 Oct 2026 before the pull request. Live checks wait until this merges
 ## Not checked here
 - [ ] Playwright and Lighthouse on this commit. CI runs both on the pull request.
 - [ ] The live smoke test, response headers, service worker, and favorites migration. Those run after Publish.
+
+# QA checklist — Navigation revalidation (`develop` → `main`)
+
+Filled on 3 Oct 2026.
+
+- [x] Playwright mobile: a page cached for a year is not shown on the next online navigation. The same test still shows that page when the worker uses `fetch(event.request)`.
+- [x] Playwright mobile: the CPS test still opens with the network off.
+- [ ] The rest of CI, including desktop. The pull request runs it.
+
