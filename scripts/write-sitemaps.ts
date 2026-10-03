@@ -1,7 +1,7 @@
 import { writeFileSync } from 'node:fs';
 import { loadCurated } from '@/lib/catalog/load';
 import { buildToday } from '@/lib/build-clock';
-import { absoluteUrl } from '@/lib/seo';
+import { absoluteFileUrl } from '@/lib/seo';
 import { sitemapIndexXml, sitemapSets, urlsetXml } from '@/lib/sitemaps';
 
 const sets = sitemapSets(loadCurated(), buildToday());
@@ -11,9 +11,9 @@ writeFileSync('public/sitemap-games.xml', urlsetXml(sets.games));
 writeFileSync(
   'public/sitemap.xml',
   sitemapIndexXml([
-    absoluteUrl('/sitemap-pages.xml'),
-    absoluteUrl('/sitemap-categories.xml'),
-    absoluteUrl('/sitemap-games.xml'),
+    absoluteFileUrl('/sitemap-pages.xml'),
+    absoluteFileUrl('/sitemap-categories.xml'),
+    absoluteFileUrl('/sitemap-games.xml'),
   ]),
 );
 console.log(

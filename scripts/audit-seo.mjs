@@ -60,7 +60,9 @@ const pages = walk(root).map((file) => {
 const errors = [];
 const warnings = [];
 
+const notFoundDocs = new Set(['/404/', '/_not-found/']);
 for (const page of pages) {
+  if (notFoundDocs.has(page.path)) continue;
   if (!page.canonical) errors.push(`${page.path} has no canonical`);
 }
 

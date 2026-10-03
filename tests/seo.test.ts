@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { GameRecord } from '@/lib/catalog/types';
 import { listingMeta } from '@/lib/listing-meta';
-import { fitTitle, gameTitle, hubTitle, ogCover } from '@/lib/seo';
+import { absoluteFileUrl, fitTitle, gameTitle, hubTitle, ogCover } from '@/lib/seo';
 import { homeIsDraft } from '@/lib/launch-gate';
-import { sitemapSets } from '@/lib/sitemaps';
+import { sitemapIndexXml, sitemapSets } from '@/lib/sitemaps';
 
 describe('titles', () => {
   it('keeps the home and hub patterns inside 60 characters', () => {
@@ -93,6 +93,12 @@ describe('sitemaps', () => {
     expect(sets.pages.map((item) => item.loc).join('\n')).toContain('/new/');
     expect(JSON.stringify(sets)).not.toContain('/page/');
     expect(JSON.stringify(sets)).not.toContain('/search/');
+  });
+
+  it('points the index at the xml files, without a trailing slash', () => {
+    const xml = sitemapIndexXml([absoluteFileUrl('/sitemap-pages.xml')]);
+    expect(xml).toContain('https://playhubplace.com/sitemap-pages.xml</loc>');
+    expect(xml).not.toContain('sitemap-pages.xml/');
   });
 });
 

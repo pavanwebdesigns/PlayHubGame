@@ -88,3 +88,9 @@ export function gameTitle(name: string): string {
 export function absoluteUrl(path: string): string {
   return `${SITE_URL}${canonical(path)}`;
 }
+
+/** A file URL, with no trailing slash. Sitemap indexes point at the xml files themselves. */
+export function absoluteFileUrl(path: string): string {
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  return `${SITE_URL}${normalized}`;
+}
