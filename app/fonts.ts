@@ -15,5 +15,6 @@ export const jersey15 = Jersey_15({
   weight: '400',
   display: 'swap',
   adjustFontFallback: true,
+  preload: false,
   variable: '--font-jersey',
 });

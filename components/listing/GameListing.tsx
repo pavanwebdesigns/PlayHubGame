@@ -49,6 +49,7 @@ export function GameListing({
 
   return (
     <main className="px-4 py-6">
+      <link rel="preconnect" href="https://img.gamepix.com" />
       <nav aria-label="Breadcrumb" className="mb-4 text-ink-muted">
         {crumbs.map((crumb, index) => (
           <span key={crumb.href}>

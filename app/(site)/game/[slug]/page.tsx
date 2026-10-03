@@ -62,6 +62,7 @@ export default async function GamePage({
   const hubName = HUB_NAMES[game.hub];
   return (
     <main className="px-4 py-6">
+      <link rel="preconnect" href="https://img.gamepix.com" />
       <link rel="preconnect" href="https://play.gamepix.com" />
       <nav aria-label="Breadcrumb" className="mb-4 text-ink-muted">
         <a href="/" className="inline-flex min-h-tap items-center">

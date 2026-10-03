@@ -84,6 +84,7 @@ export default function HomePage() {
 
   return (
     <main className="mx-auto grid max-w-6xl gap-8 px-4 py-6">
+      <link rel="preconnect" href="https://img.gamepix.com" />
       <h1 className="text-title text-ink">Free online games — play instantly</h1>
       <ContinuePlayingSlot />
       {spotlight ? <Spotlight game={toTileGame(spotlight)} /> : null}
