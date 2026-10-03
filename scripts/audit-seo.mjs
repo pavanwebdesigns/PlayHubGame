@@ -100,7 +100,6 @@ const listed = [
   ...sitemapLocs(join(root, 'sitemap-games.xml')),
 ];
 const byPath = new Map(pages.map((page) => [page.path, page]));
-const indexablePaths = new Set(audited.map((page) => page.path));
 
 for (const loc of listed) {
   const path = loc.startsWith(origin) ? loc.slice(origin.length) : loc;
