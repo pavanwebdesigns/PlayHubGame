@@ -20,9 +20,10 @@ export const HOME_HTML_GZIP_MAX = 60 * 1024;
  * 450 KB cannot hold this page: the shared layout flight is already
  * ~169 KB (the same shell as /privacy/) and each tile is ~3.8 KB once
  * HTML and flight are both counted. Six rows of 12 plus the picks grid
- * land here. The ceiling is that measurement, so the file cannot grow.
+ * land here. The Spotlight srcset adds the 800 step, which is included.
+ * The ceiling is that measurement, so the file cannot grow.
  */
-export const HOME_HTML_RAW_MAX = 731_343;
+export const HOME_HTML_RAW_MAX = 731_623;
 
 export function homeJsGzip(root = 'out') {
   const home = readFileSync(join(root, 'index.html'), 'utf8');

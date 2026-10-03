@@ -394,7 +394,7 @@ describe('home page data', () => {
 
 describe('cover candidates', () => {
   it('gives tiles and the Spotlight different widths', () => {
-    expect(TILE_WIDTHS).toEqual([240, 320, 480, 640]);
-    expect(SPOTLIGHT_WIDTHS).toEqual([480, 640, 960, 1280]);
+    expect(TILE_WIDTHS).toEqual([240, 360, 480, 640]);
+    expect(SPOTLIGHT_WIDTHS).toEqual([480, 640, 800, 960, 1280]);
   });
 });

@@ -22,5 +22,5 @@ export const SPOTLIGHT_SIZES =
 /** Game page frame. The stage is the content width until the wide layout. */
 export const PLAYER_SIZES = '(max-width: 1024px) calc(100vw - 2rem), 42rem';
 
-export const TILE_WIDTHS = [240, 320, 480, 640] as const;
-export const SPOTLIGHT_WIDTHS = [480, 640, 960, 1280] as const;
+export const TILE_WIDTHS = [240, 360, 480, 640] as const;
+export const SPOTLIGHT_WIDTHS = [480, 640, 800, 960, 1280] as const;
