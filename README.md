@@ -71,7 +71,7 @@ Playwright, axe, and Lighthouse CI are devDependencies. They are not part of the
 
 ## Remove a bad service worker
 
-The site registers `/sw.js` after the page loads. One build uses one cache, named `ph-` plus the build id, and the next build deletes older caches.
+The site registers `/sw.js` after the page loads. One build uses one cache, named `ph-v2-` plus the build id, and the next build deletes older caches. A navigation asks the server again (`cache: no-cache`) instead of reusing a cached page. If that takes longer than 4 seconds and this cache has that exact URL, the cached page is shown. Otherwise the worker keeps waiting. `/offline/` is used only when the request fails.
 
 To take the worker off every browser, build once with `PH_SW_KILL=1`. That writes `scripts/sw-kill.js` to `out/sw.js`. The replacement unregisters itself and deletes the caches. Deploy that `out/` the same way as any other build. The following build can omit `PH_SW_KILL` and a normal worker returns.
 
