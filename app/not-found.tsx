@@ -1,5 +1,6 @@
 import { SiteChrome } from '@/components/layout/SiteChrome';
 import { Row } from '@/components/game/Row';
+import { Icon } from '@/components/icons/glyphs';
 import { loadCurated } from '@/lib/catalog/load';
 import { buildToday } from '@/lib/build-clock';
 import { todaysPicks } from '@/lib/picks';
@@ -30,7 +31,13 @@ export default function NotFound() {
           </button>
         </form>
         <div className="mt-8">
-          <Row title="Today’s picks" href="/" games={picks} />
+          <Row
+            title="Today’s picks"
+            href="/"
+            games={picks}
+            previous={<Icon name="chevron-left" />}
+            next={<Icon name="chevron-right" />}
+          />
         </div>
       </main>
     </SiteChrome>

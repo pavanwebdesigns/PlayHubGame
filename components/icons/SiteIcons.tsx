@@ -1,36 +1,23 @@
 import type { ReactNode } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Flag,
-  Heart,
-  House,
-  LayoutGrid,
-  Maximize,
-  Play,
-  Search,
-  Share2,
-  Smartphone,
-  X,
-} from 'lucide-react';
+import { Icon } from '@/components/icons/glyphs';
 import { IconProvider } from '@/components/icons/IconProvider';
 
 export function SiteIcons({ children }: { children: ReactNode }) {
   return (
     <IconProvider
       icons={{
-        house: <House aria-hidden="true" size={20} />,
-        categories: <LayoutGrid aria-hidden="true" size={20} />,
-        search: <Search aria-hidden="true" size={20} />,
-        heart: <Heart aria-hidden="true" size={20} />,
-        clear: <X aria-hidden="true" size={20} />,
-        previous: <ChevronLeft aria-hidden="true" size={20} />,
-        next: <ChevronRight aria-hidden="true" size={20} />,
-        share: <Share2 aria-hidden="true" size={20} />,
-        maximize: <Maximize aria-hidden="true" size={20} />,
-        flag: <Flag aria-hidden="true" size={20} />,
-        phone: <Smartphone aria-hidden="true" size={48} />,
-        play: <Play aria-hidden="true" size={20} />,
+        house: <Icon name="house" />,
+        categories: <Icon name="layout-grid" />,
+        search: <Icon name="search" />,
+        heart: <Icon name="heart" />,
+        clear: <Icon name="x" />,
+        previous: <Icon name="chevron-left" />,
+        next: <Icon name="chevron-right" />,
+        share: <Icon name="share-2" />,
+        maximize: <Icon name="maximize" />,
+        flag: <Icon name="flag" />,
+        phone: <Icon name="smartphone" size={48} />,
+        play: <Icon name="play" />,
       }}
     >
       {children}

@@ -1,4 +1,4 @@
-import { Heart, Play } from 'lucide-react';
+import { Icon } from '@/components/icons/glyphs';
 import {
   ButtonLoadingDemo,
   ChipDemo,
@@ -24,7 +24,7 @@ export function PrimitiveSections() {
           <Button>Play</Button>
           <Button variant="secondary">Save</Button>
           <Button variant="ghost">Cancel</Button>
-          <Button size="lg" icon={<Play aria-hidden="true" size={20} />}>
+          <Button size="lg" icon={<Icon name="play" />}>
             Play
           </Button>
           <Button disabled>Disabled</Button>
@@ -35,7 +35,7 @@ export function PrimitiveSections() {
 
       <section id="icon-button" className="grid gap-3">
         <h2 className="text-title">Icon button</h2>
-        <IconButton label="Save" icon={<Heart aria-hidden="true" size={20} />} />
+        <IconButton label="Save" icon={<Icon name="heart" />} />
       </section>
 
       <section id="chip" className="grid gap-3">

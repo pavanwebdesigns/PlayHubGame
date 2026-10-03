@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Row } from '@/components/game/Row';
+import { useSiteIcons } from '@/components/icons/IconProvider';
 import { SearchField } from '@/components/ui/SearchField';
 import type { SearchIndexEntry } from '@/lib/catalog/types';
 import { mergeSearch, readSearches, readSearchesSnapshot, subscribeSearches, writeSearches } from '@/lib/searches';
@@ -57,6 +58,7 @@ export function SearchBox({
   hubs: readonly { href: string; label: string }[];
   picks: readonly TileGame[];
 }) {
+  const icons = useSiteIcons();
   const [results, setResults] = useState<SearchIndexEntry[]>([]);
   const [active, setActive] = useState(0);
   const [status, setStatus] = useState('');
@@ -200,7 +202,15 @@ export function SearchBox({
               </li>
             ))}
           </ul>
-          {picks.length > 0 ? <Row title="Today’s picks" href="/" games={picks} /> : null}
+          {picks.length > 0 ? (
+            <Row
+              title="Today’s picks"
+              href="/"
+              games={picks}
+              previous={icons.previous}
+              next={icons.next}
+            />
+          ) : null}
         </div>
       ) : null}
     </div>

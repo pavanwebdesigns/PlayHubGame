@@ -3,6 +3,7 @@ import { CategorySection } from '@/components/home/CategorySection';
 import { ContinuePlayingSlot } from '@/components/home/ContinuePlayingSlot';
 import { OriginalsRow } from '@/components/home/OriginalsRow';
 import { Row } from '@/components/game/Row';
+import { Icon } from '@/components/icons/glyphs';
 import { Spotlight } from '@/components/game/Spotlight';
 import { TileGrid } from '@/components/game/TileGrid';
 import { visibleCollections, type CollectionSlug } from '@/config/collections';
@@ -98,6 +99,8 @@ export default function HomePage() {
                 title={collection.name}
                 href={`/collection/${collection.slug}/`}
                 games={row}
+                previous={<Icon name="chevron-left" />}
+                next={<Icon name="chevron-right" />}
               />
             </div>,
           ];
@@ -107,7 +110,13 @@ export default function HomePage() {
           if (row.length === 0) return [];
           return [
             <div key={season.id} className="home-row">
-              <Row title={season.name} href="/category/seasonal/" games={row} />
+              <Row
+                title={season.name}
+                href="/category/seasonal/"
+                games={row}
+                previous={<Icon name="chevron-left" />}
+                next={<Icon name="chevron-right" />}
+              />
             </div>,
           ];
         })}

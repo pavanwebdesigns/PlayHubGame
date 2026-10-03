@@ -1,4 +1,4 @@
-import { Puzzle } from 'lucide-react';
+import { Icon } from '@/components/icons/glyphs';
 import { CategoryCard } from '@/components/game/CategoryCard';
 import { GameTile } from '@/components/game/GameTile';
 import { Row } from '@/components/game/Row';
@@ -73,6 +73,8 @@ export function GameSections() {
           title="Sample row"
           href="/collection/one-thumb/"
           games={sampleGames}
+          previous={<Icon name="chevron-left" />}
+          next={<Icon name="chevron-right" />}
         />
       </section>
 
@@ -86,7 +88,7 @@ export function GameSections() {
         <h2 className="text-title">Category card</h2>
         <CategoryCard
           href="/category/puzzle/"
-          icon={Puzzle}
+          icon={<Icon name="puzzle" size={24} />}
           name="Puzzle"
           count={95}
         />

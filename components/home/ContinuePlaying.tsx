@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { Row } from '@/components/game/Row';
+import { useSiteIcons } from '@/components/icons/IconProvider';
 import { ContinueSkeleton } from '@/components/home/ContinueSkeleton';
 import { parseRecent, readRecentSnapshot, subscribeRecent } from '@/lib/recent';
 import { getTileMap, subscribeTileMap } from '@/lib/tile-lookup';
@@ -11,6 +12,7 @@ function subscribeIdle(): () => void {
 }
 
 export function ContinuePlaying() {
+  const icons = useSiteIcons();
   const raw = useSyncExternalStore(subscribeRecent, readRecentSnapshot, () => null);
   const entries = parseRecent(raw);
   const tiles = useSyncExternalStore(
@@ -26,6 +28,12 @@ export function ContinuePlaying() {
   });
   if (games.length === 0) return null;
   return (
-    <Row title="Continue playing" href="/my-games/" games={games.slice(0, 20)} />
+    <Row
+      title="Continue playing"
+      href="/my-games/"
+      games={games.slice(0, 20)}
+      previous={icons.previous}
+      next={icons.next}
+    />
   );
 }

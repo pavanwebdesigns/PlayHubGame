@@ -10,9 +10,9 @@ function coverSrc(src: string, width: number): string {
   return gamepixLoader({ src, width });
 }
 
-function Fallback({ title, alt }: { title: string; alt: string }) {
+function Fallback({ title, alt, silent }: { title: string; alt: string; silent: boolean }) {
   return (
-    <span className="cover-fallback">
+    <span className="cover-fallback" aria-hidden={silent ? true : undefined}>
       <span
         className="cover-title line-clamp-2 w-full min-w-0 text-ink"
         aria-hidden={alt.length === 0}
@@ -42,26 +42,22 @@ export function CoverImage({
   sizes: string;
   priority?: boolean;
 }) {
-  if (src.length === 0) {
-    return (
-      <span className="cover-frame">
-        <Fallback title={title} alt={alt} />
-      </span>
-    );
-  }
-
   return (
     <span className="cover-frame">
-      <img
-        src={coverSrc(src, 480)}
-        srcSet={WIDTHS.map((width) => `${coverSrc(src, width)} ${width}w`).join(', ')}
-        sizes={sizes}
-        alt={alt}
-        fetchPriority={priority ? 'high' : 'auto'}
-        loading={priority ? 'eager' : 'lazy'}
-        decoding="async"
-        className="cover-img absolute inset-0 h-full w-full object-cover"
-      />
+      <Fallback title={title} alt={alt} silent={src.length > 0} />
+      {src.length > 0 ? (
+        <img
+          src={coverSrc(src, 480)}
+          srcSet={WIDTHS.map((width) => `${coverSrc(src, width)} ${width}w`).join(', ')}
+          sizes={sizes}
+          alt={alt}
+          data-cover=""
+          fetchPriority={priority ? 'high' : 'auto'}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
+          className="cover-img absolute inset-0 h-full w-full object-cover"
+        />
+      ) : null}
     </span>
   );
 }

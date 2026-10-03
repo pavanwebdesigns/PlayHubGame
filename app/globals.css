@@ -230,6 +230,10 @@ body {
   container-type: inline-size;
 }
 
+img.cover-img[hidden] {
+  display: none;
+}
+
 .cover-fallback {
   position: absolute;
   inset: 0;
@@ -300,6 +304,16 @@ body {
 
 .row-edge > button {
   pointer-events: auto;
+}
+
+.row-edge > button[hidden] {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .row-edge {
+    display: none;
+  }
 }
 
 .row-edge-prev {

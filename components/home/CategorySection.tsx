@@ -1,5 +1,6 @@
 import { CategoryCard } from '@/components/game/CategoryCard';
 import { HUB_ICONS } from '@/components/game/hub-icons';
+import { Icon } from '@/components/icons/glyphs';
 import { HUB_NAMES, type HubSlug } from '@/config/taxonomy';
 
 export function CategorySection({
@@ -15,7 +16,7 @@ export function CategorySection({
           <CategoryCard
             key={hub.slug}
             href={`/category/${hub.slug}/`}
-            icon={HUB_ICONS[hub.slug]}
+            icon={<Icon name={HUB_ICONS[hub.slug]} size={24} />}
             name={HUB_NAMES[hub.slug]}
             count={hub.count}
           />
