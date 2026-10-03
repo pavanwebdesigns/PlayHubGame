@@ -1,6 +1,7 @@
+import { existsSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { spotlightPitch } from '@/config/spotlight';
-import { coverAspect } from '@/lib/cover-aspect';
+import { coverAspect, medianCoverAspect } from '@/lib/cover-aspect';
 import { isSearchShortcutBlocked } from '@/lib/search-shortcut';
 import { isFavoriteSlug } from '@/lib/favorites';
 import { isNewGame, toTileGame } from '@/lib/tile-game';
@@ -93,8 +94,9 @@ describe('favorite mark', () => {
 });
 
 describe('cover aspect', () => {
-  it('uses the measured median from the catalog', () => {
-    expect(coverAspect()).toBe(1.6);
+  it('reads the measured median from catalog meta', () => {
+    expect(medianCoverAspect({ coverSample: { medianAspect: 1.6 } })).toBe(1.6);
+    if (existsSync('data/meta.json')) expect(coverAspect()).toBe(1.6);
   });
 });
 
