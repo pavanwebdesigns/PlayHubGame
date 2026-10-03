@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "npm run check-todos && tsx scripts/check-game-content.ts && npm run catalog && tsx scripts/write-sitemaps.ts && next build",
+    "build": "npm run check-todos && tsx scripts/check-game-content.ts && npm run catalog && tsx scripts/report-index.ts && tsx scripts/write-sitemaps.ts && next build",
     "catalog": "tsx scripts/build-catalog.ts",
     "lint": "eslint . --max-warnings 0 && node scripts/check-tokens.mjs",
     "typecheck": "tsc --noEmit",

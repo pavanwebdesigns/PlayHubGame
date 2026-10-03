@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { GameRecord } from '@/lib/catalog/types';
 import { listingMeta } from '@/lib/listing-meta';
 import { fitTitle, gameTitle, hubTitle, ogCover } from '@/lib/seo';
+import { homeIsDraft } from '@/lib/launch-gate';
 import { sitemapSets } from '@/lib/sitemaps';
 
 describe('titles', () => {
@@ -92,6 +93,12 @@ describe('sitemaps', () => {
     expect(sets.pages.map((item) => item.loc).join('\n')).toContain('/new/');
     expect(JSON.stringify(sets)).not.toContain('/page/');
     expect(JSON.stringify(sets)).not.toContain('/search/');
+  });
+});
+
+describe('launch gate', () => {
+  it('treats the current home page as a draft', () => {
+    expect(homeIsDraft()).toBe(true);
   });
 });
 
