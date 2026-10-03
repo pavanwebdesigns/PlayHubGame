@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { track, trackingOpen } from '@/lib/analytics';
+import { pageType, track, trackingOpen } from '@/lib/analytics';
 
 function numberAttr(value: string | null): number {
   const parsed = Number(value);
@@ -40,6 +40,20 @@ export function AnalyticsBoot() {
       });
     }
     document.addEventListener('click', onClick);
+    const kind = pageType(window.location.pathname);
+    void import('web-vitals').then(({ onCLS, onINP, onLCP }) => {
+      const send = (metric: { name: string; value: number }) => {
+        track({
+          name: 'web_vital',
+          metric_name: metric.name,
+          value: Math.round(metric.value),
+          page_type: kind,
+        });
+      };
+      onLCP(send);
+      onINP(send);
+      onCLS(send);
+    });
     return () => document.removeEventListener('click', onClick);
   }, []);
   return null;

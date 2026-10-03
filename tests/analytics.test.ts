@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { eventParams, shouldTrack, track, type AnalyticsEvent } from '@/lib/analytics';
+import { eventParams, pageType, shouldTrack, track, type AnalyticsEvent } from '@/lib/analytics';
 
 describe('analytics consent', () => {
   const calls: unknown[][] = [];
@@ -13,6 +13,12 @@ describe('analytics consent', () => {
   it('stays closed without consent', () => {
     expect(shouldTrack({ consent: false, mainBuild: false, debug: false })).toBe(false);
     expect(shouldTrack({ consent: false, mainBuild: true, debug: true })).toBe(false);
+  });
+
+  it('names the page from the path', () => {
+    expect(pageType('/')).toBe('home');
+    expect(pageType('/game/prism-match-3d/')).toBe('game');
+    expect(pageType('/category/puzzle/')).toBe('category');
   });
 
   it('opens for consent, and for the preview debug query only off main', () => {

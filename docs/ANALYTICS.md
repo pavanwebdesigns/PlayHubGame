@@ -22,7 +22,9 @@ No event carries an account, an email, or an IP we add ourselves. The only free 
 | `search` / `search_no_results` | `term`, `results` |
 | `report_problem` | `slug`, `reason` |
 | `original_result` | `slug`, `score` |
-| `web_vital` | `metric_name`, `value`, `page_type` |
+| `web_vital` | `metric_name` (`LCP`, `INP`, `CLS`), `value`, `page_type` |
+
+`web-vitals` (3.3 KB gzip for `web-vitals.js`) is imported only after consent or the preview debug query, so it is not part of the home page script budget.
 
 `source` is `spotlight`, `todays_picks`, `row:{collection}`, `play_next`, `up_next`, `search`, or `category`. `device` is `touch` or `desktop`.
 

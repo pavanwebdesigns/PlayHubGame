@@ -109,6 +109,17 @@ export function track(event: AnalyticsEvent): void {
   windowGtag()?.('event', event.name, eventParams(event));
 }
 
+export function pageType(pathname: string): string {
+  if (pathname === '/' || pathname === '') return 'home';
+  const segment = pathname.split('/').filter(Boolean)[0] ?? 'other';
+  if (segment === 'game') return 'game';
+  if (segment === 'category') return 'category';
+  if (segment === 'originals') return 'original';
+  if (segment === 'collection') return 'collection';
+  if (segment === 'search') return 'search';
+  return 'other';
+}
+
 export function playDevice(): 'touch' | 'desktop' {
   if (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0) return 'touch';
   return 'desktop';
