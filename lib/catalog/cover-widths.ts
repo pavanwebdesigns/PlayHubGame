@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { mapPool } from '@/lib/catalog/pool';
 import { probeImageUrl } from '@/lib/catalog/probe-image';
 import type { GameRecord } from '@/lib/catalog/types';
-import { coverAtWidth } from '@/lib/catalog/urls';
 
 /** XL tiles and Spotlight refuse covers narrower than this. */
 export const XL_COVER_MIN = 480;
@@ -12,8 +11,11 @@ export const XL_COVER_MIN = 480;
 /** Open Graph uses a cover only from this width up. */
 export const OG_COVER_MIN = 600;
 
-/** Ask for a width the CDN will not upscale past the source file. */
-export const COVER_PROBE_WIDTH = 4096;
+/**
+ * Probe the cover URL with no `w` parameter.
+ * GamePix upscales when `w` is larger than the file, so a sized request
+ * hides the real pixel width.
+ */
 
 export const COVER_FAIL_WARN_RATIO = 0.05;
 
@@ -83,10 +85,7 @@ export async function measureMissingCovers(
   const widths: Record<string, number> = {};
   let failed = 0;
   await mapPool(missing, 8, async (game) => {
-    const size = await probeImageUrl(
-      coverAtWidth(game.cover, COVER_PROBE_WIDTH),
-      fetchImpl,
-    );
+    const size = await probeImageUrl(game.cover, fetchImpl);
     if (size) widths[game.id] = size.width;
     else failed += 1;
   });

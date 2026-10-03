@@ -3,6 +3,7 @@ import { ContentDashboard } from '@/components/dev/ContentDashboard';
 import { GameSections } from '@/components/dev/GameSections';
 import { PrimitiveSections } from '@/components/dev/PrimitiveSections';
 import { pageMetadata } from '@/lib/seo';
+import { WithToast } from '@/components/ui/WithToast';
 
 const TOOLS = ['ui', 'content'] as const;
 type Tool = (typeof TOOLS)[number];
@@ -45,10 +46,12 @@ export default async function DevToolPage({
   if (!isTool(tool)) notFound();
   if (tool === 'content') return <ContentDashboard />;
   return (
-    <main className="mx-auto grid min-w-0 max-w-6xl gap-10 px-4 py-8">
-      <h1 className="font-display text-display text-ink">Design system</h1>
-      <PrimitiveSections />
-      <GameSections />
-    </main>
+    <WithToast>
+      <main className="mx-auto grid min-w-0 max-w-6xl gap-10 px-4 py-8">
+        <h1 className="font-display text-display text-ink">Design system</h1>
+        <PrimitiveSections />
+        <GameSections />
+      </main>
+    </WithToast>
   );
 }
