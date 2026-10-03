@@ -4,7 +4,7 @@ Free browser games at [playhubplace.com](https://playhubplace.com/). Games are e
 
 This branch (`rebuild/next`) is the Next.js rebuild. It is not live. Merging it to `main` publishes the site, and that cut-over waits until the rebuild is ready.
 
-The previous Vite app is in `legacy/`. It is not part of the Next build. Delete it at launch.
+The previous Vite app was removed at launch. Old game links still redirect, and favorites stay under `playhub_favorites`.
 
 ## Scripts
 

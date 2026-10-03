@@ -16,7 +16,6 @@ export default defineConfig([
     },
   },
   globalIgnores([
-    'legacy/**',
     'data/**',
     'public/data/**',
     'dist/**',
