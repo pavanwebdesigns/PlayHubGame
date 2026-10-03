@@ -1,4 +1,4 @@
-var CACHE="ph-048b0ff46e85";
+var CACHE="ph-8fb0ddaae705";
 var URLS=["/logo.png","/og-default.png","/icon-192.png","/icon-512.png","/icon-maskable-512.png","/apple-touch-icon.png","/favicon.svg","/favicon.ico","/offline/","/_next/static/media/70792942b0428d47-s.p.1bei-r7v80c20.woff2","/_next/static/media/anek_400-s.p.3xc522oi32ps0.woff2","/_next/static/media/anek_500-s.p.1bldaf2hkky3x.woff2","/_next/static/media/anek_600-s.p.2ipl-ik6-l5dm.woff2","/_next/static/chunks/1mq-uwrl3rwyr.css","/_next/static/chunks/3vk2fbt5lrvym.js","/_next/static/chunks/1-l63z5egxej3.js","/_next/static/chunks/1rj7ns8rte9vc.js","/_next/static/chunks/turbopack-26b1856ggrtrs.js","/_next/static/chunks/3-5x6v7x5enmk.js","/_next/static/chunks/3jmivdfn71biz.js","/_next/static/chunks/04h-n22a_0im1.js","/manifest.webmanifest","/_next/static/chunks/0cz1d0mv5g_q7.js","/originals/cps-test/","/_next/static/chunks/3-4sejml22sxg.js","/_next/static/chunks/086g6gsulerij.js","/originals/reaction-time-test/"];
 self.addEventListener("install",function(event){
   event.waitUntil(caches.open(CACHE).then(function(cache){return cache.addAll(URLS)}).then(function(){return self.skipWaiting()}));
