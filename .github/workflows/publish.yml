@@ -71,6 +71,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
+          PH_MAIN_BUILD: '1'
           CATALOG_CACHE_DIR: ${{ github.workspace }}/.catalog-cache
           CATALOG_SNAPSHOT_DIR: ${{ github.workspace }}/.catalog-snapshot
 

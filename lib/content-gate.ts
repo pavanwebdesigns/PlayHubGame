@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
+import { readGameContent } from '@/lib/game-content';
 
 /**
  * Category copy lives in content/categories/. A file counts for the sitemap
@@ -33,7 +34,9 @@ export function contentStatus(
 }
 
 export function isIndexable(kind: ContentKind, slug: string): boolean {
-  return contentStatus(kind, slug) === 'published';
+  if (contentStatus(kind, slug) !== 'published') return false;
+  if (kind !== 'games') return true;
+  return readGameContent(slug)?.status === 'published';
 }
 
 export function contentUpdated(kind: ContentKind, slug: string): string | null {
