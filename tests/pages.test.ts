@@ -7,7 +7,9 @@ import { listingPath, parseListing } from '@/lib/listing';
 import { mergeRecent, parseRecent, readRecentSnapshot, RECENT_MAX } from '@/lib/recent';
 import { nextPhase, wantsImmersive } from '@/lib/player';
 import { dateSeed, seededShuffle, PICKS_COUNT } from '@/lib/picks';
+import { similarGames } from '@/lib/similar';
 import { fullRowMdCount, TILE_COLUMNS } from '@/lib/tile-pack';
+import type { GameRecord } from '@/lib/catalog/types';
 
 describe('spotlight', () => {
   it('rotates by day and skips a missing slug', () => {
@@ -32,6 +34,37 @@ describe('spotlight', () => {
 
   it('counts 2 Oct 2026 as day 275', () => {
     expect(dayOfYear(new Date(Date.UTC(2026, 9, 2)))).toBe(275);
+  });
+});
+
+describe('similar games', () => {
+  it('lists indexable games in the same hub first', () => {
+    const row = (slug: string, quality: number): GameRecord => ({
+      id: slug,
+      slug,
+      title: slug,
+      publisherDescription: '',
+      rawCategory: 'puzzle',
+      hub: 'puzzle',
+      tags: ['puzzle'],
+      orientation: 'landscape',
+      quality,
+      publishedAt: '2020-01-01T00:00:00.000Z',
+      updatedAt: '2020-01-01T00:00:00.000Z',
+      aspect: 1.5,
+      coverWidth: 640,
+      cover: 'https://img.gamepix.com/c.png',
+      icon: 'https://img.gamepix.com/i.png',
+      embedUrl: 'https://play.gamepix.com/x?sid=LC991',
+    });
+    const ranked = similarGames(
+      [row('current', 1), row('plain', 0.9), row('written', 0.5)],
+      'current',
+      'puzzle',
+      2,
+      (slug) => slug === 'written',
+    );
+    expect(ranked.map((game) => game.slug)).toEqual(['written', 'plain']);
   });
 });
 

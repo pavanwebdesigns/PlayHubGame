@@ -7,10 +7,27 @@ const LINKS = [
   { href: '/contact/', label: 'Report a game' },
 ] as const;
 
-export function Footer({ year }: { year: number }) {
+export function Footer({
+  year,
+  hubs,
+}: {
+  year: number;
+  hubs: readonly { href: string; label: string }[];
+}) {
   return (
     <footer className="border-t border-line px-4 py-6">
-      <nav aria-label="About this site" className="flex flex-wrap gap-2">
+      <nav aria-label="Categories" className="flex flex-wrap gap-2">
+        {hubs.map((hub) => (
+          <a
+            key={hub.href}
+            href={hub.href}
+            className="inline-flex min-h-tap items-center px-2 text-ink-muted"
+          >
+            {hub.label}
+          </a>
+        ))}
+      </nav>
+      <nav aria-label="About this site" className="mt-2 flex flex-wrap gap-2">
         {LINKS.map((link) => (
           <a
             key={link.label}

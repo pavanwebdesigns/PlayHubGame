@@ -1,7 +1,9 @@
 import { ContentBlocks } from '@/components/content/ContentBlocks';
 import { GameTile } from '@/components/game/GameTile';
+import { COLLECTIONS } from '@/config/collections';
 import { HUB_NAMES } from '@/config/taxonomy';
 import type { GameRecord } from '@/lib/catalog/types';
+import { buildToday } from '@/lib/build-clock';
 import { loadContent } from '@/lib/content';
 import { formatDay, orientationLabel } from '@/lib/format';
 import type { TileGame } from '@/lib/tile-game';
@@ -17,6 +19,8 @@ export function GameCopy({
   upNext: ReactNode;
 }) {
   const doc = loadContent('games', game.slug);
+  const now = buildToday();
+  const collections = COLLECTIONS.filter((item) => item.matches(game, now));
   const oneThumb = game.orientation === 'portrait' || game.orientation === 'all';
   return (
     <div className="mt-6">
@@ -48,6 +52,21 @@ export function GameCopy({
               </a>
             </dd>
           </div>
+          {collections.length > 0 ? (
+            <div>
+              <dt className="text-ink-muted">Collections</dt>
+              <dd>
+                {collections.map((item, index) => (
+                  <span key={item.slug}>
+                    {index > 0 ? <span aria-hidden="true"> · </span> : null}
+                    <a href={`/collection/${item.slug}/`} className="text-play">
+                      {item.name}
+                    </a>
+                  </span>
+                ))}
+              </dd>
+            </div>
+          ) : null}
           <div>
             <dt className="text-ink-muted">Orientation</dt>
             <dd>{orientationLabel(game.orientation)}</dd>

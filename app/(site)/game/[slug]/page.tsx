@@ -51,7 +51,9 @@ export default async function GamePage({
   if (!game) notFound();
   const doc = loadContent('games', game.slug);
   const faqs = doc ? faqItems(doc) : [];
-  const ranked = similarGames(loadCurated(), game.slug, game.hub, 12);
+  const ranked = similarGames(loadCurated(), game.slug, game.hub, 12, (item) =>
+    isIndexable('games', item),
+  );
   const tiles = ranked.map((item) => toTileGame(item));
   const upNext = tiles[0];
   const hubName = HUB_NAMES[game.hub];

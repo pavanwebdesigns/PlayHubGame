@@ -120,7 +120,7 @@ export function GameSections() {
 
       <section id="footer" className="grid gap-3">
         <h2 className="text-title">Footer</h2>
-        <Footer year={year} />
+        <Footer year={year} hubs={[{ href: '/category/puzzle/', label: 'Puzzle' }]} />
       </section>
     </>
   );

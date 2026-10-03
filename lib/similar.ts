@@ -6,8 +6,13 @@ export function similarGames(
   slug: string,
   hub: string,
   count: number,
+  prefer: (slug: string) => boolean = () => false,
 ): GameRecord[] {
-  return rankByQuality(
+  const ranked = rankByQuality(
     games.filter((game) => game.hub === hub && game.slug !== slug),
-  ).slice(0, count);
+  );
+  return [...ranked.filter((game) => prefer(game.slug)), ...ranked.filter((game) => !prefer(game.slug))].slice(
+    0,
+    count,
+  );
 }

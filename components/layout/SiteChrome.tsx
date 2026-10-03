@@ -28,7 +28,13 @@ export function SiteChrome({ children }: { children: ReactNode }) {
         <SideRail hubs={hubs} collections={collections} />
         <div className="site-main min-w-0">
           {children}
-          <Footer year={now.getUTCFullYear()} />
+          <Footer
+            year={now.getUTCFullYear()}
+            hubs={hubs.map((hub) => ({
+              href: `/category/${hub.slug}/`,
+              label: hub.label,
+            }))}
+          />
         </div>
       </div>
       <BottomNav
