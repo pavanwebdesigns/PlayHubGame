@@ -409,6 +409,8 @@ img.cover-img[hidden] {
 
 .side-rail {
   display: none;
+  flex-shrink: 0;
+  width: 4rem;
   background: var(--deck);
 }
 
@@ -418,12 +420,27 @@ img.cover-img[hidden] {
   }
 }
 
+@media (min-width: 1280px) {
+  .side-rail[data-collapsed='false'] {
+    width: 15rem;
+  }
+}
+
+.rail-label,
+.rail-count,
+.rail-toggle-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .side-rail[data-preview='desktop'] {
   display: flex;
 }
 
 .side-rail[data-collapsed='true'] .rail-label,
-.side-rail[data-collapsed='true'] .rail-count {
+.side-rail[data-collapsed='true'] .rail-count,
+.side-rail[data-collapsed='true'] .rail-toggle-label {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -431,6 +448,60 @@ img.cover-img[hidden] {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+@media (max-width: 1279px) {
+  .side-rail .rail-label,
+  .side-rail .rail-count,
+  .side-rail .rail-toggle-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+.rail-link:hover .rail-label,
+.rail-link:focus-visible .rail-label,
+.rail-toggle:hover .rail-toggle-label,
+.rail-toggle:focus-visible .rail-toggle-label {
+  position: absolute;
+  left: calc(100% + 0.5rem);
+  top: 50%;
+  z-index: 30;
+  width: max-content;
+  max-width: 16rem;
+  height: auto;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  overflow: hidden;
+  clip-path: none;
+  transform: translateY(-50%);
+  border-radius: 12px;
+  background: var(--raised);
+  color: var(--ink);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 1280px) {
+  .side-rail[data-collapsed='false'] .rail-link:hover .rail-label,
+  .side-rail[data-collapsed='false'] .rail-link:focus-visible .rail-label,
+  .side-rail[data-collapsed='false'] .rail-toggle:hover .rail-toggle-label,
+  .side-rail[data-collapsed='false'] .rail-toggle:focus-visible .rail-toggle-label {
+    position: static;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    transform: none;
+    background: transparent;
+    color: inherit;
+  }
 }
 
 .prose-ph {

@@ -81,21 +81,19 @@ export function RailShell({
 
   return (
     <aside
-      className={`side-rail min-h-tap flex-col gap-1 p-2 ${collapsed ? 'w-16' : 'w-56'}`}
+      className="side-rail min-h-tap flex-col gap-1 p-2"
       data-preview={preview ? 'desktop' : undefined}
       data-collapsed={collapsed ? 'true' : 'false'}
       aria-label="Sections"
     >
       <button
         type="button"
-        className="press inline-flex min-h-tap items-center gap-2 rounded-button px-2 text-ink"
+        className="rail-toggle press relative inline-flex min-h-tap w-full min-w-0 items-center gap-2 rounded-button px-2 text-ink"
         aria-pressed={collapsed}
         onClick={toggle}
       >
         <Chevrons left={!collapsed} />
-        <span className={collapsed ? 'sr-only' : undefined}>
-          {collapsed ? 'Expand menu' : 'Collapse menu'}
-        </span>
+        <span className="rail-toggle-label">{collapsed ? 'Expand menu' : 'Collapse menu'}</span>
       </button>
       {children}
     </aside>

@@ -55,10 +55,10 @@ function RailLink({
   return (
     <a
       href={href}
-      className="relative inline-flex min-h-tap items-center gap-2 rounded-tile px-2 text-ink"
+      className="rail-link relative inline-flex min-h-tap w-full min-w-0 items-center gap-2 rounded-tile px-2 text-ink"
     >
       <Icon name={icon} size={20} />
-      <span className="rail-label">{label}</span>
+      <span className="rail-label min-w-0">{label}</span>
       {detail ? <span className="rail-count text-ink-muted">{detail}</span> : null}
     </a>
   );
