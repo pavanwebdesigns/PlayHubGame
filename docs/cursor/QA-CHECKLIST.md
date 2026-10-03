@@ -66,3 +66,21 @@ Filled from the local `out/` build on 3 Oct 2026. ✅ means it was actually chec
 - [x] axe in Playwright on every public page type: 16 pages, mobile and desktop, 0 violations.
 - [ ] VoiceOver or TalkBack. Those stay on the phone checklist.
 - [x] `@next/bundle-analyzer` does not apply. `next build` is Turbopack, and that package is the Webpack plugin. The home script table is the gzip of the script tags the checker counts.
+
+# QA checklist — Launch (`rebuild/next` → `main`)
+
+Filled on 3 Oct 2026 before the pull request. Live checks wait until this merges and Publish runs.
+
+## Build & code
+- [x] `npm run lint`, `npm run typecheck`, and `npm test` (72 tests) pass after `legacy/` was removed. `npm run build` completed: 2,362 pages, home JS gzip 137,157 (ceiling 137,192).
+- [x] `GITHUB_REF=refs/heads/main` `check-todos` exits 0. `PH_MAIN_BUILD=1` `report-index` exits 0. Home is published. Other drafts stay noindex. Indexable games: 0 of 1,862.
+- [x] No new dependency. The Next `package.json` had no package that only the Vite app used.
+- [x] `sid=LC991` was not edited. `out/ads.txt` still contains `#gpx-property-LC991`. HTML cache stays `no-cache`.
+
+## Content
+- [x] `content/pages/home.mdx` is the approved About and FAQ, `status: published`. The meta description is unchanged. The built home page has the same four questions in the visible headings and in the FAQPage JSON-LD.
+- [x] `CONTACT_EMAIL` is `info@playhubplace.com` on Contact, Privacy, and Report a problem.
+
+## Not checked here
+- [ ] Playwright and Lighthouse on this commit. CI runs both on the pull request.
+- [ ] The live smoke test, response headers, service worker, and favorites migration. Those run after Publish.
