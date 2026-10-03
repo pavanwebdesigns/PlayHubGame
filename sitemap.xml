@@ -1,24 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-<url>
-<loc>https://playhubplace.com/</loc>
-</url>
-<url>
-<loc>https://playhubplace.com/new/</loc>
-</url>
-<url>
-<loc>https://playhubplace.com/about/</loc>
-</url>
-<url>
-<loc>https://playhubplace.com/contact/</loc>
-</url>
-<url>
-<loc>https://playhubplace.com/privacy/</loc>
-</url>
-<url>
-<loc>https://playhubplace.com/cookies/</loc>
-</url>
-<url>
-<loc>https://playhubplace.com/terms/</loc>
-</url>
-</urlset>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>https://playhubplace.com/sitemap-pages.xml</loc></sitemap>
+  <sitemap><loc>https://playhubplace.com/sitemap-categories.xml</loc></sitemap>
+  <sitemap><loc>https://playhubplace.com/sitemap-games.xml</loc></sitemap>
+</sitemapindex>
