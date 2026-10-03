@@ -341,6 +341,15 @@ img.cover-img[hidden] {
   background: var(--marquee);
 }
 
+/* On a phone the featured pick is almost as wide as the column. Bleed the
+   Spotlight to the screen edge so its image stays the largest paint. */
+@media (max-width: 767px) {
+  .spotlight-frame {
+    width: calc(100% + 2rem);
+    margin-inline: -1rem;
+  }
+}
+
 .spotlight-frame::before {
   content: '';
   position: absolute;

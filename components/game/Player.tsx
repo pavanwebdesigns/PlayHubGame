@@ -6,6 +6,7 @@ import { ActionBar } from '@/components/game/ActionBar';
 import { CoverImage } from '@/components/game/CoverImage';
 import { Button } from '@/components/ui/Button';
 import { tipAt } from '@/config/loading-tips';
+import { PLAYER_SIZES, SPOTLIGHT_WIDTHS } from '@/lib/cover-sizes';
 import type { StoredFavorite } from '@/lib/favorites';
 import { rememberRecent } from '@/lib/recent';
 import { nextPhase, wantsImmersive, type PlayerPhase } from '@/lib/player';
@@ -243,7 +244,8 @@ export function Player({
                 alt=""
                 title={game.title}
                 coverWidth={game.coverWidth}
-                sizes="(max-width: 1024px) 100vw, 60vw"
+                sizes={PLAYER_SIZES}
+                widths={SPOTLIGHT_WIDTHS}
                 priority
               />
             </div>

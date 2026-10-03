@@ -3,6 +3,7 @@ import { buildToday } from '@/lib/build-clock';
 import { isNewGame, type TileGame } from '@/lib/tile-game';
 import { CoverImage } from '@/components/game/CoverImage';
 import { FavoriteMark } from '@/components/game/FavoriteMark';
+import { ROW_SIZES, TILE_SIZES, TILE_WIDTHS, XL_SIZES } from '@/lib/cover-sizes';
 
 const sizeClass = {
   xl: 'tile-xl',
@@ -35,7 +36,8 @@ export function GameTile({
           alt={game.title}
           title={game.title}
           coverWidth={game.coverWidth}
-          sizes="(max-width: 768px) 50vw, 16vw"
+          widths={TILE_WIDTHS}
+          sizes={size === 'row' ? ROW_SIZES : size === 'xl' ? XL_SIZES : TILE_SIZES}
         />
         <span className="absolute top-1 right-1">
           <FavoriteMark slug={game.slug} />

@@ -7,6 +7,7 @@ import { catalogWithinThresholds, invalidRatio } from '@/lib/catalog/assess';
 import { coverWidthWarning } from '@/lib/catalog/cover-widths';
 import { imageSize } from '@/lib/catalog/image-size';
 import { probeImageUrl } from '@/lib/catalog/probe-image';
+import { SPOTLIGHT_WIDTHS, TILE_WIDTHS } from '@/lib/cover-sizes';
 import { requestedCoverWidth } from '@/lib/catalog/urls';
 import { normalizeFeedItems } from '@/lib/catalog/normalize';
 import { CatalogError, buildCatalog } from '@/lib/catalog/run';
@@ -388,5 +389,12 @@ describe('home page data', () => {
     };
     visit(`${process.cwd()}/app/(site)/page.tsx`, false);
     visit(`${process.cwd()}/app/layout.tsx`, false);
+  });
+});
+
+describe('cover candidates', () => {
+  it('gives tiles and the Spotlight different widths', () => {
+    expect(TILE_WIDTHS).toEqual([240, 320, 480, 640]);
+    expect(SPOTLIGHT_WIDTHS).toEqual([480, 640, 960, 1280]);
   });
 });

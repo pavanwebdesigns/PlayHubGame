@@ -2,10 +2,9 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { SITE_NAME } from '@/config/site';
+import { TILE_WIDTHS } from '@/lib/cover-sizes';
 import gamepixLoader from '@/lib/gamepix-loader';
 import { requestedCoverWidth } from '@/lib/catalog/urls';
-
-const WIDTHS = [160, 320, 480, 640];
 
 function coverSrc(src: string, width: number, natural: number | null): string {
   return gamepixLoader({ src, width: requestedCoverWidth(width, natural) });
@@ -35,6 +34,7 @@ export function CoverImage({
   alt,
   title,
   sizes,
+  widths = TILE_WIDTHS,
   coverWidth = null,
   priority = false,
 }: {
@@ -42,10 +42,11 @@ export function CoverImage({
   alt: string;
   title: string;
   sizes: string;
+  widths?: readonly number[];
   coverWidth?: number | null;
   priority?: boolean;
 }) {
-  const offered = WIDTHS.filter((width) => requestedCoverWidth(width, coverWidth) === width);
+  const offered = widths.filter((width) => requestedCoverWidth(width, coverWidth) === width);
   const target = offered[offered.length - 1] ?? 160;
   return (
     <span className="cover-frame">
@@ -61,7 +62,7 @@ export function CoverImage({
           data-cover=""
           fetchPriority={priority ? 'high' : 'auto'}
           loading={priority ? 'eager' : 'lazy'}
-          decoding="async"
+          decoding={priority ? 'sync' : 'async'}
           className="cover-img absolute inset-0 h-full w-full object-cover"
         />
       ) : null}
