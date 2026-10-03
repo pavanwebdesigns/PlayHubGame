@@ -1,11 +1,11 @@
-import { absoluteUrl } from '@/lib/seo';
+import { absoluteFileUrl, absoluteUrl } from '@/lib/seo';
 
 export function organizationLd() {
   return {
     '@type': 'Organization',
     name: 'PlayHubPlace',
     url: absoluteUrl('/'),
-    logo: absoluteUrl('/logo.png'),
+    logo: absoluteFileUrl('/logo.png'),
   };
 }
 

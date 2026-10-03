@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GameRecord } from '@/lib/catalog/types';
 import { listingMeta } from '@/lib/listing-meta';
+import { organizationLd } from '@/lib/structured-data';
 import { absoluteFileUrl, fitTitle, gameTitle, hubTitle, ogCover } from '@/lib/seo';
 import { homeIsDraft } from '@/lib/launch-gate';
 import { sitemapIndexXml, sitemapSets } from '@/lib/sitemaps';
@@ -99,6 +100,10 @@ describe('sitemaps', () => {
     const xml = sitemapIndexXml([absoluteFileUrl('/sitemap-pages.xml')]);
     expect(xml).toContain('https://playhubplace.com/sitemap-pages.xml</loc>');
     expect(xml).not.toContain('sitemap-pages.xml/');
+  });
+
+  it('points the organization logo at the square file', () => {
+    expect(organizationLd().logo).toBe('https://playhubplace.com/logo.png');
   });
 });
 
