@@ -3,7 +3,12 @@ import type { CSSProperties, ReactNode } from 'react';
 import { DEFAULT_DESCRIPTION, DEFAULT_TITLE, SITE_URL } from '@/config/site';
 import { coverAspect } from '@/lib/cover-aspect';
 import { LEGACY_GAME_REDIRECT } from '@/lib/legacy-redirect';
-import { COVER_FALLBACK_SCRIPT, ROW_SCROLL_SCRIPT, SAVE_GAME_SCRIPT } from '@/lib/page-scripts';
+import {
+  COVER_FALLBACK_SCRIPT,
+  ROW_SCROLL_SCRIPT,
+  SAVE_GAME_SCRIPT,
+  TILE_PREFETCH_SCRIPT,
+} from '@/lib/page-scripts';
 import { SiteIcons } from '@/components/icons/SiteIcons';
 import { anekLatin, jersey15 } from './fonts';
 import './globals.css';
@@ -38,6 +43,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: COVER_FALLBACK_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: ROW_SCROLL_SCRIPT }} />
         <script dangerouslySetInnerHTML={{ __html: SAVE_GAME_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: TILE_PREFETCH_SCRIPT }} />
       </head>
       <body>
         <a
