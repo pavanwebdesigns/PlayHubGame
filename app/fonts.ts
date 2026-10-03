@@ -9,12 +9,12 @@ import { Jersey_15 } from 'next/font/google';
  */
 export const anekLatin = localFont({
   src: [
-    { path: './files/anek-400.woff2', weight: '400', style: 'normal' },
-    { path: './files/anek-500.woff2', weight: '500', style: 'normal' },
-    { path: './files/anek-600.woff2', weight: '600', style: 'normal' },
+    { path: './fonts/anek-400.woff2', weight: '400', style: 'normal' },
+    { path: './fonts/anek-500.woff2', weight: '500', style: 'normal' },
+    { path: './fonts/anek-600.woff2', weight: '600', style: 'normal' },
   ],
   display: 'swap',
-  adjustFontFallback: true,
+  adjustFontFallback: 'Arial',
   variable: '--font-anek',
   preload: true,
 });

@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 
 /**
- * Regenerates app/fonts/files/anek-400.woff2, anek-500.woff2, and anek-600.woff2.
+ * Regenerates app/fonts/anek-400.woff2, anek-500.woff2, and anek-600.woff2.
  * Those files are committed. The site build does not run this.
  *
  * Needs pyftsubset (fontTools). It is not an app dependency and ships nothing
@@ -11,7 +11,7 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
  */
 const weights = [400, 500, 600] as const;
 const unicodes = 'U+0020-007E,U+2014,U+2019,U+201C,U+201D,U+2026';
-const dir = 'app/fonts/files';
+const dir = 'app/fonts';
 
 const css = await fetch(
   'https://fonts.googleapis.com/css2?family=Anek+Latin:wght@400;500;600&display=swap',
