@@ -30,4 +30,25 @@ describe('public/.htaccess', () => {
     expect(htaccess).toContain('https://playhubplace.com/originals/cps-test/?');
     expect(htaccess).toContain('https://workutilities.com/?');
   });
+
+  it('allows the game frame the five features, for this site and GamePix only', () => {
+    const line = htaccess
+      .split('\n')
+      .find((row) => row.includes('Permissions-Policy'));
+    expect(line).toBeDefined();
+    expect(line).not.toContain('\\');
+    const value = line?.slice(line.indexOf("'") + 1, line.lastIndexOf("'")) ?? '';
+    for (const feature of [
+      'fullscreen',
+      'autoplay',
+      'gamepad',
+      'accelerometer',
+      'gyroscope',
+    ]) {
+      expect(value).toContain(
+        `${feature}=(self "https://play.gamepix.com")`,
+      );
+    }
+    expect(value.split(',').length).toBe(5);
+  });
 });
