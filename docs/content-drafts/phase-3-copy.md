@@ -55,9 +55,9 @@ If a slug drops out of the curated catalog later, skip it and use the next one (
 
 PlayHubPlace is a free games site you can open on your phone or computer and start playing in seconds. There's nothing to install and no account to create — tap a game, press Play, and you're in.
 
-We pick the games carefully instead of listing everything we can find. Each game here plays well in a browser, and on phones we put one-thumb games first, so you can play holding your phone upright with one hand on the bus or between tasks.
+We don't list every game we can find. We show the ones with the best quality scores from our game partner, plus the newest arrivals, and on phones we put one-thumb games first, so you can play holding your phone upright with one hand.
 
-Save the games you like with the heart button and they'll be waiting in My games next time. Want something quick? Try the 5-minute games. Want a challenge? Head to Train your brain or the strategy games.
+Save the games you like with the heart button and they'll be waiting in My games next time. Want something quick? Try the 5-minute games. Want a challenge? Head to Train your brain.
 
 **FAQ**
 

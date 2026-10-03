@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { dayOfYear, spotlightChoice, spotlightPitch } from '@/config/spotlight';
 import { activeSeasonal, SEASONAL_WINDOWS, windowContains } from '@/config/seasonal';
-import { parseContent, faqItems } from '@/lib/content';
+import { parseContent, faqItems, loadContent } from '@/lib/content';
 import { isIndexable } from '@/lib/content-gate';
+import { faqLd } from '@/lib/structured-data';
 import { listingPath, parseListing } from '@/lib/listing';
 import { mergeRecent, parseRecent, readRecentSnapshot, RECENT_MAX } from '@/lib/recent';
 import { nextPhase, wantsImmersive } from '@/lib/player';
@@ -89,13 +90,47 @@ describe('content gate', () => {
   it('keeps draft category copy out of the index', () => {
     expect(isIndexable('categories', 'puzzle')).toBe(false);
     expect(isIndexable('collections', 'one-thumb')).toBe(false);
-    expect(isIndexable('pages', 'home')).toBe(false);
+    expect(isIndexable('pages', 'new')).toBe(false);
     const home = parseContent(
       `---\ntitle: About\nsummary: A short summary for the home page test file.\nstatus: draft\n---\n\nHello there.\n\n## FAQ\n\n### Are the games free?\n\nYes.\n`,
     );
     expect(faqItems(home)).toEqual([
       { question: 'Are the games free?', answer: 'Yes.' },
     ]);
+  });
+
+  it('publishes the home FAQ and the JSON-LD uses those same strings', () => {
+    expect(isIndexable('pages', 'home')).toBe(true);
+    const home = loadContent('pages', 'home');
+    if (!home) throw new Error('missing home content');
+    const faqs = faqItems(home);
+    expect(faqs).toEqual([
+      {
+        question: 'Are the games free?',
+        answer:
+          'Yes. Every game on PlayHubPlace is free to play. Some games show short ads, which is how the games stay free.',
+      },
+      {
+        question: 'Do I need to download anything?',
+        answer:
+          "No. Games run in your web browser. You don't need an app, a plugin or an account.",
+      },
+      {
+        question: 'Do the games work on my phone?',
+        answer:
+          "Most do. Look for the One-thumb games collection — those are made to play upright on a phone. Some games are wide-screen and work best with your phone turned sideways; we'll tell you when that's the case.",
+      },
+      {
+        question: "Why won't a game load?",
+        answer:
+          "Usually an ad blocker or a slow connection is the cause. Turn off your ad blocker for this site and reload the page. If it still doesn't work, use Report a problem on the game page and we'll look into it.",
+      },
+    ]);
+    const data = faqLd(faqs);
+    expect(data.mainEntity.map((item) => item.name)).toEqual(faqs.map((item) => item.question));
+    expect(data.mainEntity.map((item) => item.acceptedAnswer.text)).toEqual(
+      faqs.map((item) => item.answer),
+    );
   });
 });
 
