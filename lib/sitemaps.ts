@@ -86,3 +86,23 @@ export function sitemapIndexXml(locs: readonly string[]): string {
     .join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</sitemapindex>\n`;
 }
+
+export const SITEMAP_CHILDREN = [
+  { key: 'pages', file: 'public/sitemap-pages.xml', path: '/sitemap-pages.xml' },
+  { key: 'categories', file: 'public/sitemap-categories.xml', path: '/sitemap-categories.xml' },
+  { key: 'games', file: 'public/sitemap-games.xml', path: '/sitemap-games.xml' },
+] as const;
+
+export type SitemapChild = (typeof SITEMAP_CHILDREN)[number];
+
+/** A child sitemap is listed only after it has at least one URL. */
+export function populatedSitemaps(sets: {
+  pages: readonly SitemapUrl[];
+  categories: readonly SitemapUrl[];
+  games: readonly SitemapUrl[];
+}): { child: SitemapChild; urls: readonly SitemapUrl[] }[] {
+  return SITEMAP_CHILDREN.flatMap((child) => {
+    const urls = sets[child.key];
+    return urls.length > 0 ? [{ child, urls }] : [];
+  });
+}

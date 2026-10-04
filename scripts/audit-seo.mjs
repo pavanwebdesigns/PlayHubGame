@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = 'out';
@@ -96,11 +96,18 @@ const index = sitemapLocs(join(root, 'sitemap.xml'));
 if (!index.some((loc) => loc.endsWith('/sitemap-pages.xml'))) {
   errors.push('sitemap.xml is not an index of sitemap-pages.xml');
 }
-const listed = [
-  ...sitemapLocs(join(root, 'sitemap-pages.xml')),
-  ...sitemapLocs(join(root, 'sitemap-categories.xml')),
-  ...sitemapLocs(join(root, 'sitemap-games.xml')),
-];
+const listed = [];
+for (const loc of index) {
+  const path = loc.startsWith(origin) ? loc.slice(origin.length) : loc;
+  const file = join(root, path.replace(/^\//, ''));
+  if (!existsSync(file)) {
+    errors.push(`sitemap index entry missing from out/: ${path}`);
+    continue;
+  }
+  const urls = sitemapLocs(file);
+  if (urls.length === 0) errors.push(`empty sitemap is in the index: ${path}`);
+  listed.push(...urls);
+}
 const byPath = new Map(pages.map((page) => [page.path, page]));
 
 for (const loc of listed) {
