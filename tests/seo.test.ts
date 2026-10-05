@@ -7,7 +7,7 @@ import { isIndexable } from '@/lib/content-gate';
 import { loadContent } from '@/lib/content';
 import { homeIsDraft } from '@/lib/launch-gate';
 import { isScaffoldSummary, parseGameContent, realGameSummary } from '@/lib/game-content';
-import { sitemapIndexXml, sitemapSets } from '@/lib/sitemaps';
+import { populatedSitemaps, sitemapIndexXml, sitemapSets } from '@/lib/sitemaps';
 
 describe('titles', () => {
   it('keeps the home and hub patterns inside 60 characters', () => {
@@ -110,6 +110,18 @@ describe('sitemaps', () => {
     const xml = sitemapIndexXml([absoluteFileUrl('/sitemap-pages.xml')]);
     expect(xml).toContain('https://playhubplace.com/sitemap-pages.xml</loc>');
     expect(xml).not.toContain('sitemap-pages.xml/');
+  });
+
+  it('leaves a child sitemap out of the index until it has a url', () => {
+    const sets = sitemapSets([game], new Date('2026-10-03T00:00:00.000Z'));
+    const paths = populatedSitemaps(sets).map((entry) => entry.child.path);
+    expect(paths).toEqual(['/sitemap-pages.xml']);
+    expect(
+      populatedSitemaps({
+        ...sets,
+        games: [{ loc: absoluteFileUrl('/game/prism-match-3d/'), lastmod: null }],
+      }).map((entry) => entry.child.path),
+    ).toEqual(['/sitemap-pages.xml', '/sitemap-games.xml']);
   });
 
   it('points the organization logo at the square file', () => {

@@ -1,7 +1,7 @@
 module.exports = {
   ci: {
     collect: {
-      numberOfRuns: 1,
+      numberOfRuns: 3,
       staticDistDir: './out',
       url: ['/', '/game/prism-match-3d/', '/search/', '/category/puzzle/'],
       settings: {
