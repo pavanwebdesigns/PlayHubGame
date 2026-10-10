@@ -15,12 +15,12 @@
     "check-todos": "node --experimental-strip-types scripts/check-todos.ts"
   },
   "dependencies": {
-    "lucide-react": "1.50.0",
+    "lucide-react": "1.52.0",
     "minisearch": "7.2.0",
-    "next": "16.3.8",
+    "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "web-vitals": "^6.2.2",
+    "web-vitals": "^6.2.3",
     "zod": "4.6.5"
   },
   "devDependencies": {
@@ -28,11 +28,11 @@
     "@lhci/cli": "0.15.1",
     "@playwright/test": "1.63.0",
     "@tailwindcss/postcss": "4.3.3",
-    "@types/node": "^24.10.0",
+    "@types/node": "^24.19.1",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.1",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.0",
     "eslint-config-prettier": "10.1.8",
     "playwright": "1.63.0",
     "prettier": "3.9.9",
